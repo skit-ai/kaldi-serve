@@ -11,6 +11,8 @@ from typing import Dict
 
 from redis_utils import set_redis_data, get_redis_data
 
+from kaldi_serve import utils
+
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 REDIS_EXPIRY_TIME = 10800   # 3hrs
 
@@ -55,7 +57,7 @@ config = {
 }
 
 @celery.task(name="asr-task")
-def run_asr(operation_name: str, audio_uri: str, config: Dict):
+def run_asr(operation_name: str, audio_uri: str, lang: str='en', model: str='gmm', chunk: bool=True):
     """
     :param operation_name: job id for this process
     :param audio_uri: audio url to read from [path to file on NFS]
@@ -70,11 +72,11 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     # start the process here
     print("asr run start")
 
-    # mocking the process
-    time.sleep(10)
+    results = transcribe(audio_uri, lang, model, chunk)
 
     # process ends
     results = {
+        "text": results,
         "alternatives": [
             {
                 "transcript": "okay so what am I doing here...(etc)...",
@@ -106,33 +108,27 @@ def inference(config: Dict):
     return json.dumps(stdout.decode("utf-8"), ensure_ascii=False)
 
 
-def transcribe(lang: str='en', model: str='tdnn'):
+def transcribe(audio_uri: str, lang: str='en', model: str='gmm', chunk: bool=True):
     """
     Transcribe audio
     """
-    pass
-    # try:
-    #     f = request.files['file']
-    #     filename = secure_filename(f.filename)
-    #     wav_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    #     f.save(wav_filename)
-    #     complete_audio = AudioSegment.from_file(wav_filename)
-    #     chunks = split_on_silence(complete_audio, silence_thresh=-26, min_silence_len=500, keep_silence=500)
-    #     chunks = chunks if len(chunks)>0 else [complete_audio]
-    # except:
-    #     return jsonify(status='error', description="Unable to find 'file'")
+    try:
+        wav_filename = audio_uri
+        chunks = utils.get_chunks(wav_filename) if chunk else [complete_audio]
+    except:
+        return jsonify(status='error', description="Unable to find 'file'")
 
-    # try:
-    #     transcriptions = []
-    #     for i, chunk in enumerate(chunks):
-    #         chunk_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename.strip(".wav")+"chunk"+str(i)+".wav")
-    #         chunk.export(chunk_filename, format="wav")
-    #         config_obj = config[lang][model]
-    #         config_obj["wav_filename"] = chunk_filename
-    #         transcription = inference(config_obj)
-    #         transcriptions.append(transcription)
-    # except:
-    #     return jsonify(status='error', description="Wrong lang or model")
+    try:
+        transcriptions = []
+        for i, chunk in enumerate(chunks):
+            chunk_filename = wav_filename.strip(".wav") + "chunk" + str(i) + ".wav"
+            chunk.export(chunk_filename, format="wav")
+            config_obj = config[lang][model]
+            config_obj["wav_filename"] = chunk_filename
+            transcription = inference(config_obj)
+            transcriptions.append(transcription)
+    except:
+        return jsonify(status='error', description="Wrong lang or model")
 
-    # utf_rep = json.dumps(transcriptions, ensure_ascii=False).encode("utf8")
-    # return make_response(utf_rep)
+    utf_rep = json.dumps(transcriptions, ensure_ascii=False).encode("utf8")
+    return utf_rep
