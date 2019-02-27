@@ -1,0 +1,7 @@
+tests/
+.pytest_cache
+.pyproject.lock
+
+# gitlab ci
+skaffold.yaml
+tox.ini

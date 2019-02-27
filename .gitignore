@@ -92,5 +92,16 @@ ENV/
 # IDEs
 .idea
 .code
+.vscode
 
 /poetry.lock
+/pyproject.lock
+/data/exide/config.yaml
+
+# Test Data
+data/**/*.csv
+/report.html
+/poetry.lock
+
+# Mac files
+.DS_Store
