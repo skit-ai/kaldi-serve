@@ -26,7 +26,9 @@ sudo apt-get install -y --no-install-recommends \
                tk-dev \
                libffi-dev \
                liblzma-dev \
-               python-openssl
+               python-openssl \
+	       ffmpeg \
+	       libavcodec-extra
 
 # Go to home directory
 cd

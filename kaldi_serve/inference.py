@@ -10,5 +10,5 @@ def inference(config: Dict):
     ]
     decode_process = subprocess.Popen(script_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = decode_process.communicate()
-    return json.dumps(stdout.decode("utf-8"), ensure_ascii=False).encode('utf8')
+    return json.dumps(stdout.decode("utf-8"), ensure_ascii=False)
 
