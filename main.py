@@ -2,12 +2,12 @@ import os
 import json
 import subprocess
 import time
+from typing import Dict, List
 from celery import Celery
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
-from typing import Dict, List
 
-from kaldi_serve import utils
+import utils
 from redis_utils import get_redis_data, set_redis_data
 
 CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
@@ -72,34 +72,31 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     # start the process here
     print("asr run start")
 
-    # results, error = transcribe(audio_uri, config["language_code"])
-    time.sleep(15)
+    results, error = transcribe(audio_uri, config["language_code"])
+
+    print("results", results, error)
 
     # process ends
-    results = [
-        {
-            "alternatives": [
-                {
-                    "transcript": "okay so what am I",
-                    "confidence": 0.96096134,
-                },
-            ]
-        },
-        {
-            "alternatives": [
-                {
-                    "transcript": "doing here",
-                    "confidence": 0.96096134,
-                },
-            ]
-        }
-    ]
-
-    # update results to redis
     job_data = get_redis_data(operation_name)
     job_data["done"] = True
-    job_data["results"] = results
 
+    if error:
+        job_data["error"] = True
+        job_data["errorMessage"] = "Some internal error occurred"
+    else:
+        final_results = []
+        for r in results:
+            final_results.append({
+                "alternatives": [
+                    {
+                        "transcript": r,
+                        "confidence": 1,
+                    },
+                ]
+            })
+        job_data["results"] = results
+
+    # update results to redis
     set_redis_data(operation_name, job_data, REDIS_EXPIRY_TIME)
 
 
