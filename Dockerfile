@@ -1,43 +1,6 @@
-FROM python:3.6-slim
-
-RUN apt-get update \
- && apt-get install -y \
-      ca-certificates \
-      build-essential \
-      git \
-      subversion \
-      zlib1g-dev \
-      automake \
-      autoconf \
-      unzip \
-      wget \
-      libtool \
-      libatlas3-base \
-      sox \
-      libssl-dev \
-      libbz2-dev \
-      libreadline-dev \
-      libsqlite3-dev \
-      llvm \
-      libncurses5-dev \
-      libncursesw5-dev \
-      xz-utils \
-      tk-dev \
-      libffi-dev \
-      liblzma-dev \
-      python-openssl
+FROM gcr.io/vernacular-voice-services/asr/kaldi:latest
 
 RUN mkdir /home/app
-
-# build kaldi
-WORKDIR /home
-RUN git clone https://gitlab.com/vernacularai/research/kaldi.git
-WORKDIR /home/kaldi/tools
-RUN make -j$(nproc)
-
-WORKDIR /home/kaldi/src
-RUN ./configure --shared && make depend -j$(nproc) && make -j$(nproc)
-RUN git checkout gmm-hmm-tdnn
 
 # copy code
 WORKDIR /home/app
