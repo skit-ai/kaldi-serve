@@ -15,6 +15,7 @@ CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
     os.environ.get('REDIS_VIRTUAL_PORT', '0')
 )
 REDIS_EXPIRY_TIME = 10800   # 3hrs
+MODELS_BASE_PATH = "/vol/data/models"
 
 celery = Celery('asr-server', broker=CELERY_BROKER_URL)
 celery.conf.update(

@@ -105,3 +105,5 @@ data/**/*.csv
 
 # Mac files
 .DS_Store
+
+models/
