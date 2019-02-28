@@ -1,7 +1,7 @@
-FROM library/ubuntu:16.04
+FROM python:3.6-slim
 
-RUN apt-get update --fix-missing \
- && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+ && apt-get install -y \
       ca-certificates \
       build-essential \
       git \
@@ -11,11 +11,8 @@ RUN apt-get update --fix-missing \
       autoconf \
       unzip \
       wget \
-      curl \
       libtool \
       libatlas3-base \
-      python \
-      python3 \
       sox \
       libssl-dev \
       libbz2-dev \
@@ -30,29 +27,22 @@ RUN apt-get update --fix-missing \
       liblzma-dev \
       python-openssl
 
-RUN git clone https://gitlab.com/vernacularai/research/kaldi/ /home/sujay/kaldi-trunk
-RUN cd /home/sujay/kaldi-trunk/tools
+RUN mkdir /home/app
+
+# build kaldi
+WORKDIR /home
+RUN git clone https://gitlab.com/vernacularai/research/kaldi.git
+WORKDIR /home/kaldi/tools
 RUN make -j$(nproc)
 
-RUN cd /home/sujay/kaldi-trunk/src
-RUN ./configure --shared
-RUN make depend -j$(nproc)
-RUN make -j$(nproc)
-RUN cd /home/sujay/kaldi-trunk
+WORKDIR /home/kaldi/src
+RUN ./configure --shared && make depend -j$(nproc) && make -j$(nproc)
 RUN git checkout gmm-hmm-tdnn
 
-RUN cd /home/sujay/
-RUN curl https://pyenv.run | bash
-RUN echo 'export PATH="/home/sujay/.pyenv/bin:$PATH"' >> .bashrc
-RUN echo 'eval "$(pyenv init -)"' >> .bashrc
-RUN echo 'eval "$(pyenv virtualenv-init -)"' >> .bashrc
-RUN source .bashrc
-RUN pyenv install 3.6.5
-RUN pyenv global 3.6.5
+# copy code
+WORKDIR /home/app
+COPY requirements.txt /home/app/requirements.txt
+RUN pip3 install -r /home/app/requirements.txt
 
-RUN pip3 install poetry
-RUN mkdir /home/sujay/kaldi-serve
-COPY . /home/sujay/kaldi-serve
-WORKDIR /home/sujay/kaldi-serve
-RUN poetry install --no-dev
-CMD ["poetry", "run", "kaldi-serve"]
+COPY . /home/app
+CMD ["celery", "worker" "-A", "main.celery", "-Q", "asr", "--loglevel=info"]

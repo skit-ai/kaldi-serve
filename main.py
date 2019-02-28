@@ -9,8 +9,6 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 from typing import Dict
 
-from redis_utils import set_redis_data, get_redis_data
-
 from kaldi_serve import utils
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
@@ -57,7 +55,7 @@ config = {
 }
 
 @celery.task(name="asr-task")
-def run_asr(operation_name: str, audio_uri: str, lang: str='en', model: str='gmm', chunk: bool=True):
+def run_asr(operation_name: str, audio_uri: str, config: Dict):
     """
     :param operation_name: job id for this process
     :param audio_uri: audio url to read from [path to file on NFS]
@@ -72,7 +70,8 @@ def run_asr(operation_name: str, audio_uri: str, lang: str='en', model: str='gmm
     # start the process here
     print("asr run start")
 
-    results = transcribe(audio_uri, lang, model, chunk)
+    # results = transcribe(audio_uri, config["language_code"])
+    time.sleep(10)
 
     # process ends
     results = {
@@ -108,7 +107,7 @@ def inference(config: Dict):
     return json.dumps(stdout.decode("utf-8"), ensure_ascii=False)
 
 
-def transcribe(audio_uri: str, lang: str='en', model: str='gmm', chunk: bool=True):
+def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True):
     """
     Transcribe audio
     """
