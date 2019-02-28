@@ -11,7 +11,10 @@ from typing import Dict
 
 from kaldi_serve import utils
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
+    os.environ.get('REDIS_HOST', 'localhost'),
+    os.environ.get('REDIS_VIRTUAL_PORT', '0')
+)
 REDIS_EXPIRY_TIME = 10800   # 3hrs
 
 celery = Celery('asr-server', broker=CELERY_BROKER_URL)

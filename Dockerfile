@@ -45,4 +45,8 @@ COPY requirements.txt /home/app/requirements.txt
 RUN pip3 install -r /home/app/requirements.txt
 
 COPY . /home/app
+
+ENV REDIS_HOST="localhost"
+ENV REDIS_VIRTUAL_PORT=1
+
 CMD ["celery", "worker" "-A", "main.celery", "-Q", "asr", "--loglevel=info"]
