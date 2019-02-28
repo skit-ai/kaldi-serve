@@ -4,10 +4,9 @@ import subprocess
 
 from datetime import time
 from celery import Celery
-from werkzeug import secure_filename
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
-from typing import Dict
+from typing import Dict, List
 
 from kaldi_serve import utils
 
@@ -73,23 +72,28 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     # start the process here
     print("asr run start")
 
-    # results = transcribe(audio_uri, config["language_code"])
+    # results, error = transcribe(audio_uri, config["language_code"])
     time.sleep(10)
 
     # process ends
-    results = {
-        "text": results,
-        "alternatives": [
-            {
-                "transcript": "okay so what am I doing here...(etc)...",
-                "confidence": 0.96096134,
-            },
-            {
-                "transcript": "okay so what am I doing here...(etc)...",
-                "confidence": 0.96096134,
-            },
-        ]
-    }
+    results = [
+        {
+            "alternatives": [
+                {
+                    "transcript": "okay so what am I",
+                    "confidence": 0.96096134,
+                },
+            ]
+        },
+        {
+            "alternatives": [
+                {
+                    "transcript": "doing here",
+                    "confidence": 0.96096134,
+                },
+            ]
+        }
+    ]
 
     # update results to redis
     job_data = get_redis_data(operation_name)
@@ -110,7 +114,7 @@ def inference(config: Dict):
     return json.dumps(stdout.decode("utf-8"), ensure_ascii=False)
 
 
-def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True):
+def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True) -> (List[str], str):
     """
     Transcribe audio
     """
@@ -118,7 +122,7 @@ def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True):
         wav_filename = audio_uri
         chunks = utils.get_chunks(wav_filename) if chunk else [complete_audio]
     except:
-        return jsonify(status='error', description="Unable to find 'file'")
+        return None, "Unable to find 'file'"
 
     try:
         transcriptions = []
@@ -130,7 +134,6 @@ def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True):
             transcription = inference(config_obj)
             transcriptions.append(transcription)
     except:
-        return jsonify(status='error', description="Wrong lang or model")
+        return None, "Wrong lang or model"
 
-    utf_rep = json.dumps(transcriptions, ensure_ascii=False).encode("utf8")
-    return utf_rep
+    return transcriptions, None
