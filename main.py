@@ -8,6 +8,7 @@ from pydub.silence import split_on_silence
 from typing import Dict, List
 
 from kaldi_serve import utils
+from redis_utils import get_redis_data, set_redis_data
 
 CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
     os.environ.get('REDIS_HOST', 'localhost'),
@@ -72,7 +73,7 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     print("asr run start")
 
     # results, error = transcribe(audio_uri, config["language_code"])
-    time.sleep(10)
+    time.sleep(15)
 
     # process ends
     results = [
