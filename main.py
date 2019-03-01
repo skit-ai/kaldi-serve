@@ -92,7 +92,7 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
                     },
                 ]
             })
-        job_data["results"] = results
+        job_data["results"] = final_results
 
     # update results to redis
     set_redis_data(operation_name, job_data, REDIS_EXPIRY_TIME)
