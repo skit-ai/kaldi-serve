@@ -1,7 +1,7 @@
 import os
 import json
 import subprocess
-import time
+import shutil
 from typing import Dict, List
 from celery import Celery
 from pydub import AudioSegment
@@ -56,6 +56,15 @@ config = {
     }
 }
 
+models_copied = False
+
+def copy_models():
+    try:
+        shutil.copytree("/vol/data/models", "/home/app/models")
+    except OSError as e:
+        print('models not copied. Error: %s' % e)
+    models_copied = True
+
 @celery.task(name="asr-task")
 def run_asr(operation_name: str, audio_uri: str, config: Dict):
     """
@@ -68,7 +77,9 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
                     "encoding": "LINEAR16"
                 }
     """
-
+    if not models_copied:
+        copy_models()
+    
     # start the process here
     results, error = transcribe(audio_uri, config["language_code"])
 
