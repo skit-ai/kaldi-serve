@@ -63,6 +63,8 @@ def copy_models():
         shutil.copytree("/vol/data/models", "/home/app/models")
     except OSError as e:
         print('models not copied. Error: %s' % e)
+
+    global models_copied
     models_copied = True
 
 @celery.task(name="asr-task")
@@ -77,6 +79,7 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
                     "encoding": "LINEAR16"
                 }
     """
+    global models_copied
     if not models_copied:
         copy_models()
     

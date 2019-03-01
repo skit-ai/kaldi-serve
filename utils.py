@@ -30,7 +30,7 @@ def get_chunks(filename):
     current_end = 0
     current_index = 0
 
-    # Force the "last" non silent range to entend till the end of the audio
+    # Force the "last" non silent range to extend till the end of the audio
     not_silence_ranges[-1][1] = len(complete_audio)
 
     chunks = []
