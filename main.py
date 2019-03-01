@@ -84,7 +84,7 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
         copy_models()
     
     # start the process here
-    results, error = transcribe(audio_uri, config["language_code"])
+    results, error = transcribe(audio_uri, config["language_code"], operation_name)
 
     print("results", results, error)
 
@@ -123,20 +123,16 @@ def inference(config: Dict):
     return str(stdout.decode("utf-8"))
 
 
-def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True) -> (List[str], str):
+def transcribe(audio_uri: str, lang: str, operation_name:str, model: str='gmm') -> (List[str], str):
     """
     Transcribe audio
     """
     try:
-        wav_filename = audio_uri
-        chunks = utils.get_chunks(wav_filename) if chunk else [complete_audio]
-    except:
-        return None, "Unable to find 'file'"
+        chunks = utils.get_chunks(audio_uri)
 
-    try:
         transcriptions = []
         for i, chunk in enumerate(chunks):
-            chunk_filename = wav_filename.strip(".wav") + "chunk" + str(i) + ".wav"
+            chunk_filename = "/home/%s_chunk_%s.wav" % (operation_name, i)
             chunk.export(chunk_filename, format="wav")
             config_obj = config[lang][model]
             config_obj["wav_filename"] = chunk_filename
