@@ -15,7 +15,6 @@ CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
     os.environ.get('REDIS_VIRTUAL_PORT', '0')
 )
 REDIS_EXPIRY_TIME = 10800   # 3hrs
-MODELS_BASE_PATH = "/vol/data/models"
 
 celery = Celery('asr-server', broker=CELERY_BROKER_URL)
 celery.conf.update(
@@ -71,8 +70,6 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     """
 
     # start the process here
-    print("asr run start")
-
     results, error = transcribe(audio_uri, config["language_code"])
 
     print("results", results, error)
@@ -109,7 +106,7 @@ def inference(config: Dict):
     ]
     decode_process = subprocess.Popen(script_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = decode_process.communicate()
-    return json.dumps(stdout.decode("utf-8"), ensure_ascii=False)
+    return str(stdout.decode("utf-8"))
 
 
 def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True) -> (List[str], str):
@@ -130,7 +127,7 @@ def transcribe(audio_uri: str, lang: str, model: str='gmm', chunk: bool=True) ->
             config_obj = config[lang][model]
             config_obj["wav_filename"] = chunk_filename
             transcription = inference(config_obj)
-            transcriptions.append(transcription)
+            transcriptions.append(transcription.strip())
     except:
         return None, "Wrong lang or model"
 

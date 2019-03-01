@@ -9,7 +9,11 @@ RUN pip3 install -r /home/app/requirements.txt
 
 COPY . /home/app
 
+# copy models from NFS
+RUN cp -R /vol/data/models /home/app
+
 ENV REDIS_HOST="localhost"
 ENV REDIS_VIRTUAL_PORT=1
+ENV KALDI_ROOT="/home/kaldi"
 
 CMD ["celery", "worker" "-A", "main.celery", "-Q", "asr", "--loglevel=info"]
