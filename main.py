@@ -96,6 +96,7 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
         job_data["error"] = True
         job_data["errorMessage"] = "Some internal error occurred"
     else:
+        job_data["error"] = False
         final_results = []
         for r in results:
             final_results.append({
@@ -123,6 +124,12 @@ def inference(config: Dict):
     return str(stdout.decode("utf-8"))
 
 
+def cleanup(tr):
+    tr = tr.strip().replace("utterance-id1", "")
+    tr = tr.replace("utterance-id-1", "")
+    return tr
+
+
 def transcribe(audio_uri: str, lang: str, operation_name:str, model: str=None) -> (List[str], str):
     """
     Transcribe audio
@@ -142,7 +149,7 @@ def transcribe(audio_uri: str, lang: str, operation_name:str, model: str=None) -
             config_obj = config[lang][model]
             config_obj["wav_filename"] = chunk_filename
             transcription = inference(config_obj)
-            transcriptions.append(transcription.strip())
+            transcriptions.append(cleanup(transcription))
     except:
         return None, "Wrong lang or model"
 
