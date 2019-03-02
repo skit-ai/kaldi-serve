@@ -123,10 +123,15 @@ def inference(config: Dict):
     return str(stdout.decode("utf-8"))
 
 
-def transcribe(audio_uri: str, lang: str, operation_name:str, model: str='gmm') -> (List[str], str):
+def transcribe(audio_uri: str, lang: str, operation_name:str, model: str=None) -> (List[str], str):
     """
     Transcribe audio
     """
+    if lang == "en":
+        model = "gmm"
+    else:
+        if model is None:
+            model = "tdnn"
     try:
         chunks = utils.get_chunks(audio_uri)
 
