@@ -2,7 +2,9 @@ import os
 import json
 import subprocess
 import shutil
+from datetime import datetime
 from typing import Dict, List
+
 from celery import Celery
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
@@ -59,10 +61,11 @@ config = {
 models_copied = False
 
 def copy_models():
-    try:
-        shutil.copytree("/vol/data/models", "/home/app/models")
-    except OSError as e:
-        print('models not copied. Error: %s' % e)
+    if not os.path.exists("/home/app/models"):
+        try:
+            shutil.copytree("/vol/data/models", "/home/app/models")
+        except OSError as e:
+            print('models not copied. Error: %s' % e)
 
     global models_copied
     models_copied = True
@@ -91,6 +94,7 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     # process ends
     job_data = get_redis_data(operation_name)
     job_data["done"] = True
+    job_data["metadata"]["lastUpdateTime"] = str(datetime.now())
 
     if error:
         job_data["error"] = True
@@ -103,7 +107,7 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
                 "alternatives": [
                     {
                         "transcript": r,
-                        "confidence": 1,
+                        "confidence": "-",
                     },
                 ]
             })
