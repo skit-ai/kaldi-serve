@@ -50,9 +50,9 @@ config = {
        "gmm": {
            "script": "./scripts/inference_gmm_online.sh",
             "args": [
-                "models/english/exp/tri3b_online/conf/online_decoding.conf",
-                "models/english/exp/tri3b/graph/HCLG.fst",
-                "models/english/exp/tri3b/graph/words.txt"
+                "models/english/s3/exp/tri3b_online/conf/online_decoding.conf",
+                "models/english/s3/exp/tri3b/graph/HCLG.fst",
+                "models/english/s3/exp/tri3b/graph/words.txt"
             ]
        }
     }
