@@ -2,7 +2,6 @@ import os
 import json
 import subprocess
 import shutil
-from datetime import datetime
 from typing import Dict, List
 
 from celery import Celery
@@ -10,7 +9,6 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 
 import utils
-from redis_utils import get_redis_data, set_redis_data
 
 CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
     os.environ.get('REDIS_HOST', 'localhost'),
@@ -22,7 +20,8 @@ celery = Celery('asr-server', broker=CELERY_BROKER_URL)
 celery.conf.update(
     task_routes={
         'preprocess-task': {'queue': 'preprocess'},
-        'asr-task': {'queue': 'asr'}
+        'asr-task': {'queue': 'asr'},
+        'asr-complete-task': {'queue': 'preprocess'},
     },
 )
 
@@ -92,16 +91,8 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     print("results", results, error)
 
     # process ends
-    job_data = get_redis_data(operation_name)
-    job_data["done"] = True
-    job_data["metadata"]["lastUpdateTime"] = str(datetime.now())
-
-    if error:
-        job_data["error"] = True
-        job_data["errorMessage"] = "Some internal error occurred"
-    else:
-        job_data["error"] = False
-        final_results = []
+    final_results = []
+    if not error:
         for r in results:
             final_results.append({
                 "alternatives": [
@@ -111,10 +102,12 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
                     },
                 ]
             })
-        job_data["results"] = final_results
 
-    # update results to redis
-    set_redis_data(operation_name, job_data, REDIS_EXPIRY_TIME)
+    celery.send_task('asr-complete-task', kwargs={
+        'operation_name': operation_name,
+        'results': final_results,
+        'error': error
+    })
 
 
 def inference(config: Dict):
