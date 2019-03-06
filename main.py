@@ -140,11 +140,9 @@ def transcribe(audio_uri: str, lang: str, operation_name:str, model: str=None) -
     """
     Transcribe audio
     """
-    if lang == "en":
-        model = "gmm"
-    else:
-        if model is None:
-            model = "tdnn"
+    if model is None:
+        model = "tdnn"
+        
     try:
         chunks = utils.get_chunks(audio_uri)
 
