@@ -46,12 +46,21 @@ config = {
         }
     },
     "en": {
+        "tdnn": {
+            "script": "./scripts/inference_tdnn_online.sh",
+            "args": [
+                "models/english/s4/exp/chain/tdnn1g_sp_online/conf/online.conf",
+                "models/english/s4/exp/chain/tdnn1g_sp_online/final.mdl",
+                "models/english/s4/exp/chain/tree_a_sp/graph/HCLG.fst",
+                "models/english/s4/exp/chain/tree_a_sp/graph/words.txt"
+            ]
+        },
        "gmm": {
            "script": "./scripts/inference_gmm_online.sh",
             "args": [
-                "models/english/s3/exp/tri3b_online/conf/online_decoding.conf",
-                "models/english/s3/exp/tri3b/graph/HCLG.fst",
-                "models/english/s3/exp/tri3b/graph/words.txt"
+                "models/english/s4/exp/tri3b_online/conf/online_decoding.conf",
+                "models/english/s4/exp/tri3b/graph/HCLG.fst",
+                "models/english/s4/exp/tri3b/graph/words.txt"
             ]
        }
     }
