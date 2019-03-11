@@ -12,5 +12,6 @@ COPY . /home/app
 ENV REDIS_HOST="localhost"
 ENV REDIS_VIRTUAL_PORT=1
 ENV KALDI_ROOT="/home/kaldi"
+ENV LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
 
 CMD ["celery", "worker" "-A", "main.celery", "-Q", "asr", "--loglevel=info"]

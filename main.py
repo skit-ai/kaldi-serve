@@ -8,6 +8,7 @@ from celery import Celery
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 
+import tdnn_decode
 import utils
 
 CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
@@ -128,6 +129,17 @@ def inference(config: Dict):
     decode_process = subprocess.Popen(script_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = decode_process.communicate()
     return str(stdout.decode("utf-8"))
+
+
+def temp():
+    tdnn_decode.load_model(
+        13.0, 7000, 7000, 6.0, 1.0, 3,
+        "/home/app/models/hindi/exp/chain/tree_a_sp/graph/words.txt",
+        "/home/app/models/hindi/exp/chain/tdnn1g_sp_online/final.mdl",
+        "/home/app/models/hindi/exp/chain/tree_a_sp/graph/HCLG.fst",
+        "/home/app/models/hindi/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
+        "/home/app/models/hindi/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
+    )
 
 
 def cleanup(tr):
