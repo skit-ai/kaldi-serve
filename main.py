@@ -28,42 +28,22 @@ celery.conf.update(
 
 config = {
     "hi": {
-        "tdnn": {
-            "script": "./scripts/inference_tdnn_online.sh",
-            "args": [
-                "models/hindi/exp/chain/tdnn1g_sp_online/conf/online.conf",
-                "models/hindi/exp/chain/tdnn1g_sp_online/final.mdl",
-                "models/hindi/exp/chain/tree_a_sp/graph/HCLG.fst",
-                "models/hindi/exp/chain/tree_a_sp/graph/words.txt"
-            ]
-        },
-        "gmm": {
-            "script": "./scripts/inference_gmm_online.sh",
-            "args": [
-                "models/hindi/exp/tri3b_online/conf/online_decoding.conf",
-                "models/hindi/exp/tri3b/graph/HCLG.fst",
-                "models/hindi/exp/tri3b/graph/words.txt"
-            ]
-        }
+        "script": "./scripts/inference_tdnn_online.sh",
+        "args": [
+            "models/hindi/exp/chain/tdnn1g_sp_online/conf/online.conf",
+            "models/hindi/exp/chain/tdnn1g_sp_online/final.mdl",
+            "models/hindi/exp/chain/tree_a_sp/graph/HCLG.fst",
+            "models/hindi/exp/chain/tree_a_sp/graph/words.txt"
+        ]
     },
     "en": {
-        "tdnn": {
-            "script": "./scripts/inference_tdnn_online.sh",
-            "args": [
-                "models/english/s4/exp/chain/tdnn1g_sp_online/conf/online.conf",
-                "models/english/s4/exp/chain/tdnn1g_sp_online/final.mdl",
-                "models/english/s4/exp/chain/tree_a_sp/graph/HCLG.fst",
-                "models/english/s4/exp/chain/tree_a_sp/graph/words.txt"
-            ]
-        },
-       "gmm": {
-           "script": "./scripts/inference_gmm_online.sh",
-            "args": [
-                "models/english/s4/exp/tri3b_online/conf/online_decoding.conf",
-                "models/english/s4/exp/tri3b/graph/HCLG.fst",
-                "models/english/s4/exp/tri3b/graph/words.txt"
-            ]
-       }
+        "script": "./scripts/inference_tdnn_online.sh",
+        "args": [
+            "models/english/s4/exp/chain/tdnn1g_sp_online/conf/online.conf",
+            "models/english/s4/exp/chain/tdnn1g_sp_online/final.mdl",
+            "models/english/s4/exp/chain/tree_a_sp/graph/HCLG.fst",
+            "models/english/s4/exp/chain/tree_a_sp/graph/words.txt"
+        ]
     }
 }
 
@@ -148,13 +128,10 @@ def cleanup(tr):
     return tr
 
 
-def transcribe(audio_uri: str, lang: str, operation_name:str, model: str=None) -> (List[str], str):
+def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str):
     """
     Transcribe audio
     """
-    if model is None:
-        model = "tdnn"
-        
     try:
         chunks = utils.get_chunks(audio_uri)
 
@@ -162,7 +139,7 @@ def transcribe(audio_uri: str, lang: str, operation_name:str, model: str=None) -
         for i, chunk in enumerate(chunks):
             chunk_filename = "/home/%s_chunk_%s.wav" % (operation_name, i)
             chunk.export(chunk_filename, format="wav")
-            config_obj = config[lang][model]
+            config_obj = config[lang]
             config_obj["wav_filename"] = chunk_filename
             transcription = inference(config_obj)
             transcriptions.append(cleanup(transcription))
