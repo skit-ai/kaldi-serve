@@ -66,11 +66,10 @@ namespace kaldi {
                 char* &mfcc_config,
                 char* &ie_conf_filename) {
     try {
-      using namespace kaldi;
       using namespace fst;
 
-      typedef kaldi::int32 int32;
-      typedef kaldi::int64 int64;
+      typedef int32 int32;
+      typedef int64 int64;
 
       #if VERBOSE
         KALDI_LOG << "model_in_filename:         " << model_in_filename;
@@ -127,7 +126,7 @@ namespace kaldi {
       int64 num_frames = 0;
 
       SequentialTokenVectorReader spk2utt_reader("ark:echo utterance-id1 utterance-id1|");
-      RandomAccessTableReader<WaveHolder> wav_reader("scp:echo utterance-id1 /home/app/1548157867.95924.wav|");
+      RandomAccessTableReader<WaveHolder> wav_reader("scp:echo utterance-id1 /home/app/1545203318.9486.wav|");
       // CompactLatticeWriter clat_writer(clat_wspecifier);
 
       for (; !spk2utt_reader.Done(); spk2utt_reader.Next()) {
@@ -249,17 +248,10 @@ static PyObject *load_model(PyObject *self, PyObject *args) {
   char* mfcc_config;
   char* ie_conf_filename;
 
-  Py_ssize_t tupleSize = PyTuple_Size(args);
-  if (tupleSize < 11) {
-    if(!PyErr_Occurred())
-        PyErr_SetString(PyExc_TypeError,"You must supply 11 args");
-
-    return NULL;
-  }
-
   if (!PyArg_ParseTuple(
-      args, "f|i|i|f|f|i|s|s|s|s|s",
-      &beam, &max_active, &min_active, &lattice_beam, &acoustic_scale, &frame_subsampling_factor,
+      args,
+      "fiiffisssss",
+      &beam, &max_active, &min_active, &lattice_beam,&acoustic_scale, &frame_subsampling_factor,
       &word_syms_filename, &model_in_filename, &fst_in_str, &mfcc_config, &ie_conf_filename
     )
   ) return NULL;
@@ -272,15 +264,8 @@ static PyObject *load_model(PyObject *self, PyObject *args) {
 
 static PyObject *infer(PyObject *self, PyObject *args) {
   int n, k;
-  Py_ssize_t tupleSize = PyTuple_Size(args);
-  if (tupleSize < 2) {
-    if(!PyErr_Occurred())
-        PyErr_SetString(PyExc_TypeError,"You must supply 2 args");
 
-    return NULL;
-  }
-
-  if (!PyArg_ParseTuple(args, "i|i", &n, &k)) return NULL;
+  if (!PyArg_ParseTuple(args, "ii", &n, &k)) return NULL;
   return Py_BuildValue("s", kaldi::CInfer(n, k));
 }
 
