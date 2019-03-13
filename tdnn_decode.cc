@@ -4,7 +4,6 @@
 #include "online2/online-nnet3-decoding.h"
 #include "online2/online-nnet2-feature-pipeline.h"
 #include "online2/onlinebin-util.h"
-#include "online2/online-timing.h"
 #include "online2/online-endpoint.h"
 #include "fstext/fstext-lib.h"
 #include "lat/lattice-functions.h"
@@ -40,17 +39,15 @@ namespace kaldi {
     *tot_num_frames += num_frames;
     *tot_like += likelihood;
     std::cout << "Likelihood per frame for utterance " << utt << " is "
-              << (likelihood / num_frames) << " over " << num_frames
-              << " frames.";
+              << (likelihood / num_frames) << " over " << num_frames << " frames.";
 
-    if (word_syms != NULL)
-    {
+    if (word_syms != NULL) {
       std::cerr << utt << ' ';
-      for (size_t i = 0; i < words.size(); i++)
-      {
+      for (size_t i = 0; i < words.size(); i++) {
         std::string s = word_syms->Find(words[i]);
-        if (s == "")
+        if (s == "") {
           std::cout << "Word-id " << words[i] << " not in symbol table.";
+        }
         std::cerr << s << ' ';
       }
       std::cerr << std::endl;
@@ -98,8 +95,7 @@ namespace kaldi {
       decodable_opts.acoustic_scale              = acoustic_scale;
       decodable_opts.frame_subsampling_factor    = frame_subsampling_factor;
 
-      BaseFloat chunk_length_secs = 0;
-      bool online = true;
+      BaseFloat chunk_length_secs = 0.18;
 
       OnlineNnet2FeaturePipelineInfo feature_info(feature_opts);
 
@@ -123,9 +119,8 @@ namespace kaldi {
       fst::Fst<fst::StdArc> *decode_fst = ReadFstKaldiGeneric(fst_in_str);
 
       fst::SymbolTable *word_syms = NULL;
-      if (word_syms_filename != "")
-        if (!(word_syms = fst::SymbolTable::ReadText(word_syms_filename)))
-          KALDI_ERR << "Could not read symbol table from file " << word_syms_filename;
+      if (word_syms_filename != "" && !(word_syms = fst::SymbolTable::ReadText(word_syms_filename)))
+        KALDI_ERR << "Could not read symbol table from file " << word_syms_filename;
 
       int32 num_done = 0, num_err = 0;
       double tot_like = 0.0;
@@ -135,13 +130,11 @@ namespace kaldi {
       RandomAccessTableReader<WaveHolder> wav_reader("scp:echo utterance-id1 /home/app/1548157867.95924.wav|");
       // CompactLatticeWriter clat_writer(clat_wspecifier);
 
-      OnlineTimingStats timing_stats;
-
       for (; !spk2utt_reader.Done(); spk2utt_reader.Next()) {
         std::string spk = spk2utt_reader.Key();
         const std::vector<std::string> &uttlist = spk2utt_reader.Value();
-        OnlineIvectorExtractorAdaptationState adaptation_state(
-            feature_info.ivector_extractor_info);
+        OnlineIvectorExtractorAdaptationState adaptation_state(feature_info.ivector_extractor_info);
+
         for (size_t i = 0; i < uttlist.size(); i++) {
           std::string utt = uttlist[i];
           if (!wav_reader.HasKey(utt)) {
@@ -158,14 +151,15 @@ namespace kaldi {
           feature_pipeline.SetAdaptationState(adaptation_state);
 
           OnlineSilenceWeighting silence_weighting(
-              trans_model,
-              feature_info.silence_weighting_config,
-              decodable_opts.frame_subsampling_factor);
+            trans_model,
+            feature_info.silence_weighting_config,
+            decodable_opts.frame_subsampling_factor
+          );
 
           SingleUtteranceNnet3Decoder decoder(
             decoder_opts, trans_model, decodable_info, *decode_fst, &feature_pipeline
           );
-          OnlineTimer decoding_timer(utt);
+          // OnlineTimer decoding_timer(utt);
 
           BaseFloat samp_freq = wave_data.SampFreq();
           int32 chunk_length;
@@ -181,21 +175,19 @@ namespace kaldi {
 
           while (samp_offset < data.Dim()) {
             int32 samp_remaining = data.Dim() - samp_offset;
-            int32 num_samp = chunk_length < samp_remaining ? chunk_length
-                                                            : samp_remaining;
+            int32 num_samp = chunk_length < samp_remaining ? chunk_length : samp_remaining;
 
             SubVector<BaseFloat> wave_part(data, samp_offset, num_samp);
             feature_pipeline.AcceptWaveform(samp_freq, wave_part);
 
             samp_offset += num_samp;
-            decoding_timer.WaitUntil(samp_offset / samp_freq);
+            // decoding_timer.WaitUntil(samp_offset / samp_freq);
             if (samp_offset == data.Dim()) {
               // no more input. flush out last frames
               feature_pipeline.InputFinished();
             }
 
-            if (silence_weighting.Active() &&
-                feature_pipeline.IvectorFeature() != NULL) {
+            if (silence_weighting.Active() && feature_pipeline.IvectorFeature() != NULL) {
               silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
               silence_weighting.GetDeltaWeights(feature_pipeline.NumFramesReady(),
                                                 &delta_weights);
@@ -212,15 +204,12 @@ namespace kaldi {
 
           GetDiagnosticsAndPrintOutput(utt, word_syms, clat, &num_frames, &tot_like);
 
-          decoding_timer.OutputStats(&timing_stats);
-
           // In an application you might avoid updating the adaptation state if
           // you felt the utterance had low confidence.  See lat/confidence.h
           feature_pipeline.GetAdaptationState(&adaptation_state);
 
           // we want to output the lattice with un-scaled acoustics.
-          BaseFloat inv_acoustic_scale =
-              1.0 / decodable_opts.acoustic_scale;
+          BaseFloat inv_acoustic_scale = 1.0 / decodable_opts.acoustic_scale;
           ScaleLattice(AcousticLatticeScale(inv_acoustic_scale), &clat);
 
           // clat_writer.Write(utt, clat);
@@ -228,7 +217,6 @@ namespace kaldi {
           num_done++;
         }
       }
-      timing_stats.Print(online);
 
       KALDI_LOG << "Decoded " << num_done << " utterances, " << num_err << " with errors.";
       KALDI_LOG << "Overall likelihood per frame was " << (tot_like / num_frames) << " per frame over " << num_frames << " frames.";
