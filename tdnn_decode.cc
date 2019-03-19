@@ -11,7 +11,7 @@
 #include "util/kaldi-thread.h"
 #include "nnet3/nnet-utils.h"
 
-#define VERBOSE 1
+#define VERBOSE 0
 #define CAPSULE_NAME "TDNN_DECODER_MODEL"
 
 namespace kaldi {
@@ -42,14 +42,13 @@ namespace kaldi {
 
             feature_opts.mfcc_config                   = mfcc_config;
             feature_opts.ivector_extraction_config     = ie_conf_filename;
-            decoder_opts.max_active                    = max_active;
-            decoder_opts.min_active                    = min_active;
-            decoder_opts.beam                          = beam;
-            decoder_opts.lattice_beam                  = lattice_beam;
+            lattice_faster_decoder_config.max_active                    = max_active;
+            lattice_faster_decoder_config.min_active                    = min_active;
+            lattice_faster_decoder_config.beam                          = beam;
+            lattice_faster_decoder_config.lattice_beam                  = lattice_beam;
             decodable_opts.acoustic_scale              = acoustic_scale;
             decodable_opts.frame_subsampling_factor    = frame_subsampling_factor;
 
-            nnet3::AmNnetSimple am_nnet;
             {
               bool binary;
               Input ki(model_in_filename, &binary);
@@ -67,23 +66,18 @@ namespace kaldi {
               KALDI_ERR << "Could not read symbol table from file " << word_syms_filename;
             }
 
-            // this object contains precomputed stuff that is used by all decodable
-            // objects.  It takes a pointer to am_nnet because if it has iVectors it has
-            // to modify the nnet to accept iVectors at intervals.
-            decodable_info = new nnet3::DecodableNnetSimpleLoopedInfo(decodable_opts, &am_nnet);
             feature_info = new OnlineNnet2FeaturePipelineInfo(feature_opts);
           } catch (const std::exception &e) {
             KALDI_ERR << e.what(); // model not loaded
           }
       }
 
-      char* CInfer(std::string wav_file_path) {
+      std::string CInfer(std::string wav_file_path) {
         using namespace fst;
 
-        BaseFloat chunk_length_secs = 0.18;
-        int32 num_done = 0, num_err = 0;
+        BaseFloat chunk_length_secs = 1;
+        int32 num_err = 0;
         double tot_like = 0.0;
-        int64 num_frames = 0;
 
         OnlineIvectorExtractorAdaptationState adaptation_state(feature_info->ivector_extractor_info);
         OnlineNnet2FeaturePipeline feature_pipeline(*feature_info);
@@ -91,15 +85,14 @@ namespace kaldi {
 
         OnlineSilenceWeighting silence_weighting(trans_model,
           feature_info->silence_weighting_config, decodable_opts.frame_subsampling_factor);
+        nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts, &am_nnet);
 
         SingleUtteranceNnet3Decoder decoder(
-          decoder_opts, trans_model, *decodable_info, *decode_fst, &feature_pipeline
+          lattice_faster_decoder_config, trans_model, decodable_info, *decode_fst, &feature_pipeline
         );
-        KALDI_LOG << "reached at 1";
         std::ifstream file_data(wav_file_path, std::ifstream::binary);
         WaveData wave_data;
         wave_data.Read(file_data);
-        KALDI_LOG << "reached at 2";
         // get the data for channel zero (if the signal is not mono, we only
         // take the first channel).
         SubVector<BaseFloat> data(wave_data.Data(), 0);
@@ -111,8 +104,6 @@ namespace kaldi {
         } else {
           chunk_length = std::numeric_limits<int32>::max();
         }
-        KALDI_LOG << "reached at 3";
-
         int32 samp_offset = 0;
         std::vector<std::pair<int32, BaseFloat> > delta_weights;
 
@@ -142,45 +133,28 @@ namespace kaldi {
         bool end_of_utterance = true;
         decoder.GetLattice(end_of_utterance, &clat);
 
-        GetDiagnosticsAndPrintOutput(word_syms, clat, &num_frames, &tot_like);
+        std::string answer = "";
+        get_decoded_string(word_syms, clat, &tot_like, answer);
 
-        // In an application you might avoid updating the adaptation state if
-        // you felt the utterance had low confidence.  See lat/confidence.h
-        feature_pipeline.GetAdaptationState(&adaptation_state);
-
-        // we want to output the lattice with un-scaled acoustics.
-        BaseFloat inv_acoustic_scale = 1.0 / decodable_opts.acoustic_scale;
-        ScaleLattice(AcousticLatticeScale(inv_acoustic_scale), &clat);
-
-        num_done++;
-
-        KALDI_LOG << "Decoded " << num_done << " utterances, " << num_err << " with errors.";
-        KALDI_LOG << "Overall likelihood per frame was " << (tot_like / num_frames) << " per frame over " << num_frames << " frames.";
-
-        delete &decoder;
-        delete &feature_pipeline;
-        return "hello";
+        return answer;
       }
 
       ~Model() {
-        KALDI_LOG << "destructor called";
         delete decode_fst;
         delete word_syms;  // will delete if non-NULL.
       }
 
     private:
       fst::SymbolTable *word_syms;
-      LatticeFasterDecoderConfig decoder_opts;
+      LatticeFasterDecoderConfig lattice_faster_decoder_config;
       OnlineNnet2FeaturePipelineInfo *feature_info;
-
-      nnet3::NnetSimpleLoopedComputationOptions decodable_opts;
+      nnet3::AmNnetSimple am_nnet;
       TransitionModel trans_model;
-      nnet3::DecodableNnetSimpleLoopedInfo *decodable_info;
+      nnet3::NnetSimpleLoopedComputationOptions decodable_opts;
       fst::Fst<fst::StdArc> *decode_fst;
 
-      void GetDiagnosticsAndPrintOutput(const fst::SymbolTable *word_syms,
-                              const CompactLattice &clat,
-                              int64 *tot_num_frames, double *tot_like) {
+      void get_decoded_string(const fst::SymbolTable *word_syms, const CompactLattice &clat,
+              double *tot_like, std::string& answer) {
         if (clat.NumStates() == 0) {
           KALDI_LOG << "Empty lattice.";
           return;
@@ -191,28 +165,29 @@ namespace kaldi {
         Lattice best_path_lat;
         ConvertLattice(best_path_clat, &best_path_lat);
 
-        double likelihood;
-        LatticeWeight weight;
-        int32 num_frames;
+        double             likelihood;
+        LatticeWeight      weight;
+        int32              num_frames;
         std::vector<int32> alignment;
         std::vector<int32> words;
+        
         GetLinearSymbolSequence(best_path_lat, &alignment, &words, &weight);
         num_frames = alignment.size();
         likelihood = -(weight.Value1() + weight.Value2());
-        *tot_num_frames += num_frames;
         *tot_like += likelihood;
-        KALDI_LOG << "Likelihood per frame is " << (likelihood / num_frames) 
-                  << " over " << num_frames << " frames.";
 
-        if (word_syms != NULL) {
-          for (size_t i = 0; i < words.size(); i++) {
-            std::string s = word_syms->Find(words[i]);
-            if (s == "") {
-              KALDI_LOG << "Word-id " << words[i] << " not in symbol table.";
-            }
-            std::cerr << s << ' ';
+        #if VERBOSE
+          KALDI_LOG << "Likelihood per frame is " << (likelihood / num_frames) 
+                << " over " << num_frames << " frames.";
+        #endif
+
+        // std::string decoded_string = "";
+        for (size_t i = 0; i < words.size(); i++) {
+          std::string s = word_syms->Find(words[i]);
+          if (s == "") {
+            KALDI_LOG << "Word-id " << words[i] << " not in symbol table.";
           }
-          std::cerr << std::endl;
+          answer += s + " ";
         }
       }
   };
@@ -265,7 +240,7 @@ static PyObject* infer(PyObject* self, PyObject* args) {
   if (!PyArg_ParseTuple(args, "Os", &model_py, &wav_file_path)) return NULL;
 
   kaldi::Model* model = (kaldi::Model*)PyCapsule_GetPointer(model_py, CAPSULE_NAME);
-  return Py_BuildValue("s", model->CInfer(wav_file_path));
+  return Py_BuildValue("s", (char*)model->CInfer(wav_file_path).c_str());
 }
 
 // Our Module's Function Definition struct
