@@ -110,18 +110,6 @@ def inference(config: Dict):
     stdout, stderr = decode_process.communicate()
     return str(stdout.decode("utf-8"))
 
-
-def temp():
-    tdnn_decode.load_model(
-        13.0, 7000, 7000, 6.0, 1.0, 3,
-        "/home/app/models/hindi/exp/chain/tree_a_sp/graph/words.txt",
-        "/home/app/models/hindi/exp/chain/tdnn1g_sp_online/final.mdl",
-        "/home/app/models/hindi/exp/chain/tree_a_sp/graph/HCLG.fst",
-        "/home/app/models/hindi/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
-        "/home/app/models/hindi/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
-    )
-
-
 def cleanup(tr):
     tr = tr.strip().replace("utterance-id1", "")
     tr = tr.replace("utterance-id-1", "")
@@ -145,5 +133,4 @@ def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str
             transcriptions.append(cleanup(transcription))
     except:
         return None, "Wrong lang or model"
-
     return transcriptions, None
