@@ -27,27 +27,25 @@ celery.conf.update(
 )
 
 config = {
-    "hi": {
-        "script": "./scripts/inference_tdnn_online.sh",
-        "args": [
-            "models/hindi/exp/chain/tdnn1g_sp_online/conf/online.conf",
-            "models/hindi/exp/chain/tdnn1g_sp_online/final.mdl",
-            "models/hindi/exp/chain/tree_a_sp/graph/HCLG.fst",
-            "models/hindi/exp/chain/tree_a_sp/graph/words.txt"
-        ]
-    },
     "en": {
-        "script": "./scripts/inference_tdnn_online.sh",
-        "args": [
-            "models/english/s4/exp/chain/tdnn1g_sp_online/conf/online.conf",
-            "models/english/s4/exp/chain/tdnn1g_sp_online/final.mdl",
-            "models/english/s4/exp/chain/tree_a_sp/graph/HCLG.fst",
-            "models/english/s4/exp/chain/tree_a_sp/graph/words.txt"
-        ]
+        "word_syms_filename": "models/english/s4/exp/chain/tree_a_sp/graph/words.txt",
+        "model_in_filename" : "models/english/s4/exp/chain/tdnn1g_sp_online/final.mdl",
+        "fst_in_str"        : "models/english/s4/exp/chain/tree_a_sp/graph/HCLG.fst",
+        "mfcc_config"       : "models/english/s4/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
+        "ie_conf_filename"  : "models/english/s4/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
+    },
+    "hi": {
+        "word_syms_filename": "models/hindi/exp/chain/tree_a_sp/graph/words.txt",
+        "model_in_filename" : "models/hindi/exp/chain/tdnn1g_sp_online/final.mdl",
+        "fst_in_str"        : "models/hindi/exp/chain/tree_a_sp/graph/HCLG.fst",
+        "mfcc_config"       : "models/hindi/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
+        "ie_conf_filename"  : "models/hindi/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
     }
 }
 
 models_copied = False
+en_model = None
+hi_model = None
 
 def copy_models():
     if not os.path.exists("/home/app/models"):
@@ -100,20 +98,25 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
     })
 
 
-def inference(config: Dict):
-    script_args = [
-        config["script"],
-        config["wav_filename"],
-        *config["args"]
-    ]
-    decode_process = subprocess.Popen(script_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = decode_process.communicate()
-    return str(stdout.decode("utf-8"))
-
-def cleanup(tr):
-    tr = tr.strip().replace("utterance-id1", "")
-    tr = tr.replace("utterance-id-1", "")
-    return tr
+def get_model(lang: str, config: Dict):
+    if lang == "en":
+        global en_model
+        if not en_model:
+            en_model = tdnn_decode.load_model(
+                13.0, 7000, 200, 6.0, 1.0, 3,
+                config["word_syms_filename"], config["model_in_filename"],
+                config["fst_in_str"], config["mfcc_config"], config["ie_conf_filename"]
+            )
+        return en_model
+    else:
+        global hi_model
+        if not hi_model:
+            hi_model = tdnn_decode.load_model(
+                13.0, 7000, 200, 6.0, 1.0, 3, config["word_syms_filename"],
+                config["model_in_filename"], config["fst_in_str"],
+                config["mfcc_config"], config["ie_conf_filename"]
+            )
+        return hi_model
 
 
 def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str):
@@ -125,12 +128,17 @@ def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str
 
         transcriptions = []
         for i, chunk in enumerate(chunks):
+            # write chunk to file
             chunk_filename = "/home/%s_chunk_%s.wav" % (operation_name, i)
             chunk.export(chunk_filename, format="wav")
+
+            # load model
             config_obj = config[lang]
-            config_obj["wav_filename"] = chunk_filename
-            transcription = inference(config_obj)
-            transcriptions.append(cleanup(transcription))
-    except:
-        return None, "Wrong lang or model"
+            _model = get_model(lang, config_obj)
+
+            # call infer
+            transcription = tdnn_decode.infer(_model, chunk_filename)
+            transcriptions.append(transcription)
+    except Exception as e:
+        return None, str(e)
     return transcriptions, None
