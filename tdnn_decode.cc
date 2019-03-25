@@ -136,6 +136,10 @@ namespace kaldi {
         std::string answer = "";
         get_decoded_string(word_syms, clat, &tot_like, answer);
 
+        #if VERBOSE
+          KALDI_LOG << "Decoded string: " << answer;
+        #endif
+
         return answer;
       }
 
