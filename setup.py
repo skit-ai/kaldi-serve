@@ -10,7 +10,7 @@ tdnn_decode = Extension(
       f'{KALDI_ROOT}/src/', f'{KALDI_ROOT}/tools/openfst/include/'
    ],
    library_dirs = [f'{KALDI_ROOT}/src/lib', f'{KALDI_ROOT}/tools/openfst/lib'],
-   sources=['tdnn_decode.cc'],
+   sources=['tdnn_decode.cc', 'tdnn_wrapper.cc'],
    extra_compile_args = ['-std=c++11', '-DKALDI_DOUBLEPRECISION=0', '-Wno-sign-compare',
       '-Wno-unused-local-typedefs', '-Wno-unused-variable', '-Winit-self'
    ],
