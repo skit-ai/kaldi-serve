@@ -1,9 +1,9 @@
 import os
 import json
-import subprocess
 import shutil
 from typing import Dict, List
 
+from flask import Flask, request
 from celery import Celery
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
@@ -17,6 +17,7 @@ CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
 )
 REDIS_EXPIRY_TIME = 10800   # 3hrs
 
+flask_app = Flask("kaldi-serve")
 celery = Celery('asr-server', broker=CELERY_BROKER_URL)
 celery.conf.update(
     task_routes={
@@ -43,7 +44,6 @@ config = {
     }
 }
 
-models_copied = False
 en_model = None
 hi_model = None
 
@@ -53,9 +53,6 @@ def copy_models():
             shutil.copytree("/vol/data/models", "/home/app/models")
         except OSError as e:
             print('models not copied. Error: %s' % e)
-
-    global models_copied
-    models_copied = True
 
 @celery.task(name="asr-task")
 def run_asr(operation_name: str, audio_uri: str, config: Dict):
@@ -69,14 +66,10 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
                     "encoding": "LINEAR16"
                 }
     """
-    global models_copied
-    if not models_copied:
-        copy_models()
+    copy_models()
     
     # start the process here
     results, error = transcribe(audio_uri, config["language_code"], operation_name)
-
-    print("results", results, error)
 
     # process ends
     final_results = []
@@ -96,6 +89,42 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
         'results': final_results,
         'error': error
     })
+
+
+@flask_app.route('/run-asr/', methods=['POST'])
+def run_asr_sync():
+    """
+    post data:
+    {
+    operation_name: "xxxx",
+    audio_uri: "[PATH-TO-NFS]"
+    config: {
+            "language_code": "hi",
+            "sample_rate_hertz":"16000",
+            "encoding": "LINEAR16"
+            }
+    }
+    """
+    copy_models()
+    data = request.get_json()
+
+    # start the process here
+    language_code = data["config"]["language_code"]
+    results, error = transcribe(data["audio_uri"], language_code, data["operation_name"])
+
+    # process ends
+    final_results = []
+    if not error:
+        for r in results:
+            final_results.append({
+                "alternatives": [
+                    {
+                        "transcript": r,
+                        "confidence": "-",
+                    },
+                ]
+            })
+    return json.dumps({"results": final_results, "error": error})
 
 
 def get_model(lang: str, config: Dict):
@@ -142,3 +171,7 @@ def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str
     except Exception as e:
         return None, str(e)
     return transcriptions, None
+
+
+if __name__ == '__main__':
+    flask_app.run(host="0.0.0.0", port="8002")

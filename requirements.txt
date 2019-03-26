@@ -1,3 +1,4 @@
 redis==3.2.0
 celery==4.2.1
 pydub==0.23.1
+Flask==1.0.2
