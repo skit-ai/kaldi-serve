@@ -55,7 +55,7 @@ def copy_models():
             print('models not copied. Error: %s' % e)
 
 @celery.task(name="asr-task")
-def run_asr(operation_name: str, audio_uri: str, config: Dict):
+def run_asr_async(operation_name: str, audio_uri: str, config: Dict):
     """
     :param operation_name: job id for this process
     :param audio_uri: audio url to read from [path to file on NFS]
@@ -67,26 +67,12 @@ def run_asr(operation_name: str, audio_uri: str, config: Dict):
                 }
     """
     copy_models()
-    
-    # start the process here
-    results, error = transcribe(audio_uri, config["language_code"], operation_name)
 
-    # process ends
-    final_results = []
-    if not error:
-        for r in results:
-            final_results.append({
-                "alternatives": [
-                    {
-                        "transcript": r,
-                        "confidence": "-",
-                    },
-                ]
-            })
+    results, error = transcribe(audio_uri, config["language_code"], operation_name)
 
     celery.send_task('asr-complete-task', kwargs={
         'operation_name': operation_name,
-        'results': final_results,
+        'results': results,
         'error': error
     })
 
@@ -112,19 +98,7 @@ def run_asr_sync():
     language_code = data["config"]["language_code"]
     results, error = transcribe(data["audio_uri"], language_code, data["operation_name"])
 
-    # process ends
-    final_results = []
-    if not error:
-        for r in results:
-            final_results.append({
-                "alternatives": [
-                    {
-                        "transcript": r,
-                        "confidence": "-",
-                    },
-                ]
-            })
-    return json.dumps({"results": final_results, "error": error})
+    return json.dumps({"results": results, "error": error})
 
 
 def get_model(lang: str, config: Dict):
@@ -166,10 +140,17 @@ def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str
             _model = get_model(lang, config_obj)
 
             # call infer
-            transcription = tdnn_decode.infer(_model, chunk_filename)
-            transcriptions.append(transcription)
+            transcription, confidence = tdnn_decode.infer(_model, chunk_filename)
+            transcriptions.append({
+                "alternatives": [
+                    {
+                        "transcript": transcription,
+                        "confidence": confidence,
+                    },
+                ]
+            })
     except Exception as e:
-        return None, str(e)
+        return [], str(e)
     return transcriptions, None
 
 
