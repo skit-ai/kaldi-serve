@@ -1,12 +1,9 @@
 import os
 import json
-import shutil
 from typing import Dict, List
 
 from flask import Flask, request
 from celery import Celery
-from pydub import AudioSegment
-from pydub.silence import split_on_silence
 
 import tdnn_decode
 import utils
@@ -47,12 +44,6 @@ config = {
 en_model = None
 hi_model = None
 
-def copy_models():
-    if not os.path.exists("/home/app/models"):
-        try:
-            shutil.copytree("/vol/data/models", "/home/app/models")
-        except OSError as e:
-            print('models not copied. Error: %s' % e)
 
 @celery.task(name="asr-task")
 def run_asr_async(operation_name: str, audio_uri: str, config: Dict):
@@ -66,7 +57,7 @@ def run_asr_async(operation_name: str, audio_uri: str, config: Dict):
                     "encoding": "LINEAR16"
                 }
     """
-    copy_models()
+    utils.copy_models()
 
     results, error = transcribe(audio_uri, config["language_code"], operation_name)
 
@@ -91,7 +82,7 @@ def run_asr_sync():
             }
     }
     """
-    copy_models()
+    utils.copy_models()
     data = request.get_json()
 
     # start the process here

@@ -1,3 +1,6 @@
+import os
+import shutil
+
 from pydub.silence import detect_nonsilent
 from pydub import AudioSegment
 
@@ -42,3 +45,11 @@ def get_chunks(filename):
         chunks.append(complete_audio[current_start:current_end])
         current_start = current_end
     return chunks
+
+
+def copy_models():
+    if not os.path.exists("/home/app/models"):
+        try:
+            shutil.copytree("/vol/data/models", "/home/app/models")
+        except OSError as e:
+            print('models not copied. Error: %s' % e)
