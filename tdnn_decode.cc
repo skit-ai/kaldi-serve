@@ -3,7 +3,6 @@
 
 #include "tdnn_wrapper.h"
 
-#define VERBOSE 0
 #define CAPSULE_NAME "TDNN_DECODER_MODEL"
 
 static void capsule_destructor(PyObject* capsule) {
@@ -53,7 +52,8 @@ static PyObject* infer(PyObject* self, PyObject* args) {
   if (!PyArg_ParseTuple(args, "Os", &model_py, &wav_file_path)) return NULL;
 
   kaldi::Model* model = (kaldi::Model*)PyCapsule_GetPointer(model_py, CAPSULE_NAME);
-  return Py_BuildValue("s", (char*)model->CInfer(wav_file_path).c_str());
+  std::tuple<std::string, double> output = model->CInfer(wav_file_path);
+  return Py_BuildValue("sd", (char*)(std::get<0>(output).c_str()), std::get<1>(output));
 }
 
 // Our Module's Function Definition struct

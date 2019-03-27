@@ -1,5 +1,7 @@
 #include "tdnn_wrapper.h"
 
+#define VERBOSE 0
+
 namespace kaldi {
 
     Model::Model(BaseFloat beam, int32 max_active, int32 min_active,
@@ -10,9 +12,6 @@ namespace kaldi {
 
         try {
             using namespace fst;
-
-            typedef int32 int32;
-            typedef int64 int64;
 
             #if VERBOSE
                 KALDI_LOG << "model_in_filename:         " << model_in_filename;
@@ -62,12 +61,10 @@ namespace kaldi {
         delete word_syms;  // will delete if non-NULL.
     }
 
-    std::string Model::CInfer(std::string wav_file_path) {
+    std::tuple<std::string, double> Model::CInfer(std::string wav_file_path) {
         using namespace fst;
 
         BaseFloat chunk_length_secs = 1;
-        int32 num_err = 0;
-        double tot_like = 0.0;
 
         OnlineIvectorExtractorAdaptationState adaptation_state(feature_info->ivector_extractor_info);
         OnlineNnet2FeaturePipeline feature_pipeline(*feature_info);
@@ -124,17 +121,18 @@ namespace kaldi {
         decoder.GetLattice(end_of_utterance, &clat);
 
         std::string answer = "";
-        get_decoded_string(word_syms, clat, &tot_like, answer);
+        double confidence;
+        get_decoded_string(word_syms, clat, answer, &confidence);
 
         #if VERBOSE
-            KALDI_LOG << "Decoded string: " << answer;
+            KALDI_LOG << "Decoded string: " << answer << ">> confidence:" << confidence;
         #endif
 
-        return answer;
+        return std::make_tuple(answer, confidence);
     }
 
     void Model::get_decoded_string(const fst::SymbolTable *word_syms, const CompactLattice &clat,
-        double *tot_like, std::string& answer) {
+        std::string& answer, double* confidence) {
 
         if (clat.NumStates() == 0) {
           KALDI_LOG << "Empty lattice.";
@@ -146,29 +144,30 @@ namespace kaldi {
         Lattice best_path_lat;
         ConvertLattice(best_path_clat, &best_path_lat);
 
-        double             likelihood;
         LatticeWeight      weight;
-        int32              num_frames;
         std::vector<int32> alignment;
         std::vector<int32> words;
         
         GetLinearSymbolSequence(best_path_lat, &alignment, &words, &weight);
-        num_frames = alignment.size();
-        likelihood = -(weight.Value1() + weight.Value2());
-        *tot_like += likelihood;
 
-        #if VERBOSE
-          KALDI_LOG << "Likelihood per frame is " << (likelihood / num_frames) 
-                << " over " << num_frames << " frames.";
-        #endif
-
-        // std::string decoded_string = "";
         for (size_t i = 0; i < words.size(); i++) {
-          std::string s = word_syms->Find(words[i]);
-          if (s == "") {
-            KALDI_LOG << "Word-id " << words[i] << " not in symbol table.";
-          }
-          answer += s + " ";
+            std::string s = word_syms->Find(words[i]);
+            #if VERBOSE
+            if (s == "") {
+                KALDI_LOG << "Word-id " << words[i] << " not in symbol table.";
+            }
+            #endif
+            answer += s + " ";
         }
-      }
+        *confidence = get_confidence(float(weight.Value1()), float(weight.Value2()), words.size());
+    }
+
+    double Model::get_confidence(float lmScore, float amScore, int32 numWords) {
+        return std::max(
+            0.0,
+            std::min(
+                1.0, -0.0001466488 * (2.388449*lmScore + amScore) / (numWords + 1) + 0.956
+            )
+        );
+    }
 }

@@ -15,11 +15,11 @@ tdnn_decode = Extension(
       '-Wno-unused-local-typedefs', '-Wno-unused-variable', '-Winit-self'
    ],
    extra_link_args = ['-rdynamic', '-lm', '-lpthread', '-ldl',
-    '-lkaldi-decoder', '-lkaldi-lat', '-lkaldi-fstext', '-lkaldi-hmm', '-lkaldi-feat',
-    '-lkaldi-transform', '-lkaldi-gmm', '-lkaldi-tree', '-lkaldi-util', '-lkaldi-matrix',
-    '-lkaldi-base', '-lkaldi-nnet3', '-lkaldi-online2', '-lkaldi-cudamatrix',
-    '-lkaldi-ivector', '-lfst'
-    ],
+      '-lkaldi-decoder', '-lkaldi-lat', '-lkaldi-fstext', '-lkaldi-hmm', '-lkaldi-feat',
+      '-lkaldi-transform', '-lkaldi-gmm', '-lkaldi-tree', '-lkaldi-util', '-lkaldi-matrix',
+      '-lkaldi-base', '-lkaldi-nnet3', '-lkaldi-online2', '-lkaldi-cudamatrix',
+      '-lkaldi-ivector', '-lfst'
+   ],
 )
 
 setup(

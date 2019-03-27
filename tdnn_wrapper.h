@@ -30,7 +30,7 @@ class Model {
 
         ~Model();
 
-        std::string CInfer(std::string wav_file_path);
+        std::tuple<std::string, double> CInfer(std::string wav_file_path);
     
     private:
         fst::SymbolTable *word_syms;
@@ -41,11 +41,15 @@ class Model {
         nnet3::NnetSimpleLoopedComputationOptions decodable_opts;
         fst::Fst<fst::StdArc> *decode_fst;
 
+        // takes generated lattice and word symbols table to give decoded string
         void get_decoded_string(
             const fst::SymbolTable *word_syms,
             const CompactLattice &clat,
-            double *tot_like, std::string& answer
+            std::string& answer,
+            double* confidence
         );
+
+        double get_confidence(BaseFloat lmScore, BaseFloat amScore, int32 numWords);
 };
 
 }
