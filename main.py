@@ -33,11 +33,11 @@ config = {
         "ie_conf_filename"  : "models/english/s5/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
     },
     "hi": {
-        "word_syms_filename": "models/hindi/exp/chain/tree_a_sp/graph/words.txt",
-        "model_in_filename" : "models/hindi/exp/chain/tdnn1g_sp_online/final.mdl",
-        "fst_in_str"        : "models/hindi/exp/chain/tree_a_sp/graph/HCLG.fst",
-        "mfcc_config"       : "models/hindi/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
-        "ie_conf_filename"  : "models/hindi/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
+        "word_syms_filename": "models/hindi/s2/exp/chain/tree_a_sp/graph/words.txt",
+        "model_in_filename" : "models/hindi/s2/exp/chain/tdnn1g_sp_online/final.mdl",
+        "fst_in_str"        : "models/hindi/s2/exp/chain/tree_a_sp/graph/HCLG.fst",
+        "mfcc_config"       : "models/hindi/s2/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
+        "ie_conf_filename"  : "models/hindi/s2/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
     }
 }
 
