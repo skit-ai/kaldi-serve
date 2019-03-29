@@ -53,8 +53,14 @@ def run_asr_async(operation_name: str, audio_uri: str, config: Dict):
     :param config:
                 {
                     "language_code": "hi",
-                    "sample_rate_hertz":"16000",
-                    "encoding": "LINEAR16"
+                    "sample_rate_hertz":"8000",
+                    "encoding": "LINEAR16",
+                    "max_alternatives": 1,
+                    "punctuation": false,
+                    "ontology" : {
+                        "type": "",
+                        "value": {}
+                    }
                 }
     """
     utils.copy_models()
@@ -76,9 +82,15 @@ def run_asr_sync():
     operation_name: "xxxx",
     audio_uri: "[PATH-TO-NFS]"
     config: {
-            "language_code": "hi",
-            "sample_rate_hertz":"16000",
-            "encoding": "LINEAR16"
+                "language_code": "hi",
+                "sample_rate_hertz":"16000",
+                "encoding": "LINEAR16",
+                "max_alternatives": 1,
+                "punctuation": false,
+                "ontology" : {
+                    "type": "",
+                    "value": {}
+                }
             }
     }
     """
