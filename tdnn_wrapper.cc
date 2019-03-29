@@ -61,7 +61,7 @@ namespace kaldi {
         delete word_syms;  // will delete if non-NULL.
     }
 
-    std::tuple<std::string, double> Model::CInfer(std::string wav_file_path) {
+    std::tuple<std::string, double> Model::CInfer(std::string wav_file_path, int32 max_alternatives) {
         using namespace fst;
 
         BaseFloat chunk_length_secs = 1;

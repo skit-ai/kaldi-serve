@@ -12,6 +12,7 @@ CELERY_BROKER_URL = 'redis://{}:6379/{}'.format(
     os.environ.get('REDIS_HOST', 'localhost'),
     os.environ.get('REDIS_VIRTUAL_PORT', '0')
 )
+COMMA_HOST_URL = os.environ.get('COMMA_HOST', "localhost:8000")
 REDIS_EXPIRY_TIME = 10800   # 3hrs
 
 flask_app = Flask("kaldi-serve")
@@ -65,7 +66,7 @@ def run_asr_async(operation_name: str, audio_uri: str, config: Dict):
     """
     utils.copy_models()
 
-    results, error = transcribe(audio_uri, config["language_code"], operation_name)
+    results, error = transcribe(audio_uri, config, operation_name)
 
     celery.send_task('asr-complete-task', kwargs={
         'operation_name': operation_name,
@@ -98,8 +99,7 @@ def run_asr_sync():
     data = request.get_json()
 
     # start the process here
-    language_code = data["config"]["language_code"]
-    results, error = transcribe(data["audio_uri"], language_code, data["operation_name"])
+    results, error = transcribe(data["audio_uri"], data["config"], data["operation_name"])
 
     return json.dumps({"results": results, "error": error})
 
@@ -125,11 +125,16 @@ def get_model(lang: str, config: Dict):
         return hi_model
 
 
-def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str):
+def add_punctuations(text: str, lang: str) -> str:
+    return text
+
+
+def transcribe(audio_uri: str, config: Dict, operation_name:str) -> (List[str], str):
     """
     Transcribe audio
     """
     try:
+        lang = config["language_code"]
         chunks = utils.get_chunks(audio_uri)
 
         transcriptions = []
@@ -143,11 +148,11 @@ def transcribe(audio_uri: str, lang: str, operation_name:str) -> (List[str], str
             _model = get_model(lang, config_obj)
 
             # call infer
-            transcription, confidence = tdnn_decode.infer(_model, chunk_filename)
+            transcription, confidence = tdnn_decode.infer(_model, chunk_filename, config["max_alternatives"])
             transcriptions.append({
                 "alternatives": [
                     {
-                        "transcript": transcription,
+                        "transcript": add_punctuations(transcription, lang) if config["punctuation"] else transcription,
                         "confidence": confidence,
                     },
                 ]

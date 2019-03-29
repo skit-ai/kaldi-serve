@@ -48,11 +48,12 @@ static PyObject *load_model(PyObject *self, PyObject *args) {
 static PyObject* infer(PyObject* self, PyObject* args) {
   PyObject* model_py;
   char* wav_file_path;
+  int32 max_alternatives;
 
-  if (!PyArg_ParseTuple(args, "Os", &model_py, &wav_file_path)) return NULL;
+  if (!PyArg_ParseTuple(args, "Osi", &model_py, &wav_file_path, &max_alternatives)) return NULL;
 
   kaldi::Model* model = (kaldi::Model*)PyCapsule_GetPointer(model_py, CAPSULE_NAME);
-  std::tuple<std::string, double> output = model->CInfer(wav_file_path);
+  std::tuple<std::string, double> output = model->CInfer(wav_file_path, max_alternatives);
   return Py_BuildValue("sd", (char*)(std::get<0>(output).c_str()), std::get<1>(output));
 }
 
