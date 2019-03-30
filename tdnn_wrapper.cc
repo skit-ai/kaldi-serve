@@ -147,7 +147,7 @@ namespace kaldi {
         LatticeWeight      weight;
         std::vector<int32> alignment;
         std::vector<int32> words;
-        
+
         GetLinearSymbolSequence(best_path_lat, &alignment, &words, &weight);
 
         for (size_t i = 0; i < words.size(); i++) {

@@ -31,7 +31,7 @@ class Model {
         ~Model();
 
         std::tuple<std::string, double> CInfer(std::string wav_file_path, int32 max_alternatives);
-    
+
     private:
         fst::SymbolTable *word_syms;
         LatticeFasterDecoderConfig lattice_faster_decoder_config;
