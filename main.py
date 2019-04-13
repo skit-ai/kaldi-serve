@@ -129,12 +129,12 @@ def add_punctuations(text: str, lang: str) -> str:
     return text
 
 
-def transcribe(audio_uri: str, config: Dict, operation_name:str) -> (List[str], str):
+def transcribe(audio_uri: str, audio_config: Dict, operation_name:str) -> (List[str], str):
     """
     Transcribe audio
     """
     try:
-        lang = config["language_code"]
+        lang = audio_config["language_code"]
         chunks = utils.get_chunks(audio_uri)
 
         transcriptions = []
@@ -148,11 +148,11 @@ def transcribe(audio_uri: str, config: Dict, operation_name:str) -> (List[str], 
             _model = get_model(lang, config_obj)
 
             # call infer
-            transcription, confidence = tdnn_decode.infer(_model, chunk_filename, config["max_alternatives"])
+            transcription, confidence = tdnn_decode.infer(_model, chunk_filename, audio_config["max_alternatives"])
             transcriptions.append({
                 "alternatives": [
                     {
-                        "transcript": add_punctuations(transcription, lang) if config["punctuation"] else transcription,
+                        "transcript": add_punctuations(transcription, lang) if audio_config["punctuation"] else transcription,
                         "confidence": confidence,
                     },
                 ]
