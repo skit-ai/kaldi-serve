@@ -39,12 +39,51 @@ config = {
         "fst_in_str"        : "models/hindi/s2/exp/chain/tree_a_sp/graph/HCLG.fst",
         "mfcc_config"       : "models/hindi/s2/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
         "ie_conf_filename"  : "models/hindi/s2/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
+    },
+    "kn": {
+        "word_syms_filename": "models/kannada/words.txt",
+        "model_in_filename" : "models/kannada/final.mdl",
+        "fst_in_str"        : "models/kannada/HCLG.fst",
+        "mfcc_config"       : "models/kannada/mfcc.conf",
+        "ie_conf_filename"  : "models/kannada/ivector_extractor.conf",
+    },
+    "ml": {
+        "word_syms_filename": "models/malayalam/words.txt",
+        "model_in_filename" : "models/malayalam/final.mdl",
+        "fst_in_str"        : "models/malayalam/HCLG.fst",
+        "mfcc_config"       : "models/malayalam/mfcc.conf",
+        "ie_conf_filename"  : "models/malayalam/ivector_extractor.conf",
+    },
+    "bn": {
+        "word_syms_filename": "models/bengali/words.txt",
+        "model_in_filename" : "models/bengali/final.mdl",
+        "fst_in_str"        : "models/bengali/HCLG.fst",
+        "mfcc_config"       : "models/bengali/mfcc.conf",
+        "ie_conf_filename"  : "models/bengali/ivector_extractor.conf",
+    },
+    "te": {
+        "word_syms_filename": "models/telugu/words.txt",
+        "model_in_filename" : "models/telugu/final.mdl",
+        "fst_in_str"        : "models/telugu/HCLG.fst",
+        "mfcc_config"       : "models/telugu/mfcc.conf",
+        "ie_conf_filename"  : "models/telugu/ivector_extractor.conf",
+    },
+    "ta": {
+        "word_syms_filename": "models/tamil/words.txt",
+        "model_in_filename" : "models/tamil/final.mdl",
+        "fst_in_str"        : "models/tamil/HCLG.fst",
+        "mfcc_config"       : "models/tamil/mfcc.conf",
+        "ie_conf_filename"  : "models/tamil/ivector_extractor.conf",
     }
 }
 
 en_model = None
 hi_model = None
-
+kn_model = None
+ml_model = None
+te_model = None
+ta_model = None
+bn_model = None
 
 @celery.task(name="asr-task")
 def run_asr_async(operation_name: str, audio_uri: str, config: Dict):
@@ -114,7 +153,7 @@ def get_model(lang: str, config: Dict):
                 config["fst_in_str"], config["mfcc_config"], config["ie_conf_filename"]
             )
         return en_model
-    else:
+    elif lang == "hi":
         global hi_model
         if not hi_model:
             hi_model = tdnn_decode.load_model(
@@ -123,6 +162,51 @@ def get_model(lang: str, config: Dict):
                 config["mfcc_config"], config["ie_conf_filename"]
             )
         return hi_model
+    elif lang == "kn":
+        global kn_model
+        if not kn_model:
+            kn_model = tdnn_decode.load_model(
+                13.0, 7000, 200, 6.0, 1.0, 3, config["word_syms_filename"],
+                config["model_in_filename"], config["fst_in_str"],
+                config["mfcc_config"], config["ie_conf_filename"]
+            )
+        return kn_model
+    elif lang == "ml"
+        global ml_model
+        if not ml_model:
+            ml_model = tdnn_decode.load_model(
+                13.0, 7000, 200, 6.0, 1.0, 3, config["word_syms_filename"],
+                config["model_in_filename"], config["fst_in_str"],
+                config["mfcc_config"], config["ie_conf_filename"]
+            )
+        return kn_model
+    elif lang == "ta":
+        global ta_model
+        if not ta_model:
+            ta_model = tdnn_decode.load_model(
+                13.0, 7000, 200, 6.0, 1.0, 3, config["word_syms_filename"],
+                config["model_in_filename"], config["fst_in_str"],
+                config["mfcc_config"], config["ie_conf_filename"]
+            )
+        return ta_model
+    elif lang == "te":
+        global te_model
+        if not te_model:
+            te_model = tdnn_decode.load_model(
+                13.0, 7000, 200, 6.0, 1.0, 3, config["word_syms_filename"],
+                config["model_in_filename"], config["fst_in_str"],
+                config["mfcc_config"], config["ie_conf_filename"]
+            )
+        return te_model
+    elif lang == "bn":
+        global bn_model
+        if not bn_model:
+            bn_model = tdnn_decode.load_model(
+                13.0, 7000, 200, 6.0, 1.0, 3, config["word_syms_filename"],
+                config["model_in_filename"], config["fst_in_str"],
+                config["mfcc_config"], config["ie_conf_filename"]
+            )
+        return bn_model
 
 
 def add_punctuations(text: str, lang: str) -> str:
