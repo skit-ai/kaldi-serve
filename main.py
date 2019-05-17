@@ -171,7 +171,7 @@ def get_model(lang: str, config: Dict):
                 config["mfcc_config"], config["ie_conf_filename"]
             )
         return kn_model
-    elif lang == "ml"
+    elif lang == "ml":
         global ml_model
         if not ml_model:
             ml_model = tdnn_decode.load_model(
