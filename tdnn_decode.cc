@@ -55,13 +55,16 @@ static PyObject* infer(PyObject* self, PyObject* args) {
   kaldi::Model* model = (kaldi::Model*)PyCapsule_GetPointer(model_py, CAPSULE_NAME);
   std::vector<kaldi::Model::result_tuple> results = model->CInfer(wav_file_path, max_alternatives);
 
+  PyObject *py_results = PyList_New(0);
+
   for (std::vector<kaldi::Model::result_tuple>::const_iterator i = results.begin(); i != results.end(); ++i) {
-    KALDI_LOG << std::get<0>(*i) << "\n";
-    KALDI_LOG << std::get<1>(*i) << "\n";
+    PyObject *res = Py_BuildValue(
+      "sd", (char*)(std::get<0>(*i).c_str()), std::get<1>(*i)
+    );
+    PyList_Append(py_results, res);
   }
 
-  // return Py_BuildValue("sd", (char*)(std::get<0>(output).c_str()), std::get<1>(output));
-  return Py_BuildValue("sd", (char*)("helolo"), 1.0);
+  return Py_BuildValue("O", py_results);
 }
 
 // Our Module's Function Definition struct
