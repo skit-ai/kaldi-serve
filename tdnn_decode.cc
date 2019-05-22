@@ -53,8 +53,15 @@ static PyObject* infer(PyObject* self, PyObject* args) {
   if (!PyArg_ParseTuple(args, "Osi", &model_py, &wav_file_path, &max_alternatives)) return NULL;
 
   kaldi::Model* model = (kaldi::Model*)PyCapsule_GetPointer(model_py, CAPSULE_NAME);
-  std::tuple<std::string, double> output = model->CInfer(wav_file_path, max_alternatives);
-  return Py_BuildValue("sd", (char*)(std::get<0>(output).c_str()), std::get<1>(output));
+  std::vector<kaldi::Model::result_tuple> results = model->CInfer(wav_file_path, max_alternatives);
+
+  for (std::vector<kaldi::Model::result_tuple>::const_iterator i = results.begin(); i != results.end(); ++i) {
+    KALDI_LOG << std::get<0>(*i) << "\n";
+    KALDI_LOG << std::get<1>(*i) << "\n";
+  }
+
+  // return Py_BuildValue("sd", (char*)(std::get<0>(output).c_str()), std::get<1>(output));
+  return Py_BuildValue("sd", (char*)("helolo"), 1.0);
 }
 
 // Our Module's Function Definition struct

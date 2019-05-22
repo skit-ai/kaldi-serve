@@ -61,7 +61,7 @@ namespace kaldi {
         delete word_syms;  // will delete if non-NULL.
     }
 
-    std::tuple<std::string, double> Model::CInfer(std::string wav_file_path, int32 max_alternatives) {
+    std::vector<Model::result_tuple> Model::CInfer(std::string wav_file_path, int32 max_alternatives) {
         using namespace fst;
 
         BaseFloat chunk_length_secs = 1;
@@ -119,24 +119,19 @@ namespace kaldi {
         CompactLattice clat;
         decoder.GetLattice(true, &clat);
 
-        std::string answer = "";
-        double confidence;
-        get_decoded_string(word_syms, clat, max_alternatives, answer, &confidence);
-
-        #if VERBOSE
-            KALDI_LOG << "Decoded string: " << answer << ">> confidence:" << confidence;
-        #endif
-
-        return std::make_tuple(answer, confidence);
+        return get_decoded_string(word_syms, clat, max_alternatives);
     }
 
-    void Model::get_decoded_string(
-        const fst::SymbolTable *word_syms, const CompactLattice &clat,
-        int32 max_alternatives, std::string& answer, double* confidence) {
+    std::vector<Model::result_tuple> Model::get_decoded_string(
+        const fst::SymbolTable *word_syms,
+        const CompactLattice &clat,
+        int32 max_alternatives) {
+
+        std::vector<Model::result_tuple> results;
 
         if (clat.NumStates() == 0) {
           KALDI_LOG << "Empty lattice.";
-          return;
+          return results;
         }
         // convert from compact to normal lattice
         Lattice* lat = new Lattice();
@@ -149,13 +144,13 @@ namespace kaldi {
         fst::ConvertNbestToVector(nbest_lat, &nbest_lats);
 
         if (nbest_lats.empty()) {
-            KALDI_LOG << "(no N-best entries)";
-            return;
+            KALDI_WARN << "no N-best entries";
         } else {
             for (int32 k = 0; k < static_cast<int32>(nbest_lats.size()); k++) {
                 LatticeWeight  weight;
                 std::vector<int32> alignment;
                 std::vector<int32> words;
+                std::string answer = "";
 
                 GetLinearSymbolSequence(nbest_lats[k], &alignment, &words, &weight);
 
@@ -163,13 +158,13 @@ namespace kaldi {
                     std::string s = word_syms->Find(words[i]);
                     answer += s + " ";
                 }
-                *confidence = get_confidence(float(weight.Value1()), float(weight.Value2()), words.size());
+                results.push_back(std::make_tuple(
+                    answer,
+                    get_confidence(float(weight.Value1()), float(weight.Value2()), words.size())
+                ));
             }
         }
-        KALDI_LOG << "ok" << answer;
-
-        answer = "show me what you got";
-        *confidence = 1.0;
+        return results;
     }
 
     double Model::get_confidence(float lmScore, float amScore, int32 numWords) {

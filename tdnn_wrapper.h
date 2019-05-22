@@ -31,7 +31,10 @@ class Model {
 
         ~Model();
 
-        std::tuple<std::string, double> CInfer(std::string wav_file_path, int32 max_alternatives);
+        typedef std::tuple<std::string,double> result_tuple;
+
+        std::vector<result_tuple> CInfer(std::string wav_file_path, int32 max_alternatives);
+
 
     private:
         fst::SymbolTable *word_syms;
@@ -43,12 +46,10 @@ class Model {
         fst::Fst<fst::StdArc> *decode_fst;
 
         // takes generated lattice and word symbols table to give decoded string
-        void get_decoded_string(
+        std::vector<result_tuple> get_decoded_string(
             const fst::SymbolTable *word_syms,
             const CompactLattice &clat,
-            int32 max_alternatives,
-            std::string& answer,
-            double* confidence
+            int32 max_alternatives
         );
 
         double get_confidence(BaseFloat lmScore, BaseFloat amScore, int32 numWords);
