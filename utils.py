@@ -50,6 +50,7 @@ def get_chunks(filename):
 def copy_models():
     if not os.path.exists("/home/app/models"):
         try:
-            shutil.copytree("/vol/data/models", "/home/app/models")
+            models_path = os.environ['MODELS_PATH']
+            shutil.copytree(models_path, "/home/app/models")
         except OSError as e:
             print('models not copied. Error: %s' % e)

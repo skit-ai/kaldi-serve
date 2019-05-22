@@ -15,5 +15,6 @@ RUN python setup.py build && python setup.py install
 
 ENV REDIS_HOST="localhost"
 ENV REDIS_VIRTUAL_PORT=1
+ENV MODELS_PATH="/vol/data/models"
 
 CMD ["celery", "worker" "-A", "main.celery", "-Q", "asr", "--loglevel=info"]
