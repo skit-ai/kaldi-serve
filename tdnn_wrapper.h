@@ -7,6 +7,7 @@
 #include "online2/online-endpoint.h"
 #include "fstext/fstext-lib.h"
 #include "lat/lattice-functions.h"
+#include "lat/kaldi-lattice.h"
 #include "util/kaldi-thread.h"
 #include "nnet3/nnet-utils.h"
 
@@ -45,6 +46,7 @@ class Model {
         void get_decoded_string(
             const fst::SymbolTable *word_syms,
             const CompactLattice &clat,
+            int32 max_alternatives,
             std::string& answer,
             double* confidence
         );

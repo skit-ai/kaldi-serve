@@ -117,12 +117,11 @@ namespace kaldi {
         decoder.FinalizeDecoding();
 
         CompactLattice clat;
-        bool end_of_utterance = true;
-        decoder.GetLattice(end_of_utterance, &clat);
+        decoder.GetLattice(true, &clat);
 
         std::string answer = "";
         double confidence;
-        get_decoded_string(word_syms, clat, answer, &confidence);
+        get_decoded_string(word_syms, clat, max_alternatives, answer, &confidence);
 
         #if VERBOSE
             KALDI_LOG << "Decoded string: " << answer << ">> confidence:" << confidence;
@@ -131,35 +130,46 @@ namespace kaldi {
         return std::make_tuple(answer, confidence);
     }
 
-    void Model::get_decoded_string(const fst::SymbolTable *word_syms, const CompactLattice &clat,
-        std::string& answer, double* confidence) {
+    void Model::get_decoded_string(
+        const fst::SymbolTable *word_syms, const CompactLattice &clat,
+        int32 max_alternatives, std::string& answer, double* confidence) {
 
         if (clat.NumStates() == 0) {
           KALDI_LOG << "Empty lattice.";
           return;
         }
-        CompactLattice best_path_clat;
-        CompactLatticeShortestPath(clat, &best_path_clat);
+        // convert from compact to normal lattice
+        Lattice* lat = new Lattice();
+        fst::ConvertLattice(clat, lat);
 
-        Lattice best_path_lat;
-        ConvertLattice(best_path_clat, &best_path_lat);
+        // get n-best path lattice
+        Lattice nbest_lat;
+        std::vector<Lattice> nbest_lats;
+        ShortestPath(*lat, &nbest_lat, max_alternatives);
+        fst::ConvertNbestToVector(nbest_lat, &nbest_lats);
 
-        LatticeWeight      weight;
-        std::vector<int32> alignment;
-        std::vector<int32> words;
+        if (nbest_lats.empty()) {
+            KALDI_LOG << "(no N-best entries)";
+            return;
+        } else {
+            for (int32 k = 0; k < static_cast<int32>(nbest_lats.size()); k++) {
+                LatticeWeight  weight;
+                std::vector<int32> alignment;
+                std::vector<int32> words;
 
-        GetLinearSymbolSequence(best_path_lat, &alignment, &words, &weight);
+                GetLinearSymbolSequence(nbest_lats[k], &alignment, &words, &weight);
 
-        for (size_t i = 0; i < words.size(); i++) {
-            std::string s = word_syms->Find(words[i]);
-            #if VERBOSE
-            if (s == "") {
-                KALDI_LOG << "Word-id " << words[i] << " not in symbol table.";
+                for (size_t i = 0; i < words.size(); i++) {
+                    std::string s = word_syms->Find(words[i]);
+                    answer += s + " ";
+                }
+                *confidence = get_confidence(float(weight.Value1()), float(weight.Value2()), words.size());
             }
-            #endif
-            answer += s + " ";
         }
-        *confidence = get_confidence(float(weight.Value1()), float(weight.Value2()), words.size());
+        KALDI_LOG << "ok" << answer;
+
+        answer = "show me what you got";
+        *confidence = 1.0;
     }
 
     double Model::get_confidence(float lmScore, float amScore, int32 numWords) {
