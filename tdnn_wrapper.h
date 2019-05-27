@@ -35,6 +35,8 @@ class Model {
 
         std::vector<result_tuple> CInfer(std::string wav_file_path, int32 max_alternatives);
 
+        std::vector<result_tuple> CInferObject(int32 num_frames, BaseFloat* frames, int32 max_alternatives);
+
 
     private:
         fst::SymbolTable *word_syms;

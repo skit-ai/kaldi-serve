@@ -122,6 +122,66 @@ namespace kaldi {
         return get_decoded_string(word_syms, clat, max_alternatives);
     }
 
+    std::vector<Model::result_tuple> Model::CInferObject(int32 num_frames, BaseFloat* frames, int32 max_alternatives) {
+        using namespace fst;
+
+        BaseFloat chunk_length_secs = 1;
+        BaseFloat samp_freq = 8000;
+
+        OnlineIvectorExtractorAdaptationState adaptation_state(feature_info->ivector_extractor_info);
+        OnlineNnet2FeaturePipeline feature_pipeline(*feature_info);
+        feature_pipeline.SetAdaptationState(adaptation_state);
+
+        OnlineSilenceWeighting silence_weighting(trans_model,
+            feature_info->silence_weighting_config, decodable_opts.frame_subsampling_factor);
+        nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts, &am_nnet);
+
+        SingleUtteranceNnet3Decoder decoder(
+            lattice_faster_decoder_config, trans_model, decodable_info, *decode_fst, &feature_pipeline
+        );
+
+        Vector<BaseFloat> data(num_frames, kUndefined);
+        for (int i=0; i<num_frames; i++) {
+            data(i) = frames[i];
+        }
+        int32 chunk_length;
+        if (chunk_length_secs > 0) {
+            chunk_length = int32(samp_freq * chunk_length_secs);
+            if (chunk_length == 0) chunk_length = 1;
+        } else {
+            chunk_length = std::numeric_limits<int32>::max();
+        }
+        int32 samp_offset = 0;
+        std::vector<std::pair<int32, BaseFloat> > delta_weights;
+
+        while (samp_offset < data.Dim()) {
+            int32 samp_remaining = data.Dim() - samp_offset;
+            int32 num_samp = chunk_length < samp_remaining ? chunk_length : samp_remaining;
+
+            SubVector<BaseFloat> wave_part(data, samp_offset, num_samp);
+            feature_pipeline.AcceptWaveform(samp_freq, wave_part);
+
+            samp_offset += num_samp;
+            if (samp_offset == data.Dim()) {
+            // no more input. flush out last frames
+            feature_pipeline.InputFinished();
+            }
+
+            if (silence_weighting.Active() && feature_pipeline.IvectorFeature() != NULL) {
+            silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
+            silence_weighting.GetDeltaWeights(feature_pipeline.NumFramesReady(), &delta_weights);
+            feature_pipeline.IvectorFeature()->UpdateFrameWeights(delta_weights);
+            }
+            decoder.AdvanceDecoding();
+        }
+        decoder.FinalizeDecoding();
+
+        CompactLattice clat;
+        decoder.GetLattice(true, &clat);
+
+        return get_decoded_string(word_syms, clat, max_alternatives);
+    }
+
     std::vector<Model::result_tuple> Model::get_decoded_string(
         const fst::SymbolTable *word_syms,
         const CompactLattice &clat,

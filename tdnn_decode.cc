@@ -10,7 +10,7 @@ static void capsule_destructor(PyObject* capsule) {
   delete model;
 }
 
-static PyObject *load_model(PyObject *self, PyObject *args) {
+static PyObject* load_model(PyObject *self, PyObject *args) {
   kaldi::BaseFloat beam;
   int32 max_active;
   int32 min_active;
@@ -67,11 +67,24 @@ static PyObject* infer(PyObject* self, PyObject* args) {
   return Py_BuildValue("O", py_results);
 }
 
+static PyObject* infer_object(PyObject* self, PyObject* args) {
+  PyObject* model_py;
+  char* wav_file_path;
+  int32 max_alternatives;
+
+  if (!PyArg_ParseTuple(args, "Osi", &model_py, &wav_file_path, &max_alternatives)) return NULL;
+
+  kaldi::Model* model = (kaldi::Model*)PyCapsule_GetPointer(model_py, CAPSULE_NAME);
+  return Py_BuildValue("i", 1);
+}
+
+
 // Our Module's Function Definition struct
 // We require this `NULL` to signal the end of our method definition
 static PyMethodDef moduleMethods[] = {
   {"load_model", load_model, METH_VARARGS, "Loads TDNN Model"},
   {"infer", infer, METH_VARARGS, "Converts audio to text"},
+  {"infer_object", infer_object, METH_VARARGS, "Starts online decoding"},
   {NULL, NULL, 0, NULL}
 };
 
