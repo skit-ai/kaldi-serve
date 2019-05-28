@@ -212,7 +212,7 @@ def get_model(lang: str, config: Dict):
                 config["mfcc_config"],
                 config["ie_conf_filename"],
             )
-        return kn_model
+        return ml_model
     elif lang == "ta":
         global ta_model
         if not ta_model:
