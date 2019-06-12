@@ -1,12 +1,12 @@
-import os
 import json
+import os
 from typing import Dict, List
 
 from flask import Flask, request
-from celery import Celery
 
 import tdnn_decode
 import utils
+from celery import Celery
 
 CELERY_BROKER_URL = "redis://{}:6379/{}".format(
     os.environ.get("REDIS_HOST", "localhost"), os.environ.get("REDIS_VIRTUAL_PORT", "0")
@@ -31,6 +31,13 @@ config = {
         "fst_in_str": "models/english/s6/exp/chain/tree_a_sp/graph/HCLG.fst",
         "mfcc_config": "models/english/s6/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
         "ie_conf_filename": "models/english/s6/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
+    },
+    "en-bbq": {
+        "word_syms_filename": "models/english-bbq/s6/exp/chain/tree_a_sp/graph/words.txt",
+        "model_in_filename": "models/english-bbq/s6/exp/chain/tdnn1g_sp_online/final.mdl",
+        "fst_in_str": "models/english-bbq/s6/exp/chain/tree_a_sp/graph/HCLG.fst",
+        "mfcc_config": "models/english-bbq/s6/exp/chain/tdnn1g_sp_online/conf/mfcc.conf",
+        "ie_conf_filename": "models/english-bbq/s6/exp/chain/tdnn1g_sp_online/conf/ivector_extractor.conf",
     },
     "hi": {
         "word_syms_filename": "models/hindi/s2/exp/chain/tree_a_sp/graph/words.txt",
@@ -77,6 +84,7 @@ config = {
 }
 
 en_model = None
+en_bbq_model = None
 hi_model = None
 kn_model = None
 ml_model = None
@@ -162,6 +170,23 @@ def get_model(lang: str, config: Dict):
                 config["ie_conf_filename"],
             )
         return en_model
+    if lang == "en-bbq":
+        global en_bbq_model
+        if not en_bbq_model:
+            en_bbq_model = tdnn_decode.load_model(
+                13.0,
+                7000,
+                200,
+                6.0,
+                1.0,
+                3,
+                config["word_syms_filename"],
+                config["model_in_filename"],
+                config["fst_in_str"],
+                config["mfcc_config"],
+                config["ie_conf_filename"],
+            )
+        return en_bbq_model
     elif lang == "hi":
         global hi_model
         if not hi_model:
