@@ -1,8 +1,31 @@
 FROM gcr.io/vernacular-voice-services/asr/kaldi:latest
 
-RUN mkdir /home/app
+# gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+    build-essential \
+    autoconf \
+    libtool \
+    pkg-config \
+    libgflags-dev \
+    libgtest-dev \
+    clang \
+    libc++-dev \
+    curl \
+    vim
 
-# copy code
+# Install gRPC
+RUN cd /home/ && \
+    git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc && \
+    cd /home/grpc/ && \
+    git submodule update --init && \
+    make
+
+# Install Protobuf v3
+RUN cd /home/grpc/third_party/protobuf && make install
+
+RUN mkdir /home/app
 WORKDIR /home/app
 COPY requirements.txt /home/app/requirements.txt
 RUN pip3 install -r /home/app/requirements.txt
