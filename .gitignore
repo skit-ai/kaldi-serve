@@ -107,3 +107,6 @@ data/**/*.csv
 .DS_Store
 
 models/
+
+*.o
+kaldi_server

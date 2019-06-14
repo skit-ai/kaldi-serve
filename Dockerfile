@@ -35,7 +35,12 @@ COPY . /home/app
 
 ENV KALDI_ROOT="/home/kaldi"
 ENV LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
+
+# Build & Setup dependencies for HTTP Server
 RUN python setup.py build && python setup.py install
+
+# Build gRPC Server
+RUN cd kaldi/ && make
 
 ENV REDIS_HOST="localhost"
 ENV REDIS_VIRTUAL_PORT=1
