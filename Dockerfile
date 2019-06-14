@@ -1,8 +1,32 @@
 FROM gcr.io/vernacular-voice-services/asr/kaldi:latest
 
-RUN mkdir /home/app
+# gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+    build-essential \
+    autoconf \
+    libtool \
+    pkg-config \
+    libgflags-dev \
+    libgtest-dev \
+    clang \
+    libc++-dev \
+    curl \
+    vim
 
-# copy code
+# Install gRPC
+RUN cd /home/ && \
+    git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc && \
+    cd /home/grpc/ && \
+    git submodule update --init && \
+    make && \
+    make install
+
+# Install Protobuf v3
+RUN cd /home/grpc/third_party/protobuf && make install
+
+RUN mkdir /home/app
 WORKDIR /home/app
 COPY requirements.txt /home/app/requirements.txt
 RUN pip3 install -r /home/app/requirements.txt
@@ -11,7 +35,12 @@ COPY . /home/app
 
 ENV KALDI_ROOT="/home/kaldi"
 ENV LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
+
+# Build & Setup dependencies for HTTP Server
 RUN python setup.py build && python setup.py install
+
+# Build gRPC Server
+RUN cd kaldi/ && make
 
 ENV REDIS_HOST="localhost"
 ENV REDIS_VIRTUAL_PORT=1
