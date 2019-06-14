@@ -20,7 +20,8 @@ RUN cd /home/ && \
     git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc && \
     cd /home/grpc/ && \
     git submodule update --init && \
-    make
+    make && \
+    make install
 
 # Install Protobuf v3
 RUN cd /home/grpc/third_party/protobuf && make install
