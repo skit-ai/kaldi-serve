@@ -35,6 +35,36 @@ using kaldi::SpeechContext;
 using namespace std;
 using std::chrono::system_clock;
 
+void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
+               const string uuid, RecognizeResponse* recognizeResponse){
+  std::cout << "UUID: \t" << uuid << std::endl;
+
+  std::cout << "Encoding: " << config->encoding() << std::endl;
+  std::cout << "Sample Rate Hertz: " << config->sample_rate_hertz() << std::endl;
+  std::cout << "Language Code: " << config->language_code() << std::endl;
+  std::cout << "Max Alternatives: " << config->max_alternatives() << std::endl;
+  std::cout << "Punctuation: " << config->punctuation() << std::endl;
+  std::cout << "Model: " << config->model() << std::endl;
+
+  // std::cout << "Content: " << audio.content() << std::endl;
+  // std::cout << "URI: " << audio.uri() << std::endl;
+
+  // TDNN Decode & inference code goes here
+
+
+  SpeechRecognitionResult* results = recognizeResponse->add_results();
+  
+  SpeechRecognitionAlternative* alternative = results->add_alternatives();
+  alternative->set_transcript("Hi! Kaldi gRPC Server is up & running!!");
+  alternative->set_confidence(1.0);
+
+  alternative = results->add_alternatives();
+  alternative->set_transcript("Please plug-in TDNN code");
+  alternative->set_confidence(1.0);
+
+  return;
+}
+
 
 class KaldiImpl final : public Kaldi::Service {
 
@@ -44,12 +74,21 @@ class KaldiImpl final : public Kaldi::Service {
 
         Status Recognize(ServerContext* context, const RecognizeRequest* recognizeRequest,
                         RecognizeResponse* recognizeResponse) override {
-            // Recognize App Code
+            RecognitionConfig config;
+            RecognitionAudio audio;
+            string uuid;
+
+            config = recognizeRequest->config();
+            audio  = recognizeRequest->audio();
+            uuid   = recognizeRequest->uuid();
+
+            transcribe(&config, &audio, uuid, recognizeResponse);
+
             return Status::OK;
         }
 };
 
-void RunServer(int x) {
+void RunServer(char* models ) {
   std::string server_address("0.0.0.0:5016");
   KaldiImpl service;
 
@@ -62,9 +101,13 @@ void RunServer(int x) {
 }
 
 
-int main(int argc, char** argv) {
-  // Expect only arg: --models=path/to/models
-  RunServer(1);
+int main(int argc, char* argv[]) {
+  // Expect models to be loaded ./kaldi_server en,hi,en/bbqn
+  for(int i=0; i<argc; ++i){
+    std::cout << "Argument ->> " << argv[i] << std::endl;
+  }
+  
+  RunServer(argv[1]);
 
   return 0;
 }
