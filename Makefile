@@ -1,17 +1,22 @@
+KALDI_ROOT = "../../asr/kaldi"
+
 HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 SYSTEM ?= $(HOST_SYSTEM)
 CXX = g++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
-CXXFLAGS += -std=c++11
-ifeq ($(SYSTEM),Darwin)
-LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
-           -lgrpc++_reflection\
-           -ldl
-else
-LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
-           -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
-           -ldl
-endif
+CXXFLAGS += -std=c++17 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare -Wno-unused-local-typedefs \
+	-Wno-unused-variable -Winit-self
+
+LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++` \
+	-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl \
+	'-Wl,-rpath,$$ORIGIN/../lib' -L${KALDI_ROOT}/src/lib -L${KALDI_ROOT}/tools/openfst/lib
+
+KALDI_INCLUDES = -I${KALDI_ROOT}/src/ -I${KALDI_ROOT}/tools/openfst/include
+KALDI_LIBS = -rdynamic -lm -lpthread -ldl -lkaldi-decoder -lkaldi-lat -lkaldi-fstext \
+	-lkaldi-hmm -lkaldi-feat -lkaldi-transform -lkaldi-gmm -lkaldi-tree -lkaldi-util \
+	-lkaldi-matrix -lkaldi-base -lkaldi-nnet3 -lkaldi-online2 -lkaldi-cudamatrix \
+	-lkaldi-ivector -lfst
+
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
@@ -34,8 +39,7 @@ src/%.pb.cc: src/%.proto
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=./src $<
 
 clean:
-	rm -f ./build/* ./src/*.proto ./src/*.pb*
-
+	rm -f ./build/* ./src/*.pb.* ./src/*.so ./src/*.o
 
 # The following is to test your system and ensure a smoother experience.
 # They are by no means necessary to actually compile a grpc-enabled software.
