@@ -21,28 +21,28 @@ PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 
-PROTOS_PATH = ./src
+PROTOS_PATH = ./protos
 
 vpath %.proto $(PROTOS_PATH)
 
 all: system-check build/kaldi_serve_app
 
-build/kaldi_serve_app: src/kaldi_serve.pb.o src/kaldi_serve.grpc.pb.o src/kaldi_serve_app.o
+build/kaldi_serve_app: $(PROTOS_PATH)/kaldi_serve.pb.o $(PROTOS_PATH)/kaldi_serve.grpc.pb.o build/kaldi_serve_app.o
 	$(CXX) $^ $(LDFLAGS) $(LIBS) $(KALDI_LIBS) -o $@
 
-src/kaldi_serve_app.o: src/kaldi_serve_app.cc
-	$(CXX) $(CXXFLAGS) $(KALDI_INCLUDES) -c $^ -o $@
+build/kaldi_serve_app.o: src/kaldi_serve_app.cc
+	$(CXX) $(CXXFLAGS) $(KALDI_INCLUDES) -I $(PROTOS_PATH) -c $^ -o $@
 
-.PRECIOUS: src/%.grpc.pb.cc
-src/%.grpc.pb.cc: src/%.proto
-	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=./src --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
+.PRECIOUS: %.grpc.pb.cc
+%.grpc.pb.cc: %.proto
+	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=$(PROTOS_PATH) --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 
-.PRECIOUS: src/%.pb.cc
-src/%.pb.cc: src/%.proto
-	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=./src $<
+.PRECIOUS: %.pb.cc
+%.pb.cc: %.proto
+	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=$(PROTOS_PATH) $<
 
 clean:
-	rm -f ./build/* ./src/*.pb.* ./src/*.so ./src/*.o
+	rm -f ./build/* $(PROTOS_PATH)/*.pb.* $(PROTOS_PATH)/*.o
 
 # The following is to test your system and ensure a smoother experience.
 # They are by no means necessary to actually compile a grpc-enabled software.

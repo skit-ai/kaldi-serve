@@ -2,3 +2,4 @@ models/
 /.ccls-cache
 *.so
 *.o
+protos/*.pb*
