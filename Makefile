@@ -16,23 +16,25 @@ PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
 
-PROTOS_PATH = .
+PROTOS_PATH = ./src
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check kaldi_server
+all: system-check build/kaldi_server
 
-kaldi_server: kaldi.pb.o kaldi.grpc.pb.o kaldi_server.o
+build/kaldi_server: src/kaldi.pb.o src/kaldi.grpc.pb.o src/kaldi_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-%.grpc.pb.cc: %.proto
-	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
+.PRECIOUS: src/%.grpc.pb.cc
+src/%.grpc.pb.cc: src/%.proto
+	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=./src --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 
-%.pb.cc: %.proto
-	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
+.PRECIOUS: src/%.pb.cc
+src/%.pb.cc: src/%.proto
+	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=./src $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h kaldi_server
+	rm -f ./build/* ./src/*.proto ./src/*.pb*
 
 
 # The following is to test your system and ensure a smoother experience.
