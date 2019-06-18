@@ -25,10 +25,13 @@ PROTOS_PATH = ./src
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check build/kaldi_server
+all: system-check build/kaldi_serve_app
 
-build/kaldi_server: src/kaldi.pb.o src/kaldi.grpc.pb.o src/kaldi_server.o
-	$(CXX) $^ $(LDFLAGS) -o $@
+build/kaldi_serve_app: src/kaldi_serve.pb.o src/kaldi_serve.grpc.pb.o src/kaldi_serve_app.o
+	$(CXX) $^ $(LDFLAGS) $(LIBS) $(KALDI_LIBS) -o $@
+
+src/kaldi_serve_app.o: src/kaldi_serve_app.cc
+	$(CXX) $(CXXFLAGS) $(KALDI_INCLUDES) -c $^ -o $@
 
 .PRECIOUS: src/%.grpc.pb.cc
 src/%.grpc.pb.cc: src/%.proto

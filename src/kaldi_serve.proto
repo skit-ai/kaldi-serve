@@ -1,7 +1,7 @@
 syntax = "proto3";
-package kaldi;
+package kaldi_serve;
 
-service Kaldi {
+service KaldiServe {
   // Performs synchronous speech recognition: receive results
   // after all audio has been sent and processed.  
   rpc Recognize(RecognizeRequest) returns (RecognizeResponse) {}

@@ -11,8 +11,19 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/security/server_credentials.h>
 
-// #include "helper.h"
-#include "kaldi.grpc.pb.h"
+#include "kaldi_serve.grpc.pb.h"
+
+// Kaldi includes from here
+#include "feat/wave-reader.h"
+#include "fstext/fstext-lib.h"
+#include "lat/kaldi-lattice.h"
+#include "lat/lattice-functions.h"
+#include "nnet3/nnet-utils.h"
+#include "online2/online-endpoint.h"
+#include "online2/online-nnet2-feature-pipeline.h"
+#include "online2/online-nnet3-decoding.h"
+#include "online2/onlinebin-util.h"
+#include "util/kaldi-thread.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -22,21 +33,21 @@ using grpc::ServerReaderWriter;
 using grpc::ServerWriter;
 using grpc::Status;
 
-using kaldi::Kaldi;
+using kaldi_serve::KaldiServe;
 
-using kaldi::RecognizeRequest;
-using kaldi::RecognizeResponse;
-using kaldi::RecognitionConfig;
-using kaldi::RecognitionAudio;
-using kaldi::SpeechRecognitionResult;
-using kaldi::SpeechRecognitionAlternative;
-using kaldi::SpeechContext;
+using kaldi_serve::RecognitionAudio;
+using kaldi_serve::RecognitionConfig;
+using kaldi_serve::RecognizeRequest;
+using kaldi_serve::RecognizeResponse;
+using kaldi_serve::SpeechContext;
+using kaldi_serve::SpeechRecognitionAlternative;
+using kaldi_serve::SpeechRecognitionResult;
 
 using namespace std;
 using std::chrono::system_clock;
 
 void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
-               const string uuid, RecognizeResponse* recognizeResponse){
+                const string uuid, RecognizeResponse* recognizeResponse){
   std::cout << "UUID: \t" << uuid << std::endl;
 
   std::cout << "Encoding: " << config->encoding() << std::endl;
@@ -51,9 +62,7 @@ void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
 
   // TDNN Decode & inference code goes here
 
-
   SpeechRecognitionResult* results = recognizeResponse->add_results();
-  
   SpeechRecognitionAlternative* alternative = results->add_alternatives();
   alternative->set_transcript("Hi! Kaldi gRPC Server is up & running!!");
   alternative->set_confidence(1.0);
@@ -66,31 +75,30 @@ void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
 }
 
 
-class KaldiImpl final : public Kaldi::Service {
+class KaldiServeImpl final : public KaldiServe::Service {
+public:
+  explicit KaldiServeImpl() {
+  }
 
-    public:
-        explicit KaldiImpl() {
-        }
+  Status Recognize(ServerContext* context, const RecognizeRequest* recognizeRequest,
+                   RecognizeResponse* recognizeResponse) override {
+    RecognitionConfig config;
+    RecognitionAudio audio;
+    string uuid;
 
-        Status Recognize(ServerContext* context, const RecognizeRequest* recognizeRequest,
-                        RecognizeResponse* recognizeResponse) override {
-            RecognitionConfig config;
-            RecognitionAudio audio;
-            string uuid;
+    config = recognizeRequest->config();
+    audio  = recognizeRequest->audio();
+    uuid   = recognizeRequest->uuid();
 
-            config = recognizeRequest->config();
-            audio  = recognizeRequest->audio();
-            uuid   = recognizeRequest->uuid();
+    transcribe(&config, &audio, uuid, recognizeResponse);
 
-            transcribe(&config, &audio, uuid, recognizeResponse);
-
-            return Status::OK;
-        }
+    return Status::OK;
+  }
 };
 
-void RunServer(char* models ) {
+void RunServer(char* models) {
   std::string server_address("0.0.0.0:5016");
-  KaldiImpl service;
+  KaldiServeImpl service;
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -103,17 +111,10 @@ void RunServer(char* models ) {
 
 int main(int argc, char* argv[]) {
   // Expect models to be loaded ./kaldi_server en,hi,en/bbqn
-  for(int i=0; i<argc; ++i){
+  for(int i = 0; i < argc; ++i) {
     std::cout << "Argument ->> " << argv[i] << std::endl;
   }
-  
   RunServer(argv[1]);
 
   return 0;
 }
-
-
-// For Asynchronous gRPC server to customize threading behaviour
-// class KaldiImpl final : public Kaldi::AsyncService {
-// };
-
