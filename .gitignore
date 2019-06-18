@@ -110,3 +110,4 @@ models/
 
 *.o
 kaldi_server
+/.ccls-cache

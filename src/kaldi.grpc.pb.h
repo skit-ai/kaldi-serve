@@ -20,11 +20,17 @@
 #include <grpcpp/impl/codegen/stub_options.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
 
-namespace grpc {
+namespace grpc_impl {
 class CompletionQueue;
-class Channel;
 class ServerCompletionQueue;
 class ServerContext;
+}  // namespace grpc_impl
+
+namespace grpc {
+namespace experimental {
+template <typename RequestT, typename ResponseT>
+class MessageAllocator;
+}  // namespace experimental
 }  // namespace grpc
 
 namespace kaldi {
@@ -53,6 +59,8 @@ class Kaldi final {
       // after all audio has been sent and processed.  
       virtual void Recognize(::grpc::ClientContext* context, const ::kaldi::RecognizeRequest* request, ::kaldi::RecognizeResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi::RecognizeResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void Recognize(::grpc::ClientContext* context, const ::kaldi::RecognizeRequest* request, ::kaldi::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      virtual void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
     };
     virtual class experimental_async_interface* experimental_async() { return nullptr; }
   private:
@@ -74,6 +82,8 @@ class Kaldi final {
      public:
       void Recognize(::grpc::ClientContext* context, const ::kaldi::RecognizeRequest* request, ::kaldi::RecognizeResponse* response, std::function<void(::grpc::Status)>) override;
       void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi::RecognizeResponse* response, std::function<void(::grpc::Status)>) override;
+      void Recognize(::grpc::ClientContext* context, const ::kaldi::RecognizeRequest* request, ::kaldi::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -134,6 +144,12 @@ class Kaldi final {
                  ::grpc::experimental::ServerCallbackRpcController* controller) {
                    return this->Recognize(context, request, response, controller);
                  }));
+    }
+    void SetMessageAllocatorFor_Recognize(
+        ::grpc::experimental::MessageAllocator< ::kaldi::RecognizeRequest, ::kaldi::RecognizeResponse>* allocator) {
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::kaldi::RecognizeRequest, ::kaldi::RecognizeResponse>*>(
+          ::grpc::Service::experimental().GetHandler(0))
+              ->SetMessageAllocator(allocator);
     }
     ~ExperimentalWithCallbackMethod_Recognize() override {
       BaseClassMustBeDerivedFromService(this);

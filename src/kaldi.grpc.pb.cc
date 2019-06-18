@@ -37,11 +37,19 @@ Kaldi::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
 }
 
 void Kaldi::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::kaldi::RecognizeRequest* request, ::kaldi::RecognizeResponse* response, std::function<void(::grpc::Status)> f) {
-  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
+  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
 }
 
 void Kaldi::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi::RecognizeResponse* response, std::function<void(::grpc::Status)> f) {
-  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
+  ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
+}
+
+void Kaldi::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::kaldi::RecognizeRequest* request, ::kaldi::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, reactor);
+}
+
+void Kaldi::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, reactor);
 }
 
 ::grpc::ClientAsyncResponseReader< ::kaldi::RecognizeResponse>* Kaldi::Stub::AsyncRecognizeRaw(::grpc::ClientContext* context, const ::kaldi::RecognizeRequest& request, ::grpc::CompletionQueue* cq) {
