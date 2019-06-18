@@ -28,25 +28,16 @@ RUN cd /home/grpc/third_party/protobuf && make install
 
 RUN mkdir /home/app
 WORKDIR /home/app
-COPY requirements.txt /home/app/requirements.txt
-RUN pip3 install -r /home/app/requirements.txt
 
 COPY . /home/app
 
 ENV KALDI_ROOT="/home/kaldi"
 ENV LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
 
-# Build & Setup dependencies for HTTP Server
-RUN python setup.py build && python setup.py install
-
-# Build gRPC Server
-RUN cd kaldi/ && make
+RUN make
 
 ENV REDIS_HOST="localhost"
 ENV REDIS_VIRTUAL_PORT=1
 ENV MODELS_PATH="/vol/data/models"
 
-WORKDIR /home/app
-
-# CMD [ "python3", "main.py"]
-# CMD [ "./kaldi/kaldi_server"]
+CMD [ "./build/kaldi_serve_app" ]
