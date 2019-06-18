@@ -13,6 +13,8 @@
 
 #include "kaldi_serve.grpc.pb.h"
 
+#include "vendor/CLI11.hpp"
+
 // Kaldi includes from here
 #include "feat/wave-reader.h"
 #include "fstext/fstext-lib.h"
@@ -96,7 +98,8 @@ public:
   }
 };
 
-void RunServer(char* models) {
+
+void RunServer(std::vector<std::string> models) {
   std::string server_address("0.0.0.0:5016");
   KaldiServeImpl service;
 
@@ -110,11 +113,19 @@ void RunServer(char* models) {
 
 
 int main(int argc, char* argv[]) {
-  // Expect models to be loaded ./kaldi_server en,hi,en/bbqn
-  for(int i = 0; i < argc; ++i) {
-    std::cout << "Argument ->> " << argv[i] << std::endl;
-  }
-  RunServer(argv[1]);
+  CLI::App app{"Kaldi gRPC server"};
 
+  std::vector<std::string> models;
+  app.add_option("-m,--model", models, "Model specifier like `en/bbq`")
+    ->required();
+
+  CLI11_PARSE(app, argc, argv);
+
+  std::cout << ":: Loading " << models.size() << " models" << std::endl;
+  for (auto const& m: models) {
+    std::cout << "::  - " << m << std::endl;
+  }
+
+  RunServer(models);
   return 0;
 }
