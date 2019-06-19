@@ -315,6 +315,8 @@ public:
   const fst::Fst<fst::StdArc>* decode_fst;
 };
 
+// HACK: This global var will go away;
+Decoder *decoder;
 
 void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
                 const string uuid, RecognizeResponse* recognizeResponse){
@@ -327,19 +329,19 @@ void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
   std::cout << "Punctuation: " << config->punctuation() << std::endl;
   std::cout << "Model: " << config->model() << std::endl;
 
-  // std::cout << "Content: " << audio.content() << std::endl;
-  // std::cout << "URI: " << audio.uri() << std::endl;
-
-  // TDNN Decode & inference code goes here
+  std::cout << "NOTE: We are ignoring most of the parameters, other than the audio bytes, for now."
+            << std::endl;
 
   SpeechRecognitionResult* results = recognizeResponse->add_results();
-  SpeechRecognitionAlternative* alternative = results->add_alternatives();
-  alternative->set_transcript("Hi! Kaldi gRPC Server is up & running!!");
-  alternative->set_confidence(1.0);
+  SpeechRecognitionAlternative* alternative;
 
-  alternative = results->add_alternatives();
-  alternative->set_transcript("Please plug-in TDNN code");
-  alternative->set_confidence(1.0);
+  int32 n_best = config->max_alternatives();
+  std::istringstream input_stream(audio->content());
+  for (auto const &res : decoder->decode_stream(input_stream, n_best)) {
+    alternative = results->add_alternatives();
+    alternative->set_transcript(res.first.first);
+    alternative->set_confidence(res.first.second);
+  }
 
   return;
 }
@@ -367,7 +369,7 @@ public:
 };
 
 
-void RunServer(std::vector<std::string> models) {
+void run_server() {
   std::string server_address("0.0.0.0:5016");
   KaldiServeImpl service;
 
@@ -379,21 +381,30 @@ void RunServer(std::vector<std::string> models) {
   server->Wait();
 }
 
-
 int main(int argc, char* argv[]) {
   CLI::App app{"Kaldi gRPC server"};
 
-  std::vector<std::string> models;
-  app.add_option("-m,--model", models, "Model specifier like `en/bbq`")
-    ->required();
+  std::string model_dir;
+  app.add_option("model-dir", model_dir, "Model root directory. This is a temporary API for testing.")
+    ->required()
+    ->check(CLI::ExistingDirectory);
 
   CLI11_PARSE(app, argc, argv);
 
-  std::cout << ":: Loading " << models.size() << " models" << std::endl;
-  for (auto const& m: models) {
-    std::cout << "::  - " << m << std::endl;
-  }
+  std::cout << ":: Loading model from " << model_dir << std::endl;
 
-  RunServer(models);
+  // TODO: Better organize a kaldi model for distribution
+  std::string hclg_filepath = model_dir + "/tree_a_sp/graph/HCLG.fst";
+  std::string words_filepath = model_dir + "/tree_a_sp/graph/words.txt";
+  std::string model_filepath = model_dir + "/tdnn1g_sp_online/final.mdl";
+  std::string mfcc_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/mfcc.conf";
+  std::string ivec_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/ivector_extractor.conf";
+
+  DecoderFactory decoder_factory(hclg_filepath);
+  Decoder* decoder = decoder_factory(13.0, 7000, 200, 6.0, 1.0, 3,
+                                     words_filepath, model_filepath,
+                                     mfcc_conf_filepath, ivec_conf_filepath);
+
+  run_server();
   return 0;
 }
