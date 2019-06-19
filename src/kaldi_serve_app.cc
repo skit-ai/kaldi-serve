@@ -316,7 +316,7 @@ public:
 };
 
 // HACK: This global var will go away;
-Decoder *decoder;
+Decoder* DECODER;
 
 void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
                 const string uuid, RecognizeResponse* recognizeResponse){
@@ -333,11 +333,12 @@ void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
             << std::endl;
 
   SpeechRecognitionResult* results = recognizeResponse->add_results();
-  SpeechRecognitionAlternative* alternative;
 
   int32 n_best = config->max_alternatives();
-  std::istringstream input_stream(audio->content());
-  for (auto const &res : decoder->decode_stream(input_stream, n_best)) {
+  std::stringstream input_stream(audio->content());
+
+  SpeechRecognitionAlternative* alternative;
+  for (auto const &res : DECODER->decode_stream(input_stream, n_best)) {
     alternative = results->add_alternatives();
     alternative->set_transcript(res.first.first);
     alternative->set_confidence(res.first.second);
@@ -401,9 +402,9 @@ int main(int argc, char* argv[]) {
   std::string ivec_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/ivector_extractor.conf";
 
   DecoderFactory decoder_factory(hclg_filepath);
-  Decoder* decoder = decoder_factory(13.0, 7000, 200, 6.0, 1.0, 3,
-                                     words_filepath, model_filepath,
-                                     mfcc_conf_filepath, ivec_conf_filepath);
+  DECODER = decoder_factory(13.0, 7000, 200, 6.0, 1.0, 3,
+                            words_filepath, model_filepath,
+                            mfcc_conf_filepath, ivec_conf_filepath);
 
   run_server();
   return 0;
