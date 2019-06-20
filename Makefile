@@ -1,4 +1,4 @@
-KALDI_ROOT = "../../asr/kaldi"
+KALDI_ROOT = "/home/kaldi"
 
 HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 SYSTEM ?= $(HOST_SYSTEM)

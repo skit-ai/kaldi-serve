@@ -3,3 +3,4 @@
 *.so
 *.o
 protos/*.pb*
+.vscode
