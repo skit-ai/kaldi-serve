@@ -312,14 +312,13 @@ public:
     delete decode_fst;
   };
 
+private:
   const fst::Fst<fst::StdArc>* decode_fst;
 };
 
-// HACK: This global var will go away;
-Decoder* DECODER;
-
 void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
-                const string uuid, RecognizeResponse* recognizeResponse){
+                const string uuid, RecognizeResponse* recognizeResponse, 
+                const shared_ptr<Decoder> &decoder){
   std::cout << "UUID: \t" << uuid << std::endl;
 
   std::cout << "Encoding: " << config->encoding() << std::endl;
@@ -338,7 +337,7 @@ void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
   std::stringstream input_stream(audio->content());
 
   SpeechRecognitionAlternative* alternative;
-  for (auto const &res : DECODER->decode_stream(input_stream, n_best)) {
+  for (auto const &res : decoder->decode_stream(input_stream, n_best)) {
     alternative = results->add_alternatives();
     alternative->set_transcript(res.first.first);
     alternative->set_confidence(res.first.second);
@@ -349,8 +348,11 @@ void transcribe(const RecognitionConfig* config, const RecognitionAudio* audio,
 
 
 class KaldiServeImpl final : public KaldiServe::Service {
+private:
+  shared_ptr<Decoder> decoder;
+
 public:
-  explicit KaldiServeImpl() {
+  explicit KaldiServeImpl(shared_ptr<Decoder> decoder): decoder(decoder) {
   }
 
   Status Recognize(ServerContext* context, const RecognizeRequest* recognizeRequest,
@@ -363,16 +365,16 @@ public:
     audio  = recognizeRequest->audio();
     uuid   = recognizeRequest->uuid();
 
-    transcribe(&config, &audio, uuid, recognizeResponse);
+    transcribe(&config, &audio, uuid, recognizeResponse, this->decoder);
 
     return Status::OK;
   }
 };
 
 
-void run_server() {
+void run_server(const shared_ptr<Decoder> &decoder) {
   std::string server_address("0.0.0.0:5016");
-  KaldiServeImpl service;
+  KaldiServeImpl service(decoder);
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -402,10 +404,11 @@ int main(int argc, char* argv[]) {
   std::string ivec_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/ivector_extractor.conf";
 
   DecoderFactory decoder_factory(hclg_filepath);
-  DECODER = decoder_factory(13.0, 7000, 200, 6.0, 1.0, 3,
-                            words_filepath, model_filepath,
-                            mfcc_conf_filepath, ivec_conf_filepath);
+  shared_ptr<Decoder> decoder = shared_ptr<Decoder>(decoder_factory(13.0, 7000, 200, 6.0, 1.0, 3,
+                                                                    words_filepath, model_filepath,
+                                                                    mfcc_conf_filepath, 
+                                                                    ivec_conf_filepath));
 
-  run_server();
+  run_server(decoder);
   return 0;
 }
