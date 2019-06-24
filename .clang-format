@@ -1,0 +1,8 @@
+UseTab: false
+IndentWidth: 4
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 0
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: false

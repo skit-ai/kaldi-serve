@@ -1,18 +1,22 @@
-// Utility functions
+/*
+ * Utility functions.
+ */
 
+// Include guard
 #pragma once
 
+// C++ stl includes
 #include <string>
 #include <vector>
 
-void string_join(const std::vector<std::string>& strings, std::string separator, std::string& output) {
-  output.clear();
+void string_join(const std::vector<std::string> &strings, std::string separator, std::string &output) {
+    output.clear();
 
-  for (auto i = 0; i < strings.size(); i++) {
-    output += strings[i];
+    for (auto i = 0; i < strings.size(); i++) {
+        output += strings[i];
 
-    if (i != strings.size() - 1) {
-      output += separator;
+        if (i != strings.size() - 1) {
+            output += separator;
+        }
     }
-  }
 }
