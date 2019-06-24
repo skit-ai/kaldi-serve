@@ -4,3 +4,4 @@
 *.o
 protos/*.pb*
 .vscode
+notes
