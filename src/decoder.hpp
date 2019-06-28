@@ -129,30 +129,83 @@ class Decoder {
   private:
     const fst::Fst<fst::StdArc> *decode_fst;
     std::unique_ptr<fst::SymbolTable> word_syms;
-    kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config;
     kaldi::OnlineNnet2FeaturePipelineInfo *feature_info;
     kaldi::nnet3::AmNnetSimple am_nnet;
     kaldi::TransitionModel trans_model;
+
+    kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config;
     kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts;
 
   public:
-    explicit Decoder(kaldi::BaseFloat beam, std::size_t max_active, std::size_t min_active,
-                     kaldi::BaseFloat lattice_beam, kaldi::BaseFloat acoustic_scale,
-                     std::size_t frame_subsampling_factor, std::string word_syms_filepath,
-                     std::string model_filepath, std::string mfcc_conf_filepath,
-                     std::string ie_conf_filepath, const fst::Fst<fst::StdArc> *decode_fst);
+    explicit Decoder(const kaldi::BaseFloat &, const std::size_t &,
+                     const std::size_t&, const kaldi::BaseFloat &,
+                     const kaldi::BaseFloat &, const std::size_t &,
+                     const std::string &, const std::string &,
+                     const std::string &, const std::string &,
+                     const fst::Fst<fst::StdArc> *);
 
-    utterance_results_t decode_file(const std::string &, const std::size_t &);
+    Decoder *clone() const;
 
-    utterance_results_t decode_stream(std::istream &wav_stream, const std::size_t &);
+    // Decoding processes
+
+    // initialize decoding state variables (per stream)
+    void decode_stream_initialize(kaldi::OnlineIvectorExtractorAdaptationState*,
+                                  kaldi::OnlineNnet2FeaturePipeline*,
+                                  kaldi::nnet3::DecodableNnetSimpleLoopedInfo*,
+                                  kaldi::OnlineSilenceWeighting*,
+                                  kaldi::SingleUtteranceNnet3Decoder*);
+    
+    // decode intermediate frames of wav streams
+    void decode_stream_process(kaldi::OnlineNnet2FeaturePipeline*,
+                               kaldi::OnlineSilenceWeighting*,
+                               kaldi::SingleUtteranceNnet3Decoder*,
+                               std::istream &) const;
+
+
+    // get the final utterances based on the compact lattice
+    utterance_results_t decode_stream_final(kaldi::OnlineNnet2FeaturePipeline*,
+                                            kaldi::SingleUtteranceNnet3Decoder*,
+                                            const std::size_t &) const;
+
+    // cleanup decoding state variables (per stream)
+    void cleanup(kaldi::OnlineIvectorExtractorAdaptationState*,
+                 kaldi::OnlineNnet2FeaturePipeline*,
+                 kaldi::nnet3::DecodableNnetSimpleLoopedInfo*,
+                 kaldi::OnlineSilenceWeighting*,
+                 kaldi::SingleUtteranceNnet3Decoder*) const;
 };
 
-Decoder::Decoder(kaldi::BaseFloat beam, std::size_t max_active,
-                 std::size_t min_active, kaldi::BaseFloat lattice_beam,
-                 kaldi::BaseFloat acoustic_scale, std::size_t frame_subsampling_factor,
-                 std::string word_syms_filepath, std::string model_filepath,
-                 std::string mfcc_conf_filepath, std::string ie_conf_filepath,
-                 const fst::Fst<fst::StdArc> *decode_fst) : decode_fst(decode_fst) {
+void Decoder::cleanup(kaldi::OnlineIvectorExtractorAdaptationState* adaptation_state,
+                      kaldi::OnlineNnet2FeaturePipeline* feature_pipeline,
+                      kaldi::nnet3::DecodableNnetSimpleLoopedInfo* decodable_info,
+                      kaldi::OnlineSilenceWeighting* silence_weighting,
+                      kaldi::SingleUtteranceNnet3Decoder* decoder) const {
+    delete adaptation_state;
+    delete feature_pipeline;
+    delete silence_weighting;
+    delete decodable_info;
+    delete decoder;
+    
+    adaptation_state = NULL;
+    feature_pipeline = NULL;
+    silence_weighting = NULL;
+    decodable_info = NULL;
+    decoder = NULL;
+}
+
+Decoder::Decoder(const kaldi::BaseFloat &beam,
+                 const std::size_t &max_active,
+                 const std::size_t &min_active, 
+                 const kaldi::BaseFloat &lattice_beam,
+                 const kaldi::BaseFloat &acoustic_scale,
+                 const std::size_t &frame_subsampling_factor,
+                 const std::string &word_syms_filepath,
+                 const std::string &model_filepath,
+                 const std::string &mfcc_conf_filepath,
+                 const std::string &ie_conf_filepath,
+                 const fst::Fst<fst::StdArc> *decode_fst) 
+    : decode_fst(decode_fst) {
+    
     try {
         kaldi::OnlineNnet2FeaturePipelineConfig feature_opts;
 
@@ -165,15 +218,15 @@ Decoder::Decoder(kaldi::BaseFloat beam, std::size_t max_active,
         decodable_opts.acoustic_scale = acoustic_scale;
         decodable_opts.frame_subsampling_factor = frame_subsampling_factor;
 
-        {
-            bool binary;
-            kaldi::Input ki(model_filepath, &binary);
-            trans_model.Read(ki.Stream(), binary);
-            am_nnet.Read(ki.Stream(), binary);
-            kaldi::nnet3::SetBatchnormTestMode(true, &(am_nnet.GetNnet()));
-            kaldi::nnet3::SetDropoutTestMode(true, &(am_nnet.GetNnet()));
-            kaldi::nnet3::CollapseModel(kaldi::nnet3::CollapseModelConfig(), &(am_nnet.GetNnet()));
-        }
+        bool binary;
+        kaldi::Input ki(model_filepath, &binary);
+
+        trans_model.Read(ki.Stream(), binary);
+        am_nnet.Read(ki.Stream(), binary);
+        
+        kaldi::nnet3::SetBatchnormTestMode(true, &(am_nnet.GetNnet()));
+        kaldi::nnet3::SetDropoutTestMode(true, &(am_nnet.GetNnet()));
+        kaldi::nnet3::CollapseModel(kaldi::nnet3::CollapseModelConfig(), &(am_nnet.GetNnet()));
 
         word_syms = NULL;
         if (word_syms_filepath != "" && !(word_syms = std::unique_ptr<fst::SymbolTable>(fst::SymbolTable::ReadText(word_syms_filepath)))) {
@@ -181,29 +234,38 @@ Decoder::Decoder(kaldi::BaseFloat beam, std::size_t max_active,
         }
 
         feature_info = new kaldi::OnlineNnet2FeaturePipelineInfo(feature_opts);
+
     } catch (const std::exception &e) {
         KALDI_ERR << e.what();
     }
 }
 
-utterance_results_t Decoder::decode_file(const std::string &wav_filepath, const std::size_t &n_best) {
-    std::ifstream wav_stream(wav_filepath, std::ifstream::binary);
-    return decode_stream(wav_stream, n_best);
+Decoder *Decoder::clone() const {
+    // implement deep copy here
+    return NULL;
 }
 
-utterance_results_t Decoder::decode_stream(std::istream &wav_stream, const std::size_t &n_best) {
-    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info->ivector_extractor_info);
-    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info);
-    feature_pipeline.SetAdaptationState(adaptation_state);
+void Decoder::decode_stream_initialize(kaldi::OnlineIvectorExtractorAdaptationState* adaptation_state,
+                                       kaldi::OnlineNnet2FeaturePipeline* feature_pipeline,
+                                       kaldi::nnet3::DecodableNnetSimpleLoopedInfo* decodable_info,
+                                       kaldi::OnlineSilenceWeighting* silence_weighting,
+                                       kaldi::SingleUtteranceNnet3Decoder* decoder) {
+    adaptation_state = new kaldi::OnlineIvectorExtractorAdaptationState(feature_info->ivector_extractor_info);
+    feature_pipeline = new kaldi::OnlineNnet2FeaturePipeline(*feature_info);
+    feature_pipeline->SetAdaptationState(*adaptation_state);
+    
+    decodable_info = new kaldi::nnet3::DecodableNnetSimpleLoopedInfo(decodable_opts, &am_nnet);
+    silence_weighting = new kaldi::OnlineSilenceWeighting(trans_model, feature_info->silence_weighting_config,
+                                                          decodable_opts.frame_subsampling_factor);
+    decoder = new kaldi::SingleUtteranceNnet3Decoder(lattice_faster_decoder_config,
+                                                     trans_model, *decodable_info,
+                                                     *decode_fst, feature_pipeline);
+}
 
-    kaldi::OnlineSilenceWeighting silence_weighting(trans_model, feature_info->silence_weighting_config,
-                                                    decodable_opts.frame_subsampling_factor);
-    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts, &am_nnet);
-
-    kaldi::SingleUtteranceNnet3Decoder decoder(lattice_faster_decoder_config,
-                                               trans_model, decodable_info, *decode_fst,
-                                               &feature_pipeline);
-
+void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline* feature_pipeline,
+                                    kaldi::OnlineSilenceWeighting* silence_weighting,
+                                    kaldi::SingleUtteranceNnet3Decoder* decoder,
+                                    std::istream &wav_stream) const {
     kaldi::WaveData wave_data;
     wave_data.Read(wav_stream);
 
@@ -229,25 +291,33 @@ utterance_results_t Decoder::decode_stream(std::istream &wav_stream, const std::
         int32 num_samp = chunk_length < samp_remaining ? chunk_length : samp_remaining;
 
         kaldi::SubVector<kaldi::BaseFloat> wave_part(data, samp_offset, num_samp);
-        feature_pipeline.AcceptWaveform(samp_freq, wave_part);
+        feature_pipeline->AcceptWaveform(samp_freq, wave_part);
 
         samp_offset += num_samp;
         if (samp_offset == data.Dim()) {
-            feature_pipeline.InputFinished();
+            return;
         }
 
-        if (silence_weighting.Active() && feature_pipeline.IvectorFeature() != NULL) {
-            silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
-            silence_weighting.GetDeltaWeights(feature_pipeline.NumFramesReady(),
+        if (silence_weighting->Active() && feature_pipeline->IvectorFeature() != NULL) {
+            silence_weighting->ComputeCurrentTraceback(decoder->Decoder());
+            silence_weighting->GetDeltaWeights(feature_pipeline->NumFramesReady(),
                                               &delta_weights);
-            feature_pipeline.IvectorFeature()->UpdateFrameWeights(delta_weights);
+            feature_pipeline->IvectorFeature()->UpdateFrameWeights(delta_weights);
         }
-        decoder.AdvanceDecoding();
+        decoder->AdvanceDecoding();
     }
-    decoder.FinalizeDecoding();
+}
+
+utterance_results_t Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline* feature_pipeline,
+                                                 kaldi::SingleUtteranceNnet3Decoder* decoder,
+                                                 const std::size_t &n_best) const {
+    feature_pipeline->InputFinished();
+
+    decoder->AdvanceDecoding();
+    decoder->FinalizeDecoding();
 
     kaldi::CompactLattice clat;
-    decoder.GetLattice(true, &clat);
+    decoder->GetLattice(true, &clat);
 
     return find_alternatives(word_syms.get(), clat, n_best);
 }
@@ -261,7 +331,7 @@ class DecoderFactory {
   public:
     explicit DecoderFactory(const std::string &hclg_filepath) : decode_fst(std::unique_ptr<fst::Fst<fst::StdArc>>(fst::ReadFstKaldiGeneric(hclg_filepath))) {}
 
-    std::shared_ptr<Decoder> operator()(const kaldi::BaseFloat &beam,
+    std::unique_ptr<Decoder> operator()(const kaldi::BaseFloat &beam,
                                         const std::size_t &max_active,
                                         const std::size_t &min_active,
                                         const kaldi::BaseFloat &lattice_beam,
@@ -271,7 +341,7 @@ class DecoderFactory {
                                         const std::string &model_filepath,
                                         const std::string &mfcc_conf_filepath,
                                         const std::string &ie_conf_filepath) {
-        return std::shared_ptr<Decoder>(new Decoder(beam, max_active, min_active, lattice_beam,
+        return std::unique_ptr<Decoder>(new Decoder(beam, max_active, min_active, lattice_beam,
                                                     acoustic_scale, frame_subsampling_factor,
                                                     word_syms_filepath, model_filepath,
                                                     mfcc_conf_filepath, ie_conf_filepath,

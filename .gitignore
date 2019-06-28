@@ -5,3 +5,6 @@
 protos/*.pb*
 .vscode
 notes.md
+
+audio
+build.sh

@@ -2,19 +2,9 @@ syntax = "proto3";
 package kaldi_serve;
 
 service KaldiServe {
-  // Performs synchronous speech recognition: receive results
-  // after all audio has been sent and processed.  
-  rpc Recognize(RecognizeRequest) returns (RecognizeResponse) {}
-
-  // Performs asynchronous speech recognition: receive results
-  // with long running operation
-  // rpc LongRunningRecognize(LongRunningRecognizeRequest) 
-  //     returns (LongRunningRecognizeResponse) {}
-
-  // Performs bidirectional streaming speech recognition: receive results 
-  // while sending audio.
-  // rpc StreamingRecognize(stream StreamingRecognizeRequest)
-  //     returns (stream StreamingRecognizeResponse) {}
+  // Performs synchronous client-to-server streaming speech recognition: 
+  //    receive results after all audio has been streamed and processed.
+  rpc Recognize(stream RecognizeRequest) returns (RecognizeResponse) {}
 }
 
 message RecognizeRequest {
@@ -23,19 +13,9 @@ message RecognizeRequest {
   string uuid = 3;
 }
 
-// message LongRunningRecognizeRequest {
-//   RecognitionConfig config = 1;
-//   RecognitionAudio audio = 2;
-//   string uuid = 3;
-// }
-
 message RecognizeResponse {
   repeated SpeechRecognitionResult results = 1;
 }
-
-// message LongRunningRecognizeResponse {
-//   repeated SpeechRecognitionResult results = 1;
-// }
 
 // Provides information to the recognizer that specifies how to process the request
 message RecognitionConfig {

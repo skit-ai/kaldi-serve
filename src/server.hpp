@@ -40,68 +40,65 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
     // decoder object (read-only)
-    const std::shared_ptr<Decoder> decoder;
-
-    void transcribe(const kaldi_serve::RecognitionConfig *config,
-                    const kaldi_serve::RecognitionAudio *audio,
-                    const std::string &uuid,
-                    kaldi_serve::RecognizeResponse *recognizeResponse) {
-
-        std::cout << "UUID: \t" << uuid << std::endl;
-
-        std::cout << "Encoding: " << config->encoding() << std::endl;
-        std::cout << "Sample Rate Hertz: " << config->sample_rate_hertz() << std::endl;
-        std::cout << "Language Code: " << config->language_code() << std::endl;
-        std::cout << "Max Alternatives: " << config->max_alternatives() << std::endl;
-        std::cout << "Punctuation: " << config->punctuation() << std::endl;
-        std::cout << "Model: " << config->model() << std::endl;
-
-        std::cout << "NOTE: We are ignoring most of the parameters, other than the audio bytes, for now."
-                  << std::endl;
-
-        kaldi_serve::SpeechRecognitionResult *results = recognizeResponse->add_results();
-
-        int32 n_best = config->max_alternatives();
-        std::stringstream input_stream(audio->content());
-
-        kaldi_serve::SpeechRecognitionAlternative *alternative;
-        for (auto const &res : this->decoder->decode_stream(input_stream, n_best)) {
-            alternative = results->add_alternatives();
-            alternative->set_transcript(res.first.first);
-            alternative->set_confidence(res.first.second);
-        }
-
-        return;
-    }
+    Decoder *decoder_;
 
   public:
-    explicit KaldiServeImpl(const std::shared_ptr<Decoder> decoder) : decoder(decoder) {}
+    KaldiServeImpl(Decoder *);
 
-    grpc::Status Recognize(grpc::ServerContext *context,
-                           const kaldi_serve::RecognizeRequest *recognizeRequest,
-                           kaldi_serve::RecognizeResponse *recognizeResponse) override {
-
-        // LOG REQUEST RESOLVE TIME --> START
-        std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-        start = std::chrono::high_resolution_clock::now();
-
-        kaldi_serve::RecognitionConfig config = recognizeRequest->config();
-        kaldi_serve::RecognitionAudio audio = recognizeRequest->audio();
-        std::string uuid = recognizeRequest->uuid();
-
-        this->transcribe(&config, &audio, uuid, recognizeResponse);
-
-        end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> res_duration = end - start;
-
-        std::cout << "request resolved in: " << res_duration.count() << 's' << std::endl;
-        // LOG REQUEST RESOLVE TIME --> END
-
-        return grpc::Status::OK;
-    }
+    grpc::Status Recognize(grpc::ServerContext *,
+                           grpc::ServerReader<kaldi_serve::RecognizeRequest> *,
+                           kaldi_serve::RecognizeResponse *) override;
 };
 
-void run_server(const std::shared_ptr<Decoder> &decoder) {
+KaldiServeImpl::KaldiServeImpl(Decoder *decoder) : decoder_(decoder) {}
+
+grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
+                                       grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
+                                       kaldi_serve::RecognizeResponse *response) {
+
+    kaldi::OnlineIvectorExtractorAdaptationState *adaptation_state;
+    kaldi::OnlineNnet2FeaturePipeline *feature_pipeline;
+    kaldi::nnet3::DecodableNnetSimpleLoopedInfo *decodable_info;
+    kaldi::OnlineSilenceWeighting *silence_weighting;
+    kaldi::SingleUtteranceNnet3Decoder *decoder;
+
+    kaldi_serve::RecognizeRequest request_;
+
+    std::chrono::system_clock::time_point start_time;
+    decoder_->decode_stream_initialize(adaptation_state, feature_pipeline, decodable_info, silence_weighting, decoder);
+
+    while (reader->Read(&request_)) {
+        // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actually )
+        start_time = std::chrono::system_clock::now();
+
+        kaldi_serve::RecognitionAudio audio = request_.audio();
+
+        std::stringstream input_stream(audio.content());
+        decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
+    }
+    kaldi_serve::RecognitionConfig config = request_.config();
+    std::string uuid = request_.uuid();
+
+    int32 n_best = config.max_alternatives();
+    kaldi_serve::SpeechRecognitionResult *results = response->add_results();
+    kaldi_serve::SpeechRecognitionAlternative *alternative;
+
+    for (auto const &res : decoder_->decode_stream_final(feature_pipeline, decoder, n_best)) {
+        alternative = results->add_alternatives();
+        alternative->set_transcript(res.first.first);
+        alternative->set_confidence(res.first.second);
+    }
+
+    decoder_->cleanup(adaptation_state, feature_pipeline, decodable_info, silence_weighting, decoder);
+    std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+    // LOG REQUEST RESOLVE TIME --> END
+
+    auto secs = std::chrono::duration_cast<std::chrono::seconds>(
+        end_time - start_time);
+    std::cout << "request resolved in: " << secs.count() << 's' << std::endl;
+}
+
+void run_server(Decoder* decoder) {
     // define a kaldi serve instance and pass the decoder
     KaldiServeImpl service(decoder);
 
@@ -113,6 +110,6 @@ void run_server(const std::shared_ptr<Decoder> &decoder) {
 
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
 
-    std::cout << "Server listening on " << server_address << std::endl;
+    std::cout << "kaldi-serve gRPC Streaming Server listening on " << server_address << std::endl;
     server->Wait();
 }
