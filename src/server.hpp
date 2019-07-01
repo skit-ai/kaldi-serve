@@ -36,6 +36,10 @@
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
+void debug(std::string msg) {
+    std::cout << msg << std::endl;
+}
+
 class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
@@ -55,6 +59,7 @@ KaldiServeImpl::KaldiServeImpl(Decoder *decoder) : decoder_(decoder) {}
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
                                        grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
                                        kaldi_serve::RecognizeResponse *response) {
+    debug("Recieved message");
 
     kaldi::OnlineIvectorExtractorAdaptationState *adaptation_state;
     kaldi::OnlineNnet2FeaturePipeline *feature_pipeline;
@@ -62,19 +67,26 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     kaldi::OnlineSilenceWeighting *silence_weighting;
     kaldi::SingleUtteranceNnet3Decoder *decoder;
 
+    debug("init decode params");
+
     kaldi_serve::RecognizeRequest request_;
 
     std::chrono::system_clock::time_point start_time;
     decoder_->decode_stream_initialize(adaptation_state, feature_pipeline, decodable_info, silence_weighting, decoder);
 
     while (reader->Read(&request_)) {
+        debug("read request");
+    
         // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actually )
         start_time = std::chrono::system_clock::now();
 
         kaldi_serve::RecognitionAudio audio = request_.audio();
 
         std::stringstream input_stream(audio.content());
+        debug("init input stream");
+        
         decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
+        debug("decoding of chunk done");
     }
     kaldi_serve::RecognitionConfig config = request_.config();
     std::string uuid = request_.uuid();
@@ -88,8 +100,11 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
         alternative->set_transcript(res.first.first);
         alternative->set_confidence(res.first.second);
     }
+    debug("found best alternatives");
 
     decoder_->cleanup(adaptation_state, feature_pipeline, decodable_info, silence_weighting, decoder);
+    debug("cleanup done");
+    
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG REQUEST RESOLVE TIME --> END
 
@@ -102,7 +117,7 @@ void run_server(Decoder* decoder) {
     // define a kaldi serve instance and pass the decoder
     KaldiServeImpl service(decoder);
 
-    std::string server_address("0.0.0.0:5016");
+    std::string server_address("0.0.0.0:5017");
 
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

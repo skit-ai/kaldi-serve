@@ -159,7 +159,7 @@ class Decoder {
     void decode_stream_process(kaldi::OnlineNnet2FeaturePipeline*,
                                kaldi::OnlineSilenceWeighting*,
                                kaldi::SingleUtteranceNnet3Decoder*,
-                               std::istream &) const;
+                               std::istream &);
 
 
     // get the final utterances based on the compact lattice
@@ -265,7 +265,7 @@ void Decoder::decode_stream_initialize(kaldi::OnlineIvectorExtractorAdaptationSt
 void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline* feature_pipeline,
                                     kaldi::OnlineSilenceWeighting* silence_weighting,
                                     kaldi::SingleUtteranceNnet3Decoder* decoder,
-                                    std::istream &wav_stream) const {
+                                    std::istream &wav_stream) {
     kaldi::WaveData wave_data;
     wave_data.Read(wav_stream);
 
@@ -285,17 +285,32 @@ void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline* feature_p
     }
     int32 samp_offset = 0;
     std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
+    
+    std::cout << "dim: " << data.Dim() << std::endl;
+    std::cout << "chunk len: " << chunk_length << std::endl;
 
     while (samp_offset < data.Dim()) {
+        
+        std::cout << "samp_offset: " << samp_offset << std::endl;
+        
         int32 samp_remaining = data.Dim() - samp_offset;
         int32 num_samp = chunk_length < samp_remaining ? chunk_length : samp_remaining;
 
+        std::cout << "num_samp: " << num_samp << std::endl;
+
         kaldi::SubVector<kaldi::BaseFloat> wave_part(data, samp_offset, num_samp);
+
+        std::cout << "created wave_part" << std::endl;
+
         feature_pipeline->AcceptWaveform(samp_freq, wave_part);
+
+        std::cout << "accepted waveform" << std::endl;
 
         samp_offset += num_samp;
         if (samp_offset == data.Dim()) {
-            return;
+            feature_pipeline->InputFinished();
+            // break;
+            std::cout << "input finished" << std::endl;
         }
 
         if (silence_weighting->Active() && feature_pipeline->IvectorFeature() != NULL) {
@@ -303,17 +318,18 @@ void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline* feature_p
             silence_weighting->GetDeltaWeights(feature_pipeline->NumFramesReady(),
                                               &delta_weights);
             feature_pipeline->IvectorFeature()->UpdateFrameWeights(delta_weights);
+
+            std::cout << "silence weighting condition" << std::endl;
         }
         decoder->AdvanceDecoding();
+
+        std::cout << "decoder advanced" << std::endl;
     }
 }
 
 utterance_results_t Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline* feature_pipeline,
                                                  kaldi::SingleUtteranceNnet3Decoder* decoder,
                                                  const std::size_t &n_best) const {
-    feature_pipeline->InputFinished();
-
-    decoder->AdvanceDecoding();
     decoder->FinalizeDecoding();
 
     kaldi::CompactLattice clat;
