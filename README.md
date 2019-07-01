@@ -21,7 +21,5 @@ make -j8
 ### Running Tests
 
 ```bash
-cd test/
-make -j8
-./test_server.sh
+make check -j 8
 ```
