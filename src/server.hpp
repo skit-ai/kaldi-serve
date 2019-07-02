@@ -36,10 +36,6 @@
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
-void debug(std::string msg) {
-    std::cout << msg << std::endl;
-}
-
 class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
@@ -112,7 +108,7 @@ void run_server(Decoder* decoder) {
     // define a kaldi serve instance and pass the decoder
     KaldiServeImpl service(decoder);
 
-    std::string server_address("0.0.0.0:5017");
+    std::string server_address("0.0.0.0:5016");
 
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

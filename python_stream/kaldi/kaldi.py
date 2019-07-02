@@ -20,7 +20,7 @@ class KaldiClient(object):
         channel=None,
         client_info=None,
     ):
-        KALDI_SERVE_HOST = os.environ.get('KALDI_SERVE_HOST', "grpc://0.0.0.0:5017")
+        KALDI_SERVE_HOST = os.environ.get('KALDI_SERVE_HOST', "grpc://0.0.0.0:5016")
         if KALDI_SERVE_HOST.startswith("grpc://"):
             KALDI_SERVE_HOST = KALDI_SERVE_HOST[len("grpc://"):]
         print(KALDI_SERVE_HOST)
