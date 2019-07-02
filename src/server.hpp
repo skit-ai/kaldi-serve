@@ -59,34 +59,31 @@ KaldiServeImpl::KaldiServeImpl(Decoder *decoder) : decoder_(decoder) {}
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
                                        grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
                                        kaldi_serve::RecognizeResponse *response) {
-    debug("Recieved message");
+    
+    // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
+    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
+    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*decoder_->feature_info_);
+    feature_pipeline.SetAdaptationState(adaptation_state);
 
-    kaldi::OnlineIvectorExtractorAdaptationState *adaptation_state;
-    kaldi::OnlineNnet2FeaturePipeline *feature_pipeline;
-    kaldi::nnet3::DecodableNnetSimpleLoopedInfo *decodable_info;
-    kaldi::OnlineSilenceWeighting *silence_weighting;
-    kaldi::SingleUtteranceNnet3Decoder *decoder;
+    kaldi::OnlineSilenceWeighting silence_weighting(decoder_->trans_model_, decoder_->feature_info_->silence_weighting_config,
+                                                    decoder_->decodable_opts_.frame_subsampling_factor);
+    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decoder_->decodable_opts_, &decoder_->am_nnet_);
 
-    debug("init decode params");
+    kaldi::SingleUtteranceNnet3Decoder decoder(decoder_->lattice_faster_decoder_config_,
+                                               decoder_->trans_model_, decodable_info, *decoder_->decode_fst_,
+                                               &feature_pipeline);
 
     kaldi_serve::RecognizeRequest request_;
-
     std::chrono::system_clock::time_point start_time;
-    decoder_->decode_stream_initialize(adaptation_state, feature_pipeline, decodable_info, silence_weighting, decoder);
 
     while (reader->Read(&request_)) {
-        debug("read request");
-    
         // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actually )
         start_time = std::chrono::system_clock::now();
 
         kaldi_serve::RecognitionAudio audio = request_.audio();
-
         std::stringstream input_stream(audio.content());
-        debug("init input stream");
         
         decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
-        debug("decoding of chunk done");
     }
     kaldi_serve::RecognitionConfig config = request_.config();
     std::string uuid = request_.uuid();
@@ -100,10 +97,6 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
         alternative->set_transcript(res.first.first);
         alternative->set_confidence(res.first.second);
     }
-    debug("found best alternatives");
-
-    decoder_->cleanup(adaptation_state, feature_pipeline, decodable_info, silence_weighting, decoder);
-    debug("cleanup done");
     
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG REQUEST RESOLVE TIME --> END
@@ -111,6 +104,8 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(
         end_time - start_time);
     std::cout << "request resolved in: " << secs.count() << 's' << std::endl;
+
+    return grpc::Status::OK;
 }
 
 void run_server(Decoder* decoder) {

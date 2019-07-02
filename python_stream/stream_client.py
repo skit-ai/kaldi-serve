@@ -1,56 +1,37 @@
 import traceback
-from io import BytesIO
 
+from io import BytesIO
 from pprint import pprint
 
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
-from kaldi import KaldiClient, RecognitionAudio, RecognitionConfig
+from kaldi import (
+    KaldiClient,
+    RecognitionAudio,
+    RecognitionConfig
+)
 
-def get_chunks(filename):
-    """
-    taken from `http-server` branch of `kaldi-serve`
-    """
-    complete_audio = AudioSegment.from_file(filename)
-    print(f'audio len: {len(complete_audio)}')
-    print(f'channels: {complete_audio.channels}')
-    print(f'frame rate: {complete_audio.frame_rate}')
+def get_chunks(filename, chunk_len=1):
+    audio = AudioSegment.from_file(filename, format='wav', frame_rate=8000, channels=1, sample_width=2)
 
-    # Normalize the audio
-    # complete_audio = complete_audio.apply_gain(-complete_audio.max_dBFS)
+    print(f'sample_width: {audio.sample_width}')
+    print(f'audio len: {len(audio)}')
+    print(f'channels: {audio.channels}')
+    print(f'frame rate: {audio.frame_rate}')
 
-    # # Setting the silence threshold. Right now I am just subtracting 5dB from the average dB of the audio. Need to tinker with this
-    # avg_db = complete_audio.dBFS
-    # min_silence_len = 500
-    # silence_thresh = avg_db - 5
-    chunk_len = 3 # audio seconds per chunk
-
-    # seek_step = 1
-
-    # # Get ranges which are "non silent" according to pydub
-    # not_silence_ranges = detect_nonsilent(complete_audio, min_silence_len, silence_thresh, seek_step)
-
-    # If empty, it is fully silent. Dont trust pydub. Send it to ASR anyway
-    # if not not_silence_ranges:
-    #     audio_stream = BytesIO()
-    #     complete_audio.export(audio_stream, format='wav')
-    #     return [audio_stream.getvalue()]
-
-    # # Force the "last" non silent range to extend till the end of the audio
-    # not_silence_ranges[-1][1] = len(complete_audio)
-
-    # non_silence = complete_audio[not_silence_ranges[0][0]: not_silence_ranges[0][1]]
-    # for ns in not_silence_ranges[1:]:
-    #     non_silence.append(complete_audio[ns[0]: ns[1]])
-
-    # print(f'channels: {non_silence.channels}')
+    if audio.duration_seconds == chunk_len:
+        audio_stream = BytesIO()
+        audio.export(audio_stream, format='wav')
+        return [audio_stream.getvalue()]
 
     chunks = []
-    for i in range(0, len(complete_audio), int(chunk_len * 1000)):
-        audio_stream = BytesIO()
-        complete_audio[i: i + chunk_len * 1000].set_frame_rate(8000).export(audio_stream, format='wav')
-        chunks.append(audio_stream.getvalue())
+    for i in range(0, len(audio), int(chunk_len * 1000)):
+        chunk = audio[i: i + chunk_len * 1000]
+        chunk_stream = BytesIO()
+        chunk.export(chunk_stream, format='wav')
+        chunks.append(chunk_stream.getvalue())
+
     return chunks
 
 client = None
@@ -76,7 +57,7 @@ def transcribe_file(audio_chunks, language_code='hi', **kwargs):
     )
 
     try:
-        response = client.recognize(config, audio, uuid=kwargs.get('uuid', '5512341'), timeout=3)
+        response = client.recognize(config, audio, uuid=kwargs.get('uuid', ''), timeout=3)
     except Exception as e:
         status_code = 500
         traceback.print_exc()
@@ -120,7 +101,7 @@ def parse_response(response):
     return [_parse_result(res) for res in response.results]
 
 def main():
-    audio_path = '../audio/some2.wav'
+    audio_path = '../audio/some3.wav'
     audio_chunks = get_chunks(audio_path)
 
     result = transcribe_file(audio_chunks)
