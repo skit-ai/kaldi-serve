@@ -1,4 +1,3 @@
-import time
 import random
 
 import threading
@@ -41,7 +40,6 @@ def get_chunks(filename, chunk_len=1):
 client = None
 
 def transcribe_file(audio_chunks, language_code='hi', **kwargs):
-    # time.sleep(random.randint(0, 1))
     """Transcribe the given audio file."""
     print(f'no. of audio chunks: {len(audio_chunks)}')
     global client

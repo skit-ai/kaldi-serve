@@ -5,13 +5,16 @@
 // Include guard
 #pragma once
 
+#include "config.hpp"
+
 // C++ stl includes
-#include <algorithm>
-#include <chrono>
-#include <future>
 #include <iostream>
 #include <memory>
 #include <string>
+
+#if DEBUG
+#include <chrono>
+#endif
 
 // gRPC inludes
 #include <grpc/grpc.h>
@@ -20,18 +23,6 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 
-// Kaldi includes
-#include "feat/wave-reader.h"
-#include "fstext/fstext-lib.h"
-#include "lat/kaldi-lattice.h"
-#include "lat/lattice-functions.h"
-#include "nnet3/nnet-utils.h"
-#include "online2/online-endpoint.h"
-#include "online2/online-nnet2-feature-pipeline.h"
-#include "online2/online-nnet3-decoding.h"
-#include "online2/onlinebin-util.h"
-#include "util/kaldi-thread.h"
-
 // Local includes
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
@@ -39,23 +30,28 @@
 class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
-    // decoder object (read-only)
-    Decoder *decoder_;
+    // thread-safe decoder queue
+    std::unique_ptr<DecoderQueue> decoder_queue_;
 
   public:
-    KaldiServeImpl(Decoder *);
+    KaldiServeImpl(const std::string &, const int &);
 
     grpc::Status Recognize(grpc::ServerContext *,
                            grpc::ServerReader<kaldi_serve::RecognizeRequest> *,
                            kaldi_serve::RecognizeResponse *) override;
 };
 
-KaldiServeImpl::KaldiServeImpl(Decoder *decoder) : decoder_(decoder) {}
+KaldiServeImpl::KaldiServeImpl(const std::string &model_dir, const int &n) {
+    decoder_queue_ = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_dir, n));
+}
 
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
                                        grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
                                        kaldi_serve::RecognizeResponse *response) {
-    
+
+    // IMPORTANT :: attain the lock and pop a decoder from the `free` queue
+    Decoder *decoder_ = decoder_queue_->acquire();
+
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
     kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*decoder_->feature_info_);
@@ -73,12 +69,13 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     std::chrono::system_clock::time_point start_time;
 
     while (reader->Read(&request_)) {
+#if DEBUG
         // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actually )
         start_time = std::chrono::system_clock::now();
-
+#endif
         kaldi_serve::RecognitionAudio audio = request_.audio();
         std::stringstream input_stream(audio.content());
-        
+
         decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
     }
     kaldi_serve::RecognitionConfig config = request_.config();
@@ -93,20 +90,23 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
         alternative->set_transcript(res.first.first);
         alternative->set_confidence(res.first.second);
     }
-    
+
+    // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
+    decoder_queue_->release(decoder_);
+#ifdef DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG REQUEST RESOLVE TIME --> END
 
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(
         end_time - start_time);
     std::cout << "request resolved in: " << secs.count() << 's' << std::endl;
-
+#endif
     return grpc::Status::OK;
 }
 
-void run_server(Decoder* decoder) {
-    // define a kaldi serve instance and pass the decoder
-    KaldiServeImpl service(decoder);
+void run_server(const std::string &model_dir, const int &n) {
+    // define a kaldi serve instance
+    KaldiServeImpl service(model_dir, n);
 
     std::string server_address("0.0.0.0:5016");
 
