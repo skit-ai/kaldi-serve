@@ -114,7 +114,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
     // also notifies another request handler thread that a decoder is available.
     decoder_queue_->release(decoder_);
-#ifdef DEBUG
+#if DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG REQUEST RESOLVE TIME --> END
 
