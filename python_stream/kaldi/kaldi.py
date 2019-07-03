@@ -1,14 +1,21 @@
 import os
 import grpc
 
+import random
+import time
+
 from .kaldi_serve_pb2 import RecognizeRequest
 from .kaldi_serve_pb2_grpc import KaldiServeStub
 
 # Reference: https://github.com/googleapis/google-cloud-python/blob/3ba1ae73070769854a1f7371305c13752c0374ba/speech/google/cloud/speech_v1/gapic/speech_client.py
 
 def audio_stream_gen(audio_chunks, config, uuid):
+    first = True
     for chunk in audio_chunks:
         req = RecognizeRequest(config=config, audio=chunk, uuid=uuid)
+        if not first:
+            time.sleep(random.randint(1, 3))
+            first = False
         yield req
 
 class KaldiClient(object):

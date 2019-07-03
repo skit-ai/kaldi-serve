@@ -8,3 +8,5 @@ notes.md
 
 audio
 build.sh
+
+/python_stream/kaldi/__pycache__

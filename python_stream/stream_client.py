@@ -1,3 +1,7 @@
+import time
+import random
+
+import threading
 import traceback
 
 from io import BytesIO
@@ -37,6 +41,7 @@ def get_chunks(filename, chunk_len=1):
 client = None
 
 def transcribe_file(audio_chunks, language_code='hi', **kwargs):
+    # time.sleep(random.randint(0, 1))
     """Transcribe the given audio file."""
     print(f'no. of audio chunks: {len(audio_chunks)}')
     global client
@@ -63,8 +68,8 @@ def transcribe_file(audio_chunks, language_code='hi', **kwargs):
         traceback.print_exc()
         print(f'error: {str(e)}')
 
-    return transcript_dict(response), status_code
-
+    pprint(transcript_dict(response))
+    
 def transcript_dict(response):
     # Initial values of transcript, confidence and alternatives
     transcript = '_unknown_'
@@ -101,11 +106,17 @@ def parse_response(response):
     return [_parse_result(res) for res in response.results]
 
 def main():
-    audio_path = '../audio/some3.wav'
-    audio_chunks = get_chunks(audio_path)
+    audio_paths = ['../audio/some2.wav', '../audio/some3.wav', '../audio/audio_hindi.wav']
+    chunked_audios = [get_chunks(x, chunk_len=random.randint(1, 3)) for x in audio_paths]
 
-    result = transcribe_file(audio_chunks)
-    pprint(result)
+    threads = [None] * len(chunked_audios)    
+
+    for i, audio_chunks in enumerate(chunked_audios):
+        threads[i] = threading.Thread(target=transcribe_file, args=(audio_chunks, ))
+        threads[i].start()
+
+    for i in range(len(threads)):
+        threads[i].join()
 
 if __name__ == "__main__":
     main()
