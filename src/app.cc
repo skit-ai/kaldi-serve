@@ -21,12 +21,12 @@ int main(int argc, char *argv[]) {
         ->check(CLI::ExistingDirectory);
 
     int num_decoders = NUM_DECODERS;
-    app.add_option("-n,--num-decoders", num_decoders, "Number of decoders to initialize in the queue.")
+    app.add_option("-n,--num-decoders", num_decoders, "Number of decoders to initialize in the concurrent queue.")
         ->check(CLI::Number);
 
     CLI11_PARSE(app, argc, argv);
 
-    // runs the server using the loaded decoder model
+    // runs the server
     run_server(model_dir, num_decoders);
 
     return 0;

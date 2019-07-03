@@ -27,15 +27,25 @@
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
+// KaldiServeImpl :: Kaldi Service interface Implementation
+// Defines the core server logic and request/response handlers.
+// Keeps a few `Decoder` instances cached in a thread-safe 
+// multiple producer multiple consumer queue to handle each 
+// request with a different `Decoder`.
 class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
-    // thread-safe decoder queue
+    // Thread-safe Decoder MPMC Queue
     std::unique_ptr<DecoderQueue> decoder_queue_;
 
   public:
-    KaldiServeImpl(const std::string &, const int &);
+    // Main Constructor for Kaldi Service
+    // Accepts the `model_dir` path and the number of decoders to cache.
+    explicit KaldiServeImpl(const std::string &, const int &);
 
+    // Request Handler RPC service
+    // Accepts a stream of `RecognizeRequest` packets
+    // Returns a single `RecognizeResponse` message
     grpc::Status Recognize(grpc::ServerContext *,
                            grpc::ServerReader<kaldi_serve::RecognizeRequest> *,
                            kaldi_serve::RecognizeResponse *) override;
@@ -50,6 +60,10 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
                                        kaldi_serve::RecognizeResponse *response) {
 
     // IMPORTANT :: attain the lock and pop a decoder from the `free` queue
+    // waits here until lock on queue is attained and a decoder is obtained.
+    // Each new stream gets it's own decoder instance.
+    // TODO(1): set a timeout for wait and allocate a temp decoder
+    // to resolve request if memory allows.
     Decoder *decoder_ = decoder_queue_->acquire();
 
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
@@ -65,9 +79,13 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
                                                decoder_->trans_model_, decodable_info, *decoder_->decode_fst_,
                                                &feature_pipeline);
 
+    // variable to read stream requests into
     kaldi_serve::RecognizeRequest request_;
+#if DEBUG
     std::chrono::system_clock::time_point start_time;
+#endif
 
+    // read chunks until end of stream
     while (reader->Read(&request_)) {
 #if DEBUG
         // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actually )
@@ -76,6 +94,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
         kaldi_serve::RecognitionAudio audio = request_.audio();
         std::stringstream input_stream(audio.content());
 
+        // decode intermediate speech signals
         decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
     }
     kaldi_serve::RecognitionConfig config = request_.config();
@@ -85,6 +104,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     kaldi_serve::SpeechRecognitionResult *results = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
 
+    // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : decoder_->decode_stream_final(feature_pipeline, decoder, n_best)) {
         alternative = results->add_alternatives();
         alternative->set_transcript(res.first.first);
@@ -92,6 +112,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     }
 
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
+    // also notifies another request handler thread that a decoder is available.
     decoder_queue_->release(decoder_);
 #ifdef DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
@@ -104,7 +125,9 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     return grpc::Status::OK;
 }
 
+// Runs the Server with the Kaldi Service
 void run_server(const std::string &model_dir, const int &n) {
+    
     // define a kaldi serve instance
     KaldiServeImpl service(model_dir, n);
 

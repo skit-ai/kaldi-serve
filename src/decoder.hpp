@@ -279,7 +279,8 @@ utterance_results_t Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeli
     return find_alternatives(word_syms_, clat, n_best);
 }
 
-// Factory for creating decoders with shared decoding graph.
+// Factory for creating decoders with shared decoding graph and model parameters
+// Caches the graph and params to be able to produce uniform decoders later in queue.
 class DecoderFactory {
 
   private:
@@ -309,6 +310,8 @@ class DecoderFactory {
                             const std::string &,
                             const std::string &);
 
+    ~DecoderFactory();
+
     inline Decoder *produce() const;
 
     inline Decoder *operator()() const;
@@ -331,6 +334,10 @@ DecoderFactory::DecoderFactory(const std::string &hclg_filepath,
       word_syms_filepath_(word_syms_filepath), model_filepath_(model_filepath),
       mfcc_conf_filepath_(mfcc_conf_filepath), ie_conf_filepath_(ie_conf_filepath) {}
 
+DecoderFactory::~DecoderFactory() {
+    delete decode_fst_;
+}
+
 inline Decoder *DecoderFactory::produce() const {
     return new Decoder(beam_, max_active_, min_active_, lattice_beam_,
                        acoustic_scale_, frame_subsampling_factor_,
@@ -343,6 +350,8 @@ inline Decoder *DecoderFactory::operator()() const {
     return produce();
 }
 
+// Decoder Queue for providing thread safety to multiple request handler
+// threads producing and consuming decoder instances on demand.
 class DecoderQueue {
 
   private:
