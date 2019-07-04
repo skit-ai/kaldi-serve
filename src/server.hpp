@@ -29,8 +29,8 @@
 
 // KaldiServeImpl :: Kaldi Service interface Implementation
 // Defines the core server logic and request/response handlers.
-// Keeps a few `Decoder` instances cached in a thread-safe 
-// multiple producer multiple consumer queue to handle each 
+// Keeps a few `Decoder` instances cached in a thread-safe
+// multiple producer multiple consumer queue to handle each
 // request with a different `Decoder`.
 class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
@@ -81,12 +81,14 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
 
     // variable to read stream requests into
     kaldi_serve::RecognizeRequest request_;
+
 #if DEBUG
     std::chrono::system_clock::time_point start_time;
 #endif
 
     // read chunks until end of stream
     while (reader->Read(&request_)) {
+
 #if DEBUG
         // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actually )
         start_time = std::chrono::system_clock::now();
@@ -114,20 +116,22 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
     // also notifies another request handler thread that a decoder is available.
     decoder_queue_->release(decoder_);
+
 #if DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG REQUEST RESOLVE TIME --> END
-
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(
         end_time - start_time);
     std::cout << "request resolved in: " << secs.count() << 's' << std::endl;
 #endif
+
+    // return OK status when request is resolved
     return grpc::Status::OK;
 }
 
 // Runs the Server with the Kaldi Service
 void run_server(const std::string &model_dir, const int &n) {
-    
+
     // define a kaldi serve instance
     KaldiServeImpl service(model_dir, n);
 
@@ -142,3 +146,28 @@ void run_server(const std::string &model_dir, const int &n) {
     std::cout << "kaldi-serve gRPC Streaming Server listening on " << server_address << std::endl;
     server->Wait();
 }
+
+/**
+SOME NOTES:
+-----------
+
+VARIABLES ON WHICH SERVER RELIABILITY DEPENDS ::
+    1. Length of Audio Stream (in secs)
+    2. No. of chunks in the Audio Stream
+    3. Time intervals between subsequent chunks of audio stream
+    4. No. of Decoders in Queue
+    5. Timeout for each request (chunk essentially)
+    6. No. of concurrent streams being handled by the server
+
+LAST BENCHMARK ::
+    length of audio streams = 3s
+    no. of chunks per stream = [1, 3] randomly
+    time intervals between subsequent chunks = [1, 3]s randomly
+    no. of decoders in queue = 60
+    timeout = 80s
+    concurrent requests = 600
+
+    :: time taken per stream = 1.57 - avg :: 0.42 - min :: 1.76 - max.
+
+    Roughly able to handle load pretty well, RAM used was ~10GB with 60 decoders in queue. CPU usage was optimum (100% on 8 cores).
+ */

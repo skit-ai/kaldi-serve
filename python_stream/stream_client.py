@@ -1,3 +1,4 @@
+import time
 import random
 
 import threading
@@ -39,6 +40,8 @@ def get_chunks(filename, chunk_len=1):
 
 client = None
 
+times = []
+
 def transcribe_file(audio_chunks, language_code='hi', **kwargs):
     """Transcribe the given audio file."""
     print(f'no. of audio chunks: {len(audio_chunks)}')
@@ -60,13 +63,16 @@ def transcribe_file(audio_chunks, language_code='hi', **kwargs):
     )
 
     try:
-        response = client.recognize(config, audio, uuid=kwargs.get('uuid', ''), timeout=3)
+        start_time = time.clock()
+        response = client.recognize(config, audio, uuid=kwargs.get('uuid', ''), timeout=80)
+        elapsed = time.clock() - start_time
+        times.append(elapsed)
     except Exception as e:
         status_code = 500
         traceback.print_exc()
         print(f'error: {str(e)}')
 
-    pprint(transcript_dict(response))
+    pprint(transcript_dict(response)['transcript'])
     
 def transcript_dict(response):
     # Initial values of transcript, confidence and alternatives
@@ -105,9 +111,10 @@ def parse_response(response):
 
 def main():
     audio_paths = ['../audio/some2.wav', '../audio/some3.wav', '../audio/audio_hindi.wav']
+    audio_paths = audio_paths * 200
     chunked_audios = [get_chunks(x, chunk_len=random.randint(1, 3)) for x in audio_paths]
 
-    threads = [None] * len(chunked_audios)    
+    threads = [None] * len(chunked_audios)
 
     for i, audio_chunks in enumerate(chunked_audios):
         threads[i] = threading.Thread(target=transcribe_file, args=(audio_chunks, ))
@@ -115,6 +122,12 @@ def main():
 
     for i in range(len(threads)):
         threads[i].join()
+
+    avg_time = sum(times) / len(times)
+    print((len(times) / len(audio_paths)) * 100)
+    print(avg_time)
+    print(min(times))
+    print(max(times))
 
 if __name__ == "__main__":
     main()

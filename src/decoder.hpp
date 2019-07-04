@@ -270,13 +270,18 @@ void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_p
 utterance_results_t Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
                                                  kaldi::SingleUtteranceNnet3Decoder &decoder,
                                                  const std::size_t &n_best) const {
-    feature_pipeline.InputFinished();
-    decoder.FinalizeDecoding();
+    try {
+        feature_pipeline.InputFinished();
+        decoder.FinalizeDecoding();
 
-    kaldi::CompactLattice clat;
-    decoder.GetLattice(true, &clat);
-
-    return find_alternatives(word_syms_, clat, n_best);
+        kaldi::CompactLattice clat;
+        decoder.GetLattice(true, &clat);
+        return find_alternatives(word_syms_, clat, n_best);
+    } catch (const std::exception &e) {
+        std::cout << "ERROR :: client timed out" << std::endl;
+        utterance_results_t empty;
+        return empty;
+    }
 }
 
 // Factory for creating decoders with shared decoding graph and model parameters
