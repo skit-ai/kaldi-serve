@@ -37,7 +37,7 @@ def dreamer(source_gen, sleep_time: int):
 
 class TranscriptionItem(pytest.Item):
     """
-    Each item tells which files to read and through at the server in parallel.
+    Each item tells which files to read and throw at the server in parallel.
     Also tells the expected transcriptions for each.
     """
 
