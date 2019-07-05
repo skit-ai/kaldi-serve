@@ -19,8 +19,12 @@ from kaldi import KaldiClient, RecognitionAudio, RecognitionConfig
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
+CLIENT = None
+TIMES = []
+
 
 def get_chunks(filename, chunk_len=1):
+    # TODO: Should remove the assumptions about audio properties from here
     audio = AudioSegment.from_file(filename, format='wav', frame_rate=8000, channels=1, sample_width=2)
 
     print(f'sample_width: {audio.sample_width}')
@@ -42,25 +46,22 @@ def get_chunks(filename, chunk_len=1):
 
     return chunks
 
-client = None
-
-times = []
 
 def transcribe_file(audio_chunks, language_code='hi', **kwargs):
     """Transcribe the given audio file."""
     print(f'no. of audio chunks: {len(audio_chunks)}')
-    global client
-    if not client:
-        client = KaldiClient()
+    global CLIENT
+    if not CLIENT:
+        CLIENT = KaldiClient()
     response = {}
 
     status_code = 200
     encoding = RecognitionConfig.AudioEncoding.LINEAR16
-     
+
     audio = [RecognitionAudio(content=chunk) for chunk in audio_chunks]
     config = RecognitionConfig(
         sample_rate_hertz=kwargs.get('sampling_rate', 8000),
-        encoding = encoding,
+        encoding=encoding,
         language_code=language_code,
         max_alternatives=10,
         model=kwargs.get('model', None),
@@ -68,16 +69,17 @@ def transcribe_file(audio_chunks, language_code='hi', **kwargs):
 
     try:
         start_time = time.clock()
-        response = client.recognize(config, audio, uuid=kwargs.get('uuid', ''), timeout=80)
+        response = CLIENT.recognize(config, audio, uuid=kwargs.get('uuid', ''), timeout=80)
         elapsed = time.clock() - start_time
-        times.append(elapsed)
+        TIMES.append(elapsed)
     except Exception as e:
         status_code = 500
         traceback.print_exc()
         print(f'error: {str(e)}')
 
     pprint(transcript_dict(response)['transcript'])
-    
+
+
 def transcript_dict(response):
     # Initial values of transcript, confidence and alternatives
     transcript = '_unknown_'
@@ -100,11 +102,13 @@ def transcript_dict(response):
         "confidence": confidence
     }
 
+
 def _parse_result(res):
     return [{
         "transcript": alt.transcript,
         "confidence": alt.confidence
     } for alt in res.alternatives]
+
 
 def parse_response(response):
     """
@@ -113,24 +117,28 @@ def parse_response(response):
     """
     return [_parse_result(res) for res in response.results]
 
+
 def main(audio_paths: List[str]):
     audio_paths = audio_paths * 200
     chunked_audios = [get_chunks(x, chunk_len=random.randint(1, 3)) for x in audio_paths]
 
-    threads = [None] * len(chunked_audios)
+    threads = [
+        threading.Thread(target=transcribe_file, args=(audio_chunks, ))
+        for audio_chunks in chunked_audios
+    ]
 
-    for i, audio_chunks in enumerate(chunked_audios):
-        threads[i] = threading.Thread(target=transcribe_file, args=(audio_chunks, ))
-        threads[i].start()
+    for thread in threads:
+        thread.start()
 
-    for i in range(len(threads)):
-        threads[i].join()
+    for thread in threads:
+        thread.join()
 
-    avg_time = sum(times) / len(times)
-    print((len(times) / len(audio_paths)) * 100)
+    avg_time = sum(TIMES) / len(TIMES)
+    print((len(TIMES) / len(audio_paths)) * 100)
     print(avg_time)
-    print(min(times))
-    print(max(times))
+    print(min(TIMES))
+    print(max(TIMES))
+
 
 if __name__ == "__main__":
     args = docopt(__doc__)
