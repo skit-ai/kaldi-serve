@@ -1,20 +1,24 @@
-import time
+"""
+Client for testing out streaming ASR server
+
+Usage:
+  stream_client.py <file>...
+"""
+
 import random
-
 import threading
+import time
 import traceback
-
 from io import BytesIO
 from pprint import pprint
+from typing import List
 
+from docopt import docopt
+
+from kaldi import KaldiClient, RecognitionAudio, RecognitionConfig
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
 
-from kaldi import (
-    KaldiClient,
-    RecognitionAudio,
-    RecognitionConfig
-)
 
 def get_chunks(filename, chunk_len=1):
     audio = AudioSegment.from_file(filename, format='wav', frame_rate=8000, channels=1, sample_width=2)
@@ -109,8 +113,7 @@ def parse_response(response):
     """
     return [_parse_result(res) for res in response.results]
 
-def main():
-    audio_paths = ['../audio/some2.wav', '../audio/some3.wav', '../audio/audio_hindi.wav']
+def main(audio_paths: List[str]):
     audio_paths = audio_paths * 200
     chunked_audios = [get_chunks(x, chunk_len=random.randint(1, 3)) for x in audio_paths]
 
@@ -130,4 +133,5 @@ def main():
     print(max(times))
 
 if __name__ == "__main__":
-    main()
+    args = docopt(__doc__)
+    main(args["<file>"])
