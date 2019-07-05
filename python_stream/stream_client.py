@@ -14,10 +14,10 @@ from pprint import pprint
 from typing import List
 
 from docopt import docopt
-
-from kaldi import KaldiClient, RecognitionAudio, RecognitionConfig
 from pydub import AudioSegment
 from pydub.silence import detect_nonsilent
+
+from kaldi import KaldiClient, RecognitionAudio, RecognitionConfig
 
 CLIENT = None
 TIMES = []
@@ -47,8 +47,8 @@ def get_chunks(filename, chunk_len=1):
     return chunks
 
 
-def transcribe_file(audio_chunks, language_code='hi', **kwargs):
-    """Transcribe the given audio file."""
+def transcribe_chunks(audio_chunks, language_code='hi', **kwargs):
+    """Transcribe the given audio chunks"""
     print(f'no. of audio chunks: {len(audio_chunks)}')
     global CLIENT
     if not CLIENT:
@@ -123,7 +123,7 @@ def main(audio_paths: List[str]):
     chunked_audios = [get_chunks(x, chunk_len=random.randint(1, 3)) for x in audio_paths]
 
     threads = [
-        threading.Thread(target=transcribe_file, args=(audio_chunks, ))
+        threading.Thread(target=transcribe_chunks, args=(audio_chunks, ))
         for audio_chunks in chunked_audios
     ]
 
