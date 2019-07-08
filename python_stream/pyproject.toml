@@ -15,6 +15,7 @@ pydub = "^0.23.1"
 grpcio = "^1.22"
 grpcio-tools = "^1.22"
 docopt = "^0.6.2"
+pyaudio = "^0.2.11"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"
