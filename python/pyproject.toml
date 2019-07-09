@@ -1,13 +1,8 @@
 [tool.poetry]
-name = "python_stream"
+name = "kaldi_serve"
 version = "0.1.0"
-description = "Sample script for testing out kaldi streaming ASR"
+description = "Python bindings for kaldi streaming ASR"
 authors = []
-
-packages = [
-  { include = "kaldi" },
-  { include = "stream_client.py" }
-]
 
 [tool.poetry.dependencies]
 python = "^3.6"

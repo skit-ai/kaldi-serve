@@ -4,8 +4,8 @@ import time
 import pytest
 import yaml
 
-from kaldi import KaldiClient, RecognitionAudio, RecognitionConfig
-from stream_client import get_chunks
+from kaldi_serve import KaldiServeClient, RecognitionAudio, RecognitionConfig
+from kaldi_serve.utils import get_chunks_from_file
 
 
 def read_items(file_path: str):
@@ -24,7 +24,7 @@ def pytest_collect_file(parent, path):
 
 class TranscriptionSpecFile(pytest.File):
     def collect(self):
-        client = KaldiClient()
+        client = KaldiServeClient()
         for i, item in enumerate(read_items(self.fspath)):
             yield TranscriptionItem(f"item-{i}", self, item, client)
 
@@ -43,7 +43,10 @@ class TranscriptionItem(pytest.Item):
 
     def __init__(self, name, parent, item, client):
         super().__init__(name, parent)
-        self.audios = [(get_chunks(audio_spec["file"]), audio_spec["transcription"]) for audio_spec in item]
+        self.audios = [
+            (get_chunks_from_file(audio_spec["file"]), audio_spec["transcription"])
+            for audio_spec in item
+        ]
         self.client = client
         self.results = [None for _ in item]
 

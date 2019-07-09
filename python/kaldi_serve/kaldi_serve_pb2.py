@@ -385,53 +385,53 @@ DESCRIPTOR.message_types_by_name['SpeechRecognitionAlternative'] = _SPEECHRECOGN
 DESCRIPTOR.message_types_by_name['SpeechContext'] = _SPEECHCONTEXT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-RecognizeRequest = _reflection.GeneratedProtocolMessageType('RecognizeRequest', (_message.Message,), dict(
-  DESCRIPTOR = _RECOGNIZEREQUEST,
-  __module__ = 'kaldi_serve_pb2'
+RecognizeRequest = _reflection.GeneratedProtocolMessageType('RecognizeRequest', (_message.Message,), {
+  'DESCRIPTOR' : _RECOGNIZEREQUEST,
+  '__module__' : 'kaldi_serve_pb2'
   # @@protoc_insertion_point(class_scope:kaldi_serve.RecognizeRequest)
-  ))
+  })
 _sym_db.RegisterMessage(RecognizeRequest)
 
-RecognizeResponse = _reflection.GeneratedProtocolMessageType('RecognizeResponse', (_message.Message,), dict(
-  DESCRIPTOR = _RECOGNIZERESPONSE,
-  __module__ = 'kaldi_serve_pb2'
+RecognizeResponse = _reflection.GeneratedProtocolMessageType('RecognizeResponse', (_message.Message,), {
+  'DESCRIPTOR' : _RECOGNIZERESPONSE,
+  '__module__' : 'kaldi_serve_pb2'
   # @@protoc_insertion_point(class_scope:kaldi_serve.RecognizeResponse)
-  ))
+  })
 _sym_db.RegisterMessage(RecognizeResponse)
 
-RecognitionConfig = _reflection.GeneratedProtocolMessageType('RecognitionConfig', (_message.Message,), dict(
-  DESCRIPTOR = _RECOGNITIONCONFIG,
-  __module__ = 'kaldi_serve_pb2'
+RecognitionConfig = _reflection.GeneratedProtocolMessageType('RecognitionConfig', (_message.Message,), {
+  'DESCRIPTOR' : _RECOGNITIONCONFIG,
+  '__module__' : 'kaldi_serve_pb2'
   # @@protoc_insertion_point(class_scope:kaldi_serve.RecognitionConfig)
-  ))
+  })
 _sym_db.RegisterMessage(RecognitionConfig)
 
-RecognitionAudio = _reflection.GeneratedProtocolMessageType('RecognitionAudio', (_message.Message,), dict(
-  DESCRIPTOR = _RECOGNITIONAUDIO,
-  __module__ = 'kaldi_serve_pb2'
+RecognitionAudio = _reflection.GeneratedProtocolMessageType('RecognitionAudio', (_message.Message,), {
+  'DESCRIPTOR' : _RECOGNITIONAUDIO,
+  '__module__' : 'kaldi_serve_pb2'
   # @@protoc_insertion_point(class_scope:kaldi_serve.RecognitionAudio)
-  ))
+  })
 _sym_db.RegisterMessage(RecognitionAudio)
 
-SpeechRecognitionResult = _reflection.GeneratedProtocolMessageType('SpeechRecognitionResult', (_message.Message,), dict(
-  DESCRIPTOR = _SPEECHRECOGNITIONRESULT,
-  __module__ = 'kaldi_serve_pb2'
+SpeechRecognitionResult = _reflection.GeneratedProtocolMessageType('SpeechRecognitionResult', (_message.Message,), {
+  'DESCRIPTOR' : _SPEECHRECOGNITIONRESULT,
+  '__module__' : 'kaldi_serve_pb2'
   # @@protoc_insertion_point(class_scope:kaldi_serve.SpeechRecognitionResult)
-  ))
+  })
 _sym_db.RegisterMessage(SpeechRecognitionResult)
 
-SpeechRecognitionAlternative = _reflection.GeneratedProtocolMessageType('SpeechRecognitionAlternative', (_message.Message,), dict(
-  DESCRIPTOR = _SPEECHRECOGNITIONALTERNATIVE,
-  __module__ = 'kaldi_serve_pb2'
+SpeechRecognitionAlternative = _reflection.GeneratedProtocolMessageType('SpeechRecognitionAlternative', (_message.Message,), {
+  'DESCRIPTOR' : _SPEECHRECOGNITIONALTERNATIVE,
+  '__module__' : 'kaldi_serve_pb2'
   # @@protoc_insertion_point(class_scope:kaldi_serve.SpeechRecognitionAlternative)
-  ))
+  })
 _sym_db.RegisterMessage(SpeechRecognitionAlternative)
 
-SpeechContext = _reflection.GeneratedProtocolMessageType('SpeechContext', (_message.Message,), dict(
-  DESCRIPTOR = _SPEECHCONTEXT,
-  __module__ = 'kaldi_serve_pb2'
+SpeechContext = _reflection.GeneratedProtocolMessageType('SpeechContext', (_message.Message,), {
+  'DESCRIPTOR' : _SPEECHCONTEXT,
+  '__module__' : 'kaldi_serve_pb2'
   # @@protoc_insertion_point(class_scope:kaldi_serve.SpeechContext)
-  ))
+  })
 _sym_db.RegisterMessage(SpeechContext)
 
 

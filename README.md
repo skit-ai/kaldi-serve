@@ -1,32 +1,36 @@
 # Kaldi-Serve
 
-[gRPC](https://grpc.io/) Synchronous Streaming Server component for [Kaldi](https://kaldi-asr.org/) based ASR.
+[gRPC](https://grpc.io/) server component for [Kaldi](https://kaldi-asr.org/)
+based ASR.
 
 **Key Features**:
 
-- Multithreaded gRPC server (default)
-- Supports audio streaming i.e. decoding happens in the backgroud while recording
-- Thread-safe concurrent queue to process each audio stream separately
+- Multithreaded gRPC server.
+- Supports streaming recognition.
+- Thread-safe concurrent queue to process each audio stream separately.
 
 ## Getting Started
 
 ### Setup
 
-Make sure you have gRPC, protobuf and kaldi installed on your system. Let's build the server:
+Make sure you have gRPC, protobuf installed on your system. Kaldi also needs to
+be present and built. Let's build the server:
 
 ```bash
-make -j8
+make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
 ```
 
-Building again with a clean directory structure:
-
-```bash
-./build.sh
-```
+Run `make clean` to clear old build files.
 
 ### Running the Server
 
 ```bash
+# Make sure to have kaldi and openfst library available using LD_LIBRARY_PATH or something
+# e.g. env LD_LIBRARY_PATH=../../asr/kaldi/tools/openfst/lib/:../../asr/kaldi/src/lib/ ./build/kaldi_serve_app
+
+# Alternatively, you can also put all the required .so files in the ./lib/ directory since
+# that is added to the binary's rpath.
+
 $ ./build/kaldi_serve_app --help
 
 Kaldi gRPC server
@@ -40,24 +44,9 @@ Options:
                               Number of decoders to initialize in the concurrent queue.
 ```
 
-### Development
+### Python
 
-During development, you can test the gRPC C++ server using a gRPC python client that supports streaming as well:
-
-```bash
-cd python_stream/
-python stream_client.py
-```
-
-In case there has been some change in the `.proto` file, run the following command beforehand:
-
-```bash
-pip install grpcio-tools # grpcio utility tools needed for next step
-
-cd python_stream/kaldi/
-python -m grpc_tools.protoc -I../../protos --python_out=. \
-    --grpc_python_out=. ../../protos/kaldi_serve.proto
-```
+Python client for the server is present in [./python](./python) directory.
 
 ### Running Tests
 

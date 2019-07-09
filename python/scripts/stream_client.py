@@ -9,42 +9,16 @@ import random
 import threading
 import time
 import traceback
-from io import BytesIO
 from pprint import pprint
 from typing import List
 
 from docopt import docopt
-from pydub import AudioSegment
-from pydub.silence import detect_nonsilent
 
-from kaldi import KaldiClient, RecognitionAudio, RecognitionConfig
+from kaldi_serve import KaldiClient, RecognitionAudio, RecognitionConfig
+from kaldi_serve.utils import get_chunks_from_file
 
 CLIENT = None
 TIMES = []
-
-
-def get_chunks(filename, chunk_len=1):
-    # TODO: Should remove the assumptions about audio properties from here
-    audio = AudioSegment.from_file(filename, format='wav', frame_rate=8000, channels=1, sample_width=2)
-
-    print(f'sample_width: {audio.sample_width}')
-    print(f'audio len: {len(audio)}')
-    print(f'channels: {audio.channels}')
-    print(f'frame rate: {audio.frame_rate}')
-
-    if audio.duration_seconds == chunk_len:
-        audio_stream = BytesIO()
-        audio.export(audio_stream, format='wav')
-        return [audio_stream.getvalue()]
-
-    chunks = []
-    for i in range(0, len(audio), int(chunk_len * 1000)):
-        chunk = audio[i: i + chunk_len * 1000]
-        chunk_stream = BytesIO()
-        chunk.export(chunk_stream, format='wav')
-        chunks.append(chunk_stream.getvalue())
-
-    return chunks
 
 
 def transcribe_chunks(audio_chunks, language_code='hi', **kwargs):
@@ -55,7 +29,6 @@ def transcribe_chunks(audio_chunks, language_code='hi', **kwargs):
         CLIENT = KaldiClient()
     response = {}
 
-    status_code = 200
     encoding = RecognitionConfig.AudioEncoding.LINEAR16
 
     audio = [RecognitionAudio(content=chunk) for chunk in audio_chunks]
@@ -120,7 +93,7 @@ def parse_response(response):
 
 def main(audio_paths: List[str]):
     audio_paths = audio_paths * 200
-    chunked_audios = [get_chunks(x, chunk_len=random.randint(1, 3)) for x in audio_paths]
+    chunked_audios = [get_chunks_from_file(x, chunk_size=random.randint(1, 3)) for x in audio_paths]
 
     threads = [
         threading.Thread(target=transcribe_chunks, args=(audio_chunks, ))
