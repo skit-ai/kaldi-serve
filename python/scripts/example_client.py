@@ -43,7 +43,7 @@ def transcribe_chunks(client, audio_chunks, language_code="hi"):
     response = {}
     encoding = RecognitionConfig.AudioEncoding.LINEAR16
 
-    audio = [RecognitionAudio(content=chunk) for chunk in audio_chunks]
+    audio = (RecognitionAudio(content=chunk) for chunk in audio_chunks)
     config = RecognitionConfig(
         sample_rate_hertz=SR,
         encoding=encoding,
