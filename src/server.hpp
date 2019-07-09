@@ -46,18 +46,18 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
     // Request Handler RPC service
     // Accepts a stream of `RecognizeRequest` packets
     // Returns a single `RecognizeResponse` message
-    grpc::Status Recognize(grpc::ServerContext *,
-                           grpc::ServerReader<kaldi_serve::RecognizeRequest> *,
-                           kaldi_serve::RecognizeResponse *) override;
+    grpc::Status StreamingRecognize(grpc::ServerContext *,
+                                    grpc::ServerReader<kaldi_serve::RecognizeRequest> *,
+                                    kaldi_serve::RecognizeResponse *) override;
 };
 
 KaldiServeImpl::KaldiServeImpl(const std::string &model_dir, const int &n) {
     decoder_queue_ = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_dir, n));
 }
 
-grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
-                                       grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
-                                       kaldi_serve::RecognizeResponse *response) {
+grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
+                                                grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
+                                                kaldi_serve::RecognizeResponse *response) {
 
     // IMPORTANT :: attain the lock and pop a decoder from the `free` queue
     // waits here until lock on queue is attained and a decoder is obtained.

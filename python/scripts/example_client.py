@@ -53,7 +53,7 @@ def transcribe_chunks(client, audio_chunks, language_code="hi"):
     )
 
     try:
-        response = client.recognize(config, audio, uuid="")
+        response = client.streaming_recognize(config, audio, uuid="")
     except Exception as e:
         traceback.print_exc()
         print(f'error: {str(e)}')

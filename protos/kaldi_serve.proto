@@ -4,7 +4,7 @@ package kaldi_serve;
 service KaldiServe {
   // Performs synchronous client-to-server streaming speech recognition: 
   //    receive results after all audio has been streamed and processed.
-  rpc Recognize(stream RecognizeRequest) returns (RecognizeResponse) {}
+  rpc StreamingRecognize(stream RecognizeRequest) returns (RecognizeResponse) {}
 }
 
 message RecognizeRequest {

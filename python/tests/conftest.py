@@ -62,7 +62,7 @@ class TranscriptionItem(pytest.Item):
         )
 
         audio = dreamer((RecognitionAudio(content=chunk) for chunk in self.audios[index][0]), 1)
-        self.results[index] = self.client.recognize(config, audio, uuid="")
+        self.results[index] = self.client.streaming_recognize(config, audio, uuid="")
 
     def runtest(self):
         threads = []
