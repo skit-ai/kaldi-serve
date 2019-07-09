@@ -76,7 +76,7 @@ def decode_files(client, audio_paths: List[str]):
         thread.join()
 
 
-def decode_microphone(client, n_seconds: int):
+def decode_mic(client, n_seconds: int):
     transcribe_chunks(client, chunks_from_mic(n_seconds, SR, 1))
 
 
@@ -85,6 +85,6 @@ if __name__ == "__main__":
     client = KaldiServeClient()
 
     if args["mic"]:
-        decode_microphone(client, int(args["--n-secs"]))
+        decode_mic(client, int(args["--n-secs"]))
     else:
         decode_files(client, args["<file>"])
