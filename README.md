@@ -24,6 +24,11 @@ Run `make clean` to clear old build files.
 
 ### Running the Server
 
+For running the server, you need to first write model config in a toml which
+tells the program which models to load and where to look for. Structure of
+`model_spec_toml` file is specified in a sample in
+[resources](./resources/model-spec.toml).
+
 ```bash
 # Make sure to have kaldi and openfst library available using LD_LIBRARY_PATH or something
 # e.g. env LD_LIBRARY_PATH=../../asr/kaldi/tools/openfst/lib/:../../asr/kaldi/src/lib/ ./build/kaldi_serve_app
@@ -34,14 +39,14 @@ Run `make clean` to clear old build files.
 $ ./build/kaldi_serve_app --help
 
 Kaldi gRPC server
-Usage: ./build/kaldi_serve_app [OPTIONS]
+Usage: ./build/kaldi_serve_app [OPTIONS] model_spec_toml
+
+Positionals:
+  model_spec_toml TEXT:FILE REQUIRED
+                              Path to toml specifying models to load.
 
 Options:
   -h,--help                   Print this help message and exit
-  -m,--model-dir TEXT:DIR REQUIRED
-                              Model root directory. This is a temporary API for testing.
-  -n,--num-decoders INT:NUMBER
-                              Number of decoders to initialize in the concurrent queue.
 ```
 
 ### Python
