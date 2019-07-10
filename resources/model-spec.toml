@@ -6,14 +6,14 @@
 # change and finally config parameters will go in this spec file while the main
 # model data will be packed in a single archive (pointed to by a path here).
 
+# Compulsory keys are `name', `language' and `path'.
 [[model]]
 name = "general"
 language = "hi"
-n_decoders = 1
 path = "./path/to/model/dir"
 
 [[model]]
 name = "bbq"
 language = "en"
-n_decoders = 2
+n_decoders = 2  # Defaults to 1 if not specified
 path = "./path/to/model/dir"
