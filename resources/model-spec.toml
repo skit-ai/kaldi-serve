@@ -9,9 +9,11 @@
 [[model]]
 name = "general"
 language = "hi"
+n_decoders = 1
 path = "./path/to/model/dir"
 
 [[model]]
 name = "bbq"
 language = "en"
+n_decoders = 2
 path = "./path/to/model/dir"
