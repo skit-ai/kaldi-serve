@@ -85,8 +85,17 @@ bool KaldiServeImpl::is_model_present(const model_id_t &model_id) {
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
                                        const kaldi_serve::RecognizeRequest *request,
                                        kaldi_serve::RecognizeResponse *response) {
+    kaldi_serve::RecognitionConfig config = request->config();
+    int32 n_best = config.max_alternatives();
+    std::string model_name = config.model();
+    std::string language_code = config.language_code();
+    model_id_t model_id = std::make_pair(model_name, language_code);
 
-    Decoder *decoder_ = decoder_queue_->acquire();
+    if (!is_model_present(model_id)) {
+        return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
+    }
+
+    Decoder *decoder_ = decoder_queue_map[model_id]->acquire();
 
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
@@ -112,10 +121,6 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     // decode speech signals
     decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
 
-    kaldi_serve::RecognitionConfig config = request->config();
-    std::string uuid = request->uuid();
-
-    int32 n_best = config.max_alternatives();
     kaldi_serve::SpeechRecognitionResult *results = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
 
@@ -126,7 +131,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
         alternative->set_confidence(res.first.second);
     }
 
-    decoder_queue_->release(decoder_);
+    decoder_queue_map[model_id]->release(decoder_);
 
 #if DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
@@ -163,7 +168,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     //      Each new stream gets it's own decoder instance.
     // TODO(1):
     //      Set a timeout for wait and allocate a temp decoder to resolve request if memory allows.
-    Decoder *decoder_ = decoder_queue_->acquire();
+    Decoder *decoder_ = decoder_queue_map[model_id]->acquire();
 
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
