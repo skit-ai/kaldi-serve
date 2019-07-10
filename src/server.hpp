@@ -9,6 +9,7 @@
 
 // C++ stl includes
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -34,6 +35,9 @@ struct ModelSpec {
   std::size_t n_decoders = 1;
 };
 
+// A pair of model_name and language_code
+using model_id_t = std::pair<std::string, std::string>;
+
 // KaldiServeImpl :: Kaldi Service interface Implementation
 // Defines the core server logic and request/response handlers.
 // Keeps a few `Decoder` instances cached in a thread-safe
@@ -43,10 +47,7 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
     // Thread-safe Decoder MPMC Queue
-    // TODO Keep a map from a tuple of model, lang to decoder_queue
-    std::string model_name;
-    std::string language_code;
-    std::unique_ptr<DecoderQueue> decoder_queue_;
+    std::map<model_id_t, std::unique_ptr<DecoderQueue>> decoder_queue_map;
 
   public:
     // Main Constructor for Kaldi Service
@@ -54,7 +55,7 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
     explicit KaldiServeImpl(const ModelSpec &);
 
     // Tell if a given model name and language code is available for use.
-    bool is_model_present(const std::string &, const std::string &);
+    bool is_model_present(const model_id_t &);
 
     // Request Handler RPC service
     // Accepts a stream of `RecognizeRequest` packets
@@ -65,13 +66,12 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 };
 
 KaldiServeImpl::KaldiServeImpl(const ModelSpec &model_spec) {
-    model_name = model_spec.name;
-    language_code = model_spec.language_code;
-    decoder_queue_ = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_spec.path, model_spec.n_decoders));
+    model_id_t model_id = std::make_pair(model_spec.name, model_spec.language_code);
+    decoder_queue_map[model_id] = std::make_unique<DecoderQueue>(model_spec.path, model_spec.n_decoders);
 }
 
-bool KaldiServeImpl::is_model_present(const std::string &model_name, const std::string &language_code) {
-  return (this->model_name == model_name) && (this->language_code == language_code);
+bool KaldiServeImpl::is_model_present(const model_id_t &model_id) {
+  return decoder_queue_map.find(model_id) != decoder_queue_map.end();
 }
 
 grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
@@ -83,9 +83,12 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     // language to load Also assuming that the config won't change mid request
     kaldi_serve::RecognitionConfig config = request_.config();
     int32 n_best = config.max_alternatives();
+    std::string model_name = config.model();
+    std::string language_code = config.language_code();
+    model_id_t model_id = std::make_pair(model_name, language_code);
 
-    if (!is_model_present(config.model(), config.language_code())) {
-      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + config.model() + "(" + config.language_code() + ")" + " not found");
+    if (!is_model_present(model_id)) {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + "(" + language_code + ")" + " not found");
     }
 
     // IMPORTANT :: attain the lock and pop a decoder from the `free` queue
@@ -93,7 +96,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     // Each new stream gets it's own decoder instance.
     // TODO(1): set a timeout for wait and allocate a temp decoder
     // to resolve request if memory allows.
-    Decoder *decoder_ = decoder_queue_->acquire();
+    Decoder *decoder_ = decoder_queue_map[model_id]->acquire();
 
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
@@ -137,7 +140,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
 
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
     // also notifies another request handler thread that a decoder is available.
-    decoder_queue_->release(decoder_);
+    decoder_queue_map[model_id]->release(decoder_);
 
 #if DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
