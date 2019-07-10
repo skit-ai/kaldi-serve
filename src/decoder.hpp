@@ -52,16 +52,14 @@ inline double calculate_confidence(const float &lm_score, const float &am_score,
     return std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
 }
 
-// Return n-best alternative from lattice. Output symbols are converted to words
+// Computes n-best alternative from lattice. Output symbols are converted to words
 // based on word-syms.
-utterance_results_t find_alternatives(const fst::SymbolTable *word_syms,
-                                      const kaldi::CompactLattice &clat,
-                                      const std::size_t &n_best) {
-    utterance_results_t results;
-
+void find_alternatives(const fst::SymbolTable *word_syms,
+                       const kaldi::CompactLattice &clat,
+                       const std::size_t &n_best,
+                       utterance_results_t &results) {
     if (clat.NumStates() == 0) {
         KALDI_LOG << "Empty lattice.";
-        return results;
     }
 
     kaldi::Lattice *lat = new kaldi::Lattice();
@@ -119,7 +117,6 @@ utterance_results_t find_alternatives(const fst::SymbolTable *word_syms,
                     }
                 }
             }
-
             std::string sentence;
             string_join(words, " ", sentence);
 
@@ -129,7 +126,6 @@ utterance_results_t find_alternatives(const fst::SymbolTable *word_syms,
             results.push_back(std::make_pair(alt, alignments));
         }
     }
-    return results;
 }
 
 class Decoder {
@@ -270,18 +266,18 @@ void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_p
 utterance_results_t Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
                                                  kaldi::SingleUtteranceNnet3Decoder &decoder,
                                                  const std::size_t &n_best) const {
-    try {
-        feature_pipeline.InputFinished();
-        decoder.FinalizeDecoding();
+    feature_pipeline.InputFinished();
+    decoder.FinalizeDecoding();
 
-        kaldi::CompactLattice clat;
+    kaldi::CompactLattice clat;
+    utterance_results_t results;
+    try {
         decoder.GetLattice(true, &clat);
-        return find_alternatives(word_syms_, clat, n_best);
+        find_alternatives(word_syms_, clat, n_best, results);
     } catch (const std::exception &e) {
         std::cout << "ERROR :: client timed out" << std::endl;
-        utterance_results_t empty;
-        return empty;
     }
+    return results;
 }
 
 // Factory for creating decoders with shared decoding graph and model parameters

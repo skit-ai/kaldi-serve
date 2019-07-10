@@ -15,9 +15,11 @@ class KaldiServeClient(object):
         self.channel = grpc.insecure_channel(kaldi_serve_url)
         self._client = KaldiServeStub(self.channel)
 
+    def recognize(self, config: RecognitionConfig, audio, uuid: str, timeout=None):
+        request = RecognizeRequest(config=config, audio=audio, uuid=uuid)
+        return self._client.Recognize(request, timeout=timeout)
+
     def streaming_recognize(self, config: RecognitionConfig, audio_chunks, uuid: str, timeout=None):
         request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for chunk in audio_chunks)
         return self._client.StreamingRecognize(request_gen, timeout=timeout)
 
-    def recognize(self, config: RecognitionConfig, audio_chunk, uuid: str, timeout=None):
-        return self.streaming_recognize(config, [audio_chunk], uuid, timeout=timeout)
