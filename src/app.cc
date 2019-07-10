@@ -58,8 +58,11 @@ int main(int argc, char *argv[]) {
         std::cout << ":: No model found in toml for loading" << std::endl;
         return 1;
     } else {
-        std::cout << ":: Picking the first model from the list of " << model_specs.size() << std::endl;
-        run_server(model_specs.at(0));
+        std::cout << ":: Loading " << model_specs.size() << " models" << std::endl;
+        for (auto const &model_spec : model_specs) {
+            std::cout << "::   - " << model_spec.name + " (" + model_spec.language_code + ")" << std::endl;
+        }
+        run_server(model_specs);
         return 0;
     }
 }

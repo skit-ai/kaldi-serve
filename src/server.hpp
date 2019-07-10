@@ -51,8 +51,7 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   public:
     // Main Constructor for Kaldi Service
-    // Accepts the `model_dir` path and the number of decoders to cache.
-    explicit KaldiServeImpl(const ModelSpec &);
+    explicit KaldiServeImpl(const std::vector<ModelSpec>);
 
     // Tell if a given model name and language code is available for use.
     bool is_model_present(const model_id_t &);
@@ -65,9 +64,11 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
                                     kaldi_serve::RecognizeResponse *) override;
 };
 
-KaldiServeImpl::KaldiServeImpl(const ModelSpec &model_spec) {
-    model_id_t model_id = std::make_pair(model_spec.name, model_spec.language_code);
-    decoder_queue_map[model_id] = std::make_unique<DecoderQueue>(model_spec.path, model_spec.n_decoders);
+KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> model_specs) {
+    for (auto const &model_spec : model_specs) {
+        model_id_t model_id = std::make_pair(model_spec.name, model_spec.language_code);
+        decoder_queue_map[model_id] = std::make_unique<DecoderQueue>(model_spec.path, model_spec.n_decoders);
+    }
 }
 
 bool KaldiServeImpl::is_model_present(const model_id_t &model_id) {
@@ -88,7 +89,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     model_id_t model_id = std::make_pair(model_name, language_code);
 
     if (!is_model_present(model_id)) {
-      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + "(" + language_code + ")" + " not found");
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
     // IMPORTANT :: attain the lock and pop a decoder from the `free` queue
@@ -155,8 +156,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
 }
 
 // Runs the Server with the Kaldi Service
-void run_server(const ModelSpec &model_spec) {
-    KaldiServeImpl service(model_spec);
+void run_server(const std::vector<ModelSpec> model_specs) {
+    KaldiServeImpl service(model_specs);
 
     std::string server_address("0.0.0.0:5016");
 
