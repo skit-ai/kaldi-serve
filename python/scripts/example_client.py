@@ -35,7 +35,7 @@ def parse_response(response):
     return output
 
 
-def transcribe_chunks(client, audio_chunks, language_code="hi"):
+def transcribe_chunks(client, audio_chunks, model: str, language_code: str):
     """
     Transcribe the given audio chunks
     """
@@ -49,7 +49,7 @@ def transcribe_chunks(client, audio_chunks, language_code="hi"):
         encoding=encoding,
         language_code=language_code,
         max_alternatives=10,
-        model=None,
+        model=model,
     )
 
     try:
@@ -65,7 +65,7 @@ def decode_files(client, audio_paths: List[str]):
     chunked_audios = [chunks_from_file(x, chunk_size=1) for x in audio_paths]
 
     threads = [
-        threading.Thread(target=transcribe_chunks, args=(client, chunks))
+        threading.Thread(target=transcribe_chunks, args=(client, chunks, "general", "hi"))
         for chunks in chunked_audios
     ]
 
@@ -77,7 +77,7 @@ def decode_files(client, audio_paths: List[str]):
 
 
 def decode_mic(client, n_seconds: int):
-    transcribe_chunks(client, chunks_from_mic(n_seconds, SR, 1))
+    transcribe_chunks(client, chunks_from_mic(n_seconds, SR, 1), "general", "hi")
 
 
 if __name__ == "__main__":

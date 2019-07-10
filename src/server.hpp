@@ -27,6 +27,13 @@
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
+struct ModelSpec {
+  std::string name;
+  std::string language_code;
+  std::string path;
+  std::size_t n_decoders = 1;
+};
+
 // KaldiServeImpl :: Kaldi Service interface Implementation
 // Defines the core server logic and request/response handlers.
 // Keeps a few `Decoder` instances cached in a thread-safe
@@ -36,12 +43,15 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
     // Thread-safe Decoder MPMC Queue
+    // TODO Keep a map from a tuple of model, lang to decoder_queue
+    std::string model_name;
+    std::string language_code;
     std::unique_ptr<DecoderQueue> decoder_queue_;
 
   public:
     // Main Constructor for Kaldi Service
     // Accepts the `model_dir` path and the number of decoders to cache.
-    explicit KaldiServeImpl(const std::string &, const int &);
+    explicit KaldiServeImpl(const ModelSpec &);
 
     // Request Handler RPC service
     // Accepts a stream of `RecognizeRequest` packets
@@ -51,13 +61,29 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
                                     kaldi_serve::RecognizeResponse *) override;
 };
 
-KaldiServeImpl::KaldiServeImpl(const std::string &model_dir, const int &n) {
-    decoder_queue_ = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_dir, n));
+KaldiServeImpl::KaldiServeImpl(const ModelSpec &model_spec) {
+    model_name = model_spec.name;
+    language_code = model_spec.language_code;
+    decoder_queue_ = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_spec.path, model_spec.n_decoders));
 }
 
 grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
                                                 grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
                                                 kaldi_serve::RecognizeResponse *response) {
+    kaldi_serve::RecognizeRequest request_;
+    reader->Read(&request_);
+    // We first read the request to see if we have the correct model and
+    // language to load Also assuming that the config won't change mid request
+    kaldi_serve::RecognitionConfig config = request_.config();
+    int32 n_best = config.max_alternatives();
+
+    if (config.language_code() != language_code) {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Language code " + config.language_code() + " not found");
+    }
+
+    if (config.model() != model_name) {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + config.model() + " not found");
+    }
 
     // IMPORTANT :: attain the lock and pop a decoder from the `free` queue
     // waits here until lock on queue is attained and a decoder is obtained.
@@ -79,16 +105,12 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
                                                decoder_->trans_model_, decodable_info, *decoder_->decode_fst_,
                                                &feature_pipeline);
 
-    // variable to read stream requests into
-    kaldi_serve::RecognizeRequest request_;
-
 #if DEBUG
     std::chrono::system_clock::time_point start_time;
 #endif
 
     // read chunks until end of stream
-    while (reader->Read(&request_)) {
-
+    do {
 #if DEBUG
         // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actually )
         start_time = std::chrono::system_clock::now();
@@ -98,11 +120,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
 
         // decode intermediate speech signals
         decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
-    }
-    kaldi_serve::RecognitionConfig config = request_.config();
-    std::string uuid = request_.uuid();
+    } while (reader->Read(&request_));
 
-    int32 n_best = config.max_alternatives();
     kaldi_serve::SpeechRecognitionResult *results = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
 
@@ -130,10 +149,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
 }
 
 // Runs the Server with the Kaldi Service
-void run_server(const std::string &model_dir, const int &n) {
-
-    // define a kaldi serve instance
-    KaldiServeImpl service(model_dir, n);
+void run_server(const ModelSpec &model_spec) {
+    KaldiServeImpl service(model_spec);
 
     std::string server_address("0.0.0.0:5016");
 

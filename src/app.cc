@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 // Local includes
 #include "decoder.hpp"
@@ -11,23 +12,54 @@
 
 // Vendor includes
 #include "vendor/CLI11.hpp"
+#include "vendor/cpptoml.h"
+
+// Return a list of model specifications from the config
+std::vector<ModelSpec> parse_model_specs(std::string &toml_path) {
+    auto config = cpptoml::parse_file(toml_path);
+    auto models = config->get_table_array("model");
+    std::vector<ModelSpec> model_specs;
+
+    ModelSpec spec;
+    for (const auto &model : *models) {
+        auto maybe_path = model->get_as<std::string>("path");
+        auto maybe_name = model->get_as<std::string>("name");
+        auto maybe_language_code = model->get_as<std::string>("language_code");
+        auto maybe_n_decoders = model->get_as<std::size_t>("n_decoders");
+
+        // TODO: Throw error in case of invalid toml
+        spec.path = *maybe_path;
+        spec.name = *maybe_name;
+        spec.language_code = *maybe_language_code;
+
+        if (maybe_n_decoders) {
+          spec.n_decoders = *maybe_n_decoders;
+        } else {
+          spec.n_decoders = 1;
+        }
+        model_specs.push_back(spec);
+    }
+
+    return model_specs;
+}
 
 int main(int argc, char *argv[]) {
     CLI::App app{"Kaldi gRPC server"};
 
-    std::string model_dir;
-    app.add_option("-m,--model-dir", model_dir, "Model root directory. This is a temporary API for testing.")
+    std::string model_spec_toml;
+    app.add_option("model_spec_toml", model_spec_toml, "Path to toml specifying models to load.")
         ->required()
-        ->check(CLI::ExistingDirectory);
-
-    int num_decoders = NUM_DECODERS;
-    app.add_option("-n,--num-decoders", num_decoders, "Number of decoders to initialize in the concurrent queue.")
-        ->check(CLI::Number);
+        ->check(CLI::ExistingFile);
 
     CLI11_PARSE(app, argc, argv);
 
-    // runs the server
-    run_server(model_dir, num_decoders);
-
-    return 0;
+    std::vector<ModelSpec> model_specs = parse_model_specs(model_spec_toml);
+    if (model_specs.size() == 0) {
+        std::cout << ":: No model found in toml for loading" << std::endl;
+        return 1;
+    } else {
+        std::cout << ":: Picking the first model from the list of " << model_specs.size() << std::endl;
+        run_server(model_specs.at(0));
+        return 0;
+    }
 }

@@ -58,7 +58,7 @@ class TranscriptionItem(pytest.Item):
             encoding=RecognitionConfig.AudioEncoding.LINEAR16,
             language_code="hi",
             max_alternatives=10,
-            model=None
+            model="general"
         )
 
         audio = dreamer((RecognitionAudio(content=chunk) for chunk in self.audios[index][0]), 1)
