@@ -1,0 +1,15 @@
+# This is a sample model specification file which can be loaded in kaldi-serve
+# Here we specify a list of model with extra properties like model name,
+# language code etc.
+
+# At the moment, the model itself is kept as a strict directory tree. This will
+# change and finally config parameters will go in this spec file while the main
+# model data will be packed in a single archive (pointed to by a path here).
+
+- name: general
+  language: hi
+  path: ./path/to/model/dir
+
+- name: bbq
+  language: en
+  path: ./path/to/model/dir
