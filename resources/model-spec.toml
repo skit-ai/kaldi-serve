@@ -6,10 +6,12 @@
 # change and finally config parameters will go in this spec file while the main
 # model data will be packed in a single archive (pointed to by a path here).
 
-- name: general
-  language: hi
-  path: ./path/to/model/dir
+[[model]]
+name = "general"
+language = "hi"
+path = "./path/to/model/dir"
 
-- name: bbq
-  language: en
-  path: ./path/to/model/dir
+[[model]]
+name = "bbq"
+language = "en"
+path = "./path/to/model/dir"
