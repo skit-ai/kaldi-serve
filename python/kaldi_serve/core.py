@@ -22,4 +22,3 @@ class KaldiServeClient(object):
     def streaming_recognize(self, config: RecognitionConfig, audio_chunks, uuid: str, timeout=None):
         request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for chunk in audio_chunks)
         return self._client.StreamingRecognize(request_gen, timeout=timeout)
-
