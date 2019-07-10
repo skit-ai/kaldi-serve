@@ -53,6 +53,9 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
     // Accepts the `model_dir` path and the number of decoders to cache.
     explicit KaldiServeImpl(const ModelSpec &);
 
+    // Tell if a given model name and language code is available for use.
+    bool is_model_present(const std::string &, const std::string &);
+
     // Request Handler RPC service
     // Accepts a stream of `RecognizeRequest` packets
     // Returns a single `RecognizeResponse` message
@@ -67,6 +70,10 @@ KaldiServeImpl::KaldiServeImpl(const ModelSpec &model_spec) {
     decoder_queue_ = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_spec.path, model_spec.n_decoders));
 }
 
+bool KaldiServeImpl::is_model_present(const std::string &model_name, const std::string &language_code) {
+  return (this->model_name == model_name) && (this->language_code == language_code);
+}
+
 grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
                                                 grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
                                                 kaldi_serve::RecognizeResponse *response) {
@@ -77,12 +84,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     kaldi_serve::RecognitionConfig config = request_.config();
     int32 n_best = config.max_alternatives();
 
-    if (config.language_code() != language_code) {
-      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Language code " + config.language_code() + " not found");
-    }
-
-    if (config.model() != model_name) {
-      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + config.model() + " not found");
+    if (!is_model_present(config.model(), config.language_code())) {
+      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + config.model() + "(" + config.language_code() + ")" + " not found");
     }
 
     // IMPORTANT :: attain the lock and pop a decoder from the `free` queue
