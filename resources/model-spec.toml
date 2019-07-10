@@ -9,11 +9,11 @@
 # Compulsory keys are `name', `language' and `path'.
 [[model]]
 name = "general"
-language = "hi"
+language_code = "hi"
 path = "./path/to/model/dir"
 
 [[model]]
 name = "bbq"
-language = "en"
+language_code = "en"
 n_decoders = 2  # Defaults to 1 if not specified
 path = "./path/to/model/dir"
