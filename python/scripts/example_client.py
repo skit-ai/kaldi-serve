@@ -2,11 +2,13 @@
 Script for testing out ASR server.
 
 Usage:
-  example_client.py mic [--n-secs=<n-secs>]
-  example_client.py <file>...
+  example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>]
+  example_client.py <file>... [--model=<model>] [--lang=<lang>]
 
 Options:
   --n-secs=<n-secs>     Number of seconds to records, ideally there should be a VAD here. [default: 3]
+  --model=<model>       Name of the model to hit [default: general]
+  --lang=<lang>         Language code of the model [default: hi]
 """
 
 import threading
@@ -61,11 +63,15 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str):
     pprint(parse_response(response))
 
 
-def decode_files(client, audio_paths: List[str]):
+def decode_files(client, audio_paths: List[str], model: str, language_code: str):
+    """
+    Decode files using threaded requests
+    """
+
     chunked_audios = [chunks_from_file(x, chunk_size=1) for x in audio_paths]
 
     threads = [
-        threading.Thread(target=transcribe_chunks, args=(client, chunks, "general", "hi"))
+        threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code))
         for chunks in chunked_audios
     ]
 
@@ -76,15 +82,13 @@ def decode_files(client, audio_paths: List[str]):
         thread.join()
 
 
-def decode_mic(client, n_seconds: int):
-    transcribe_chunks(client, chunks_from_mic(n_seconds, SR, 1), "general", "hi")
-
-
 if __name__ == "__main__":
     args = docopt(__doc__)
     client = KaldiServeClient()
+    model = args["--model"]
+    language_code = args["--lang"]
 
     if args["mic"]:
-        decode_mic(client, int(args["--n-secs"]))
+        transcribe_chunks(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code)
     else:
-        decode_files(client, args["<file>"])
+        decode_files(client, args["<file>"], model, language_code)
