@@ -5,12 +5,20 @@
 // Include guard
 #pragma once
 
+#include "config.hpp"
+
 // C++ stl includes
-#include <future>
+#include <condition_variable>
 #include <iostream>
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <string>
 #include <vector>
+
+#if DEBUG
+#include <chrono>
+#endif
 
 // Kaldi includes
 #include "feat/wave-reader.h"
@@ -44,16 +52,14 @@ inline double calculate_confidence(const float &lm_score, const float &am_score,
     return std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
 }
 
-// Return n-best alternative from lattice. Output symbols are converted to words
+// Computes n-best alternative from lattice. Output symbols are converted to words
 // based on word-syms.
-utterance_results_t find_alternatives(const fst::SymbolTable *word_syms,
-                                      const kaldi::CompactLattice &clat,
-                                      const std::size_t &n_best) {
-    utterance_results_t results;
-
+void find_alternatives(const fst::SymbolTable *word_syms,
+                       const kaldi::CompactLattice &clat,
+                       const std::size_t &n_best,
+                       utterance_results_t &results) {
     if (clat.NumStates() == 0) {
         KALDI_LOG << "Empty lattice.";
-        return results;
     }
 
     kaldi::Lattice *lat = new kaldi::Lattice();
@@ -111,7 +117,6 @@ utterance_results_t find_alternatives(const fst::SymbolTable *word_syms,
                     }
                 }
             }
-
             std::string sentence;
             string_join(words, " ", sentence);
 
@@ -121,89 +126,105 @@ utterance_results_t find_alternatives(const fst::SymbolTable *word_syms,
             results.push_back(std::make_pair(alt, alignments));
         }
     }
-    return results;
 }
 
 class Decoder {
 
   private:
-    const fst::Fst<fst::StdArc> *decode_fst;
-    std::unique_ptr<fst::SymbolTable> word_syms;
-    kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config;
-    kaldi::OnlineNnet2FeaturePipelineInfo *feature_info;
-    kaldi::nnet3::AmNnetSimple am_nnet;
-    kaldi::TransitionModel trans_model;
-    kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts;
+    fst::SymbolTable *word_syms_;
 
   public:
-    explicit Decoder(kaldi::BaseFloat beam, std::size_t max_active, std::size_t min_active,
-                     kaldi::BaseFloat lattice_beam, kaldi::BaseFloat acoustic_scale,
-                     std::size_t frame_subsampling_factor, std::string word_syms_filepath,
-                     std::string model_filepath, std::string mfcc_conf_filepath,
-                     std::string ie_conf_filepath, const fst::Fst<fst::StdArc> *decode_fst);
+    fst::Fst<fst::StdArc> *const decode_fst_;
+    kaldi::nnet3::AmNnetSimple am_nnet_;
+    kaldi::TransitionModel trans_model_;
 
-    utterance_results_t decode_file(const std::string &, const std::size_t &);
+    kaldi::OnlineNnet2FeaturePipelineConfig feature_opts_;
+    kaldi::OnlineNnet2FeaturePipelineInfo *feature_info_;
 
-    utterance_results_t decode_stream(std::istream &wav_stream, const std::size_t &);
+    kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config_;
+    kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts_;
+
+    explicit Decoder(const kaldi::BaseFloat &, const std::size_t &,
+                     const std::size_t &, const kaldi::BaseFloat &,
+                     const kaldi::BaseFloat &, const std::size_t &,
+                     const std::string &, const std::string &,
+                     const std::string &, const std::string &,
+                     fst::Fst<fst::StdArc> *);
+
+    ~Decoder();
+
+    // Decoding processes
+
+    // decode intermediate frames of wav streams
+    void decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &,
+                               kaldi::OnlineSilenceWeighting &,
+                               kaldi::SingleUtteranceNnet3Decoder &,
+                               std::istream &) const;
+
+    // get the final utterances based on the compact lattice
+    utterance_results_t decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
+                                            kaldi::SingleUtteranceNnet3Decoder &,
+                                            const std::size_t &) const;
 };
 
-Decoder::Decoder(kaldi::BaseFloat beam, std::size_t max_active,
-                 std::size_t min_active, kaldi::BaseFloat lattice_beam,
-                 kaldi::BaseFloat acoustic_scale, std::size_t frame_subsampling_factor,
-                 std::string word_syms_filepath, std::string model_filepath,
-                 std::string mfcc_conf_filepath, std::string ie_conf_filepath,
-                 const fst::Fst<fst::StdArc> *decode_fst) : decode_fst(decode_fst) {
+Decoder::Decoder(const kaldi::BaseFloat &beam,
+                 const std::size_t &max_active,
+                 const std::size_t &min_active,
+                 const kaldi::BaseFloat &lattice_beam,
+                 const kaldi::BaseFloat &acoustic_scale,
+                 const std::size_t &frame_subsampling_factor,
+                 const std::string &word_syms_filepath,
+                 const std::string &model_filepath,
+                 const std::string &mfcc_conf_filepath,
+                 const std::string &ie_conf_filepath,
+                 fst::Fst<fst::StdArc> *decode_fst)
+    : decode_fst_(decode_fst) {
+
     try {
-        kaldi::OnlineNnet2FeaturePipelineConfig feature_opts;
+        feature_opts_.mfcc_config = mfcc_conf_filepath;
+        feature_opts_.ivector_extraction_config = ie_conf_filepath;
+        lattice_faster_decoder_config_.max_active = max_active;
+        lattice_faster_decoder_config_.min_active = min_active;
+        lattice_faster_decoder_config_.beam = beam;
+        lattice_faster_decoder_config_.lattice_beam = lattice_beam;
+        decodable_opts_.acoustic_scale = acoustic_scale;
+        decodable_opts_.frame_subsampling_factor = frame_subsampling_factor;
 
-        feature_opts.mfcc_config = mfcc_conf_filepath;
-        feature_opts.ivector_extraction_config = ie_conf_filepath;
-        lattice_faster_decoder_config.max_active = max_active;
-        lattice_faster_decoder_config.min_active = min_active;
-        lattice_faster_decoder_config.beam = beam;
-        lattice_faster_decoder_config.lattice_beam = lattice_beam;
-        decodable_opts.acoustic_scale = acoustic_scale;
-        decodable_opts.frame_subsampling_factor = frame_subsampling_factor;
-
+        // IMPORTANT ::
         {
+            // DO NOT REMOVE CURLY BRACES (some memory dealloc issue arises if done so)
             bool binary;
             kaldi::Input ki(model_filepath, &binary);
-            trans_model.Read(ki.Stream(), binary);
-            am_nnet.Read(ki.Stream(), binary);
-            kaldi::nnet3::SetBatchnormTestMode(true, &(am_nnet.GetNnet()));
-            kaldi::nnet3::SetDropoutTestMode(true, &(am_nnet.GetNnet()));
-            kaldi::nnet3::CollapseModel(kaldi::nnet3::CollapseModelConfig(), &(am_nnet.GetNnet()));
-        }
 
-        word_syms = NULL;
-        if (word_syms_filepath != "" && !(word_syms = std::unique_ptr<fst::SymbolTable>(fst::SymbolTable::ReadText(word_syms_filepath)))) {
+            trans_model_.Read(ki.Stream(), binary);
+            am_nnet_.Read(ki.Stream(), binary);
+
+            kaldi::nnet3::SetBatchnormTestMode(true, &(am_nnet_.GetNnet()));
+            kaldi::nnet3::SetDropoutTestMode(true, &(am_nnet_.GetNnet()));
+            kaldi::nnet3::CollapseModel(kaldi::nnet3::CollapseModelConfig(), &(am_nnet_.GetNnet()));
+        }
+        // IMPORTANT ::
+
+        word_syms_ = NULL;
+        if (word_syms_filepath != "" && !(word_syms_ = fst::SymbolTable::ReadText(word_syms_filepath))) {
             KALDI_ERR << "Could not read symbol table from file " << word_syms_filepath;
         }
+        feature_info_ = new kaldi::OnlineNnet2FeaturePipelineInfo(feature_opts_);
 
-        feature_info = new kaldi::OnlineNnet2FeaturePipelineInfo(feature_opts);
     } catch (const std::exception &e) {
         KALDI_ERR << e.what();
     }
 }
 
-utterance_results_t Decoder::decode_file(const std::string &wav_filepath, const std::size_t &n_best) {
-    std::ifstream wav_stream(wav_filepath, std::ifstream::binary);
-    return decode_stream(wav_stream, n_best);
+Decoder::~Decoder() {
+    delete word_syms_;
+    delete feature_info_;
 }
 
-utterance_results_t Decoder::decode_stream(std::istream &wav_stream, const std::size_t &n_best) {
-    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info->ivector_extractor_info);
-    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info);
-    feature_pipeline.SetAdaptationState(adaptation_state);
-
-    kaldi::OnlineSilenceWeighting silence_weighting(trans_model, feature_info->silence_weighting_config,
-                                                    decodable_opts.frame_subsampling_factor);
-    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts, &am_nnet);
-
-    kaldi::SingleUtteranceNnet3Decoder decoder(lattice_faster_decoder_config,
-                                               trans_model, decodable_info, *decode_fst,
-                                               &feature_pipeline);
-
+void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
+                                    kaldi::OnlineSilenceWeighting &silence_weighting,
+                                    kaldi::SingleUtteranceNnet3Decoder &decoder,
+                                    std::istream &wav_stream) const {
     kaldi::WaveData wave_data;
     wave_data.Read(wav_stream);
 
@@ -231,11 +252,6 @@ utterance_results_t Decoder::decode_stream(std::istream &wav_stream, const std::
         kaldi::SubVector<kaldi::BaseFloat> wave_part(data, samp_offset, num_samp);
         feature_pipeline.AcceptWaveform(samp_freq, wave_part);
 
-        samp_offset += num_samp;
-        if (samp_offset == data.Dim()) {
-            feature_pipeline.InputFinished();
-        }
-
         if (silence_weighting.Active() && feature_pipeline.IvectorFeature() != NULL) {
             silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
             silence_weighting.GetDeltaWeights(feature_pipeline.NumFramesReady(),
@@ -243,38 +259,187 @@ utterance_results_t Decoder::decode_stream(std::istream &wav_stream, const std::
             feature_pipeline.IvectorFeature()->UpdateFrameWeights(delta_weights);
         }
         decoder.AdvanceDecoding();
+        samp_offset += num_samp;
     }
+}
+
+utterance_results_t Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
+                                                 kaldi::SingleUtteranceNnet3Decoder &decoder,
+                                                 const std::size_t &n_best) const {
+    feature_pipeline.InputFinished();
     decoder.FinalizeDecoding();
 
     kaldi::CompactLattice clat;
-    decoder.GetLattice(true, &clat);
-
-    return find_alternatives(word_syms.get(), clat, n_best);
+    utterance_results_t results;
+    try {
+        decoder.GetLattice(true, &clat);
+        find_alternatives(word_syms_, clat, n_best, results);
+    } catch (const std::exception &e) {
+        std::cout << "ERROR :: client timed out" << std::endl;
+    }
+    return results;
 }
 
-// Factory for creating decoders with shared decoding graph.
+// Factory for creating decoders with shared decoding graph and model parameters
+// Caches the graph and params to be able to produce uniform decoders later in queue.
 class DecoderFactory {
 
   private:
-    const std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst;
+    fst::Fst<fst::StdArc> *const decode_fst_;
+
+    const kaldi::BaseFloat beam_;
+    const std::size_t max_active_;
+    const std::size_t min_active_;
+    const kaldi::BaseFloat lattice_beam_;
+    const kaldi::BaseFloat acoustic_scale_;
+    const std::size_t frame_subsampling_factor_;
+    const std::string word_syms_filepath_;
+    const std::string model_filepath_;
+    const std::string mfcc_conf_filepath_;
+    const std::string ie_conf_filepath_;
 
   public:
-    explicit DecoderFactory(const std::string &hclg_filepath) : decode_fst(std::unique_ptr<fst::Fst<fst::StdArc>>(fst::ReadFstKaldiGeneric(hclg_filepath))) {}
+    explicit DecoderFactory(const std::string &,
+                            const kaldi::BaseFloat &,
+                            const std::size_t &,
+                            const std::size_t &,
+                            const kaldi::BaseFloat &,
+                            const kaldi::BaseFloat &,
+                            const std::size_t &,
+                            const std::string &,
+                            const std::string &,
+                            const std::string &,
+                            const std::string &);
 
-    std::shared_ptr<Decoder> operator()(const kaldi::BaseFloat &beam,
-                                        const std::size_t &max_active,
-                                        const std::size_t &min_active,
-                                        const kaldi::BaseFloat &lattice_beam,
-                                        const kaldi::BaseFloat &acoustic_scale,
-                                        const std::size_t &frame_subsampling_factor,
-                                        const std::string &word_syms_filepath,
-                                        const std::string &model_filepath,
-                                        const std::string &mfcc_conf_filepath,
-                                        const std::string &ie_conf_filepath) {
-        return std::shared_ptr<Decoder>(new Decoder(beam, max_active, min_active, lattice_beam,
-                                                    acoustic_scale, frame_subsampling_factor,
-                                                    word_syms_filepath, model_filepath,
-                                                    mfcc_conf_filepath, ie_conf_filepath,
-                                                    this->decode_fst.get()));
-    }
+    ~DecoderFactory();
+
+    inline Decoder *produce() const;
+
+    inline Decoder *operator()() const;
 };
+
+DecoderFactory::DecoderFactory(const std::string &hclg_filepath,
+                               const kaldi::BaseFloat &beam,
+                               const std::size_t &max_active,
+                               const std::size_t &min_active,
+                               const kaldi::BaseFloat &lattice_beam,
+                               const kaldi::BaseFloat &acoustic_scale,
+                               const std::size_t &frame_subsampling_factor,
+                               const std::string &word_syms_filepath,
+                               const std::string &model_filepath,
+                               const std::string &mfcc_conf_filepath,
+                               const std::string &ie_conf_filepath)
+    : decode_fst_(fst::ReadFstKaldiGeneric(hclg_filepath)),
+      beam_(beam), max_active_(max_active), min_active_(min_active), lattice_beam_(lattice_beam),
+      acoustic_scale_(acoustic_scale), frame_subsampling_factor_(frame_subsampling_factor),
+      word_syms_filepath_(word_syms_filepath), model_filepath_(model_filepath),
+      mfcc_conf_filepath_(mfcc_conf_filepath), ie_conf_filepath_(ie_conf_filepath) {}
+
+DecoderFactory::~DecoderFactory() {
+    delete decode_fst_;
+}
+
+inline Decoder *DecoderFactory::produce() const {
+    return new Decoder(beam_, max_active_, min_active_, lattice_beam_,
+                       acoustic_scale_, frame_subsampling_factor_,
+                       word_syms_filepath_, model_filepath_,
+                       mfcc_conf_filepath_, ie_conf_filepath_,
+                       decode_fst_);
+}
+
+inline Decoder *DecoderFactory::operator()() const {
+    return produce();
+}
+
+// Decoder Queue for providing thread safety to multiple request handler
+// threads producing and consuming decoder instances on demand.
+class DecoderQueue {
+
+  private:
+    std::queue<Decoder *> queue_;
+    std::mutex mutex_;
+    std::condition_variable cond_;
+
+    std::unique_ptr<DecoderFactory> decoder_factory_;
+
+    void push_(Decoder *);
+
+    Decoder *pop_();
+
+  public:
+    explicit DecoderQueue(const std::string &, const size_t &);
+
+    DecoderQueue(const DecoderQueue &) = delete; // disable copying
+
+    DecoderQueue &operator=(const DecoderQueue &) = delete; // disable assignment
+
+    ~DecoderQueue();
+
+    inline Decoder *acquire();
+
+    inline void release(Decoder *);
+};
+
+DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
+    std::cout << ":: Loading model from " << model_dir << std::endl;
+
+    // TODO: Better organize a kaldi model for distribution
+    std::string hclg_filepath = model_dir + "/tree_a_sp/graph/HCLG.fst";
+    std::string words_filepath = model_dir + "/tree_a_sp/graph/words.txt";
+    std::string model_filepath = model_dir + "/tdnn1g_sp_online/final.mdl";
+    std::string mfcc_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/mfcc.conf";
+    std::string ivec_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/ivector_extractor.conf";
+
+#if DEBUG
+    // LOG MODELS LOAD TIME --> START
+    std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+#endif
+    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(hclg_filepath, 13.0, 7000, 200,
+                                                                          6.0, 1.0, 3, words_filepath,
+                                                                          model_filepath, mfcc_conf_filepath,
+                                                                          ivec_conf_filepath));
+    for (size_t i = 0; i < n; i++) {
+        queue_.push(decoder_factory_->produce());
+    }
+#if DEBUG
+    std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+    // LOG MODELS LOAD TIME --> END
+
+    auto secs = std::chrono::duration_cast<std::chrono::seconds>(
+        end_time - start_time);
+    std::cout << ":: Decoder models concurrent queue init in: " << secs.count() << 's' << std::endl;
+#endif
+}
+
+DecoderQueue::~DecoderQueue() {
+    while (!queue_.empty()) {
+        Decoder *decoder = queue_.front();
+        queue_.pop();
+        delete decoder;
+    }
+}
+
+void DecoderQueue::push_(Decoder *item) {
+    std::unique_lock<std::mutex> mlock(mutex_);
+    queue_.push(item);
+    mlock.unlock();
+    cond_.notify_one();
+}
+
+Decoder *DecoderQueue::pop_() {
+    std::unique_lock<std::mutex> mlock(mutex_);
+    while (queue_.empty()) {
+        cond_.wait(mlock);
+    }
+    Decoder *item = queue_.front();
+    queue_.pop();
+    return item;
+}
+
+inline Decoder *DecoderQueue::acquire() {
+    return pop_();
+}
+
+inline void DecoderQueue::release(Decoder *decoder) {
+    push_(decoder);
+}
