@@ -62,7 +62,7 @@ def chunks_from_file(filename: str, chunk_size=1):
     # TODO: Should remove assumptions about audio properties from here
     audio = AudioSegment.from_file(filename, format="wav", frame_rate=8000, channels=1, sample_width=2)
 
-    if audio.duration_seconds == chunk_size:
+    if audio.duration_seconds <= chunk_size:
         audio_stream = io.BytesIO()
         audio.export(audio_stream, format="wav")
         return [audio_stream.getvalue()]

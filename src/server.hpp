@@ -28,11 +28,13 @@
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
+// Model Specification for Kaldi ASR
+// contains model config for a particular model.
 struct ModelSpec {
-  std::string name;
-  std::string language_code;
-  std::string path;
-  std::size_t n_decoders = 1;
+    std::string name;
+    std::string language_code;
+    std::string path;
+    std::size_t n_decoders = 1;
 };
 
 // A pair of model_name and language_code
@@ -46,44 +48,44 @@ using model_id_t = std::pair<std::string, std::string>;
 class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
-    // Thread-safe Decoder MPMC Queue
+    // Map of Thread-safe Decoder MPMC Queues for diff languages/models
     std::map<model_id_t, std::unique_ptr<DecoderQueue>> decoder_queue_map;
 
   public:
     // Main Constructor for Kaldi Service
-    explicit KaldiServeImpl(const std::vector<ModelSpec>);
+    explicit KaldiServeImpl(const std::vector<ModelSpec> &);
 
     // Tell if a given model name and language code is available for use.
-    bool is_model_present(const model_id_t &);
+    inline bool is_model_present(const model_id_t &) const;
 
     // Non-Streaming Request Handler RPC service
     // Accepts a single `RecognizeRequest` message
     // Returns a single `RecognizeResponse` message
     grpc::Status Recognize(grpc::ServerContext *,
-                           const kaldi_serve::RecognizeRequest *,
+                           const kaldi_serve::RecognizeRequest *const,
                            kaldi_serve::RecognizeResponse *) override;
 
     // Streaming Request Handler RPC service
     // Accepts a stream of `RecognizeRequest` messages
     // Returns a single `RecognizeResponse` message
     grpc::Status StreamingRecognize(grpc::ServerContext *,
-                                    grpc::ServerReader<kaldi_serve::RecognizeRequest> *,
+                                    grpc::ServerReader<kaldi_serve::RecognizeRequest> *const,
                                     kaldi_serve::RecognizeResponse *) override;
 };
 
-KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> model_specs) {
+KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> &model_specs) {
     for (auto const &model_spec : model_specs) {
         model_id_t model_id = std::make_pair(model_spec.name, model_spec.language_code);
         decoder_queue_map[model_id] = std::make_unique<DecoderQueue>(model_spec.path, model_spec.n_decoders);
     }
 }
 
-bool KaldiServeImpl::is_model_present(const model_id_t &model_id) {
+inline bool KaldiServeImpl::is_model_present(const model_id_t &model_id) const {
   return decoder_queue_map.find(model_id) != decoder_queue_map.end();
 }
 
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
-                                       const kaldi_serve::RecognizeRequest *request,
+                                       const kaldi_serve::RecognizeRequest *const request,
                                        kaldi_serve::RecognizeResponse *response) {
     kaldi_serve::RecognitionConfig config = request->config();
     int32 n_best = config.max_alternatives();
@@ -146,10 +148,11 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
 }
 
 grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
-                                                grpc::ServerReader<kaldi_serve::RecognizeRequest> *reader,
+                                                grpc::ServerReader<kaldi_serve::RecognizeRequest> *const reader,
                                                 kaldi_serve::RecognizeResponse *response) {
     kaldi_serve::RecognizeRequest request_;
     reader->Read(&request_);
+
     // We first read the request to see if we have the correct model and
     // language to load Also assuming that the config won't change mid request
     kaldi_serve::RecognitionConfig config = request_.config();
@@ -163,11 +166,9 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     }
 
     // IMPORTANT ::
-    //      Attain the lock and pop a decoder from the `free` queue
-    //      Wait here until lock on queue is attained and a decoder is obtained.
-    //      Each new stream gets it's own decoder instance.
-    // TODO(1):
-    //      Set a timeout for wait and allocate a temp decoder to resolve request if memory allows.
+    // - Attain the lock and pop a decoder from the `free` queue
+    // - Wait here until lock on queue is attained and a decoder is obtained.
+    // - Each new stream gets it's own decoder instance.
     Decoder *decoder_ = decoder_queue_map[model_id]->acquire();
 
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
@@ -227,7 +228,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
 }
 
 // Runs the Server with the Kaldi Service
-void run_server(const std::vector<ModelSpec> model_specs) {
+void run_server(const std::vector<ModelSpec> &model_specs) {
     KaldiServeImpl service(model_specs);
 
     std::string server_address("0.0.0.0:5016");
@@ -243,8 +244,8 @@ void run_server(const std::vector<ModelSpec> model_specs) {
 }
 
 /**
-SOME NOTES:
------------
+NOTES:
+------
 
 VARIABLES ON WHICH SERVER RELIABILITY DEPENDS ::
     1. Length of Audio Stream (in secs)
@@ -253,16 +254,4 @@ VARIABLES ON WHICH SERVER RELIABILITY DEPENDS ::
     4. No. of Decoders in Queue
     5. Timeout for each request (chunk essentially)
     6. No. of concurrent streams being handled by the server
-
-LAST BENCHMARK ::
-    length of audio streams = 3s
-    no. of chunks per stream = [1, 3] randomly
-    time intervals between subsequent chunks = [1, 3]s randomly
-    no. of decoders in queue = 60
-    timeout = 80s
-    concurrent requests = 600
-
-    :: time taken per stream = 1.57 - avg :: 0.42 - min :: 1.76 - max.
-
-    Roughly able to handle load pretty well, RAM used was ~10GB with 60 decoders in queue. CPU usage was optimum (100% on 8 cores).
  */

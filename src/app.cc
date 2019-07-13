@@ -54,15 +54,18 @@ int main(int argc, char *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     std::vector<ModelSpec> model_specs = parse_model_specs(model_spec_toml);
+
     if (model_specs.size() == 0) {
         std::cout << ":: No model found in toml for loading" << std::endl;
         return 1;
-    } else {
-        std::cout << ":: Loading " << model_specs.size() << " models" << std::endl;
-        for (auto const &model_spec : model_specs) {
-            std::cout << "::   - " << model_spec.name + " (" + model_spec.language_code + ")" << std::endl;
-        }
-        run_server(model_specs);
-        return 0;
     }
+
+    std::cout << ":: Loading " << model_specs.size() << " models" << std::endl;
+    for (auto const &model_spec : model_specs) {
+        std::cout << "::   - " << model_spec.name + " (" + model_spec.language_code + ")" << std::endl;
+    }
+
+    run_server(model_specs);
+    
+    return 0;
 }

@@ -11,6 +11,7 @@ Options:
   --lang=<lang>         Language code of the model [default: hi]
 """
 
+import random
 import threading
 import traceback
 from pprint import pprint
@@ -68,7 +69,7 @@ def decode_files(client, audio_paths: List[str], model: str, language_code: str)
     Decode files using threaded requests
     """
 
-    chunked_audios = [chunks_from_file(x, chunk_size=1) for x in audio_paths]
+    chunked_audios = [chunks_from_file(x, chunk_size=random.randint(1, 3)) for x in audio_paths]
 
     threads = [
         threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code))

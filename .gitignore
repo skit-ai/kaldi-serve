@@ -10,3 +10,4 @@ audio
 
 /python_stream/kaldi/__pycache__
 /.mypy_cache
+dev_model_spec.toml

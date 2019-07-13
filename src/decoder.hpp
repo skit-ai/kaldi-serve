@@ -149,7 +149,7 @@ class Decoder {
                      const kaldi::BaseFloat &, const std::size_t &,
                      const std::string &, const std::string &,
                      const std::string &, const std::string &,
-                     fst::Fst<fst::StdArc> *);
+                     fst::Fst<fst::StdArc> *const);
 
     ~Decoder();
 
@@ -177,7 +177,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
                  const std::string &model_filepath,
                  const std::string &mfcc_conf_filepath,
                  const std::string &ie_conf_filepath,
-                 fst::Fst<fst::StdArc> *decode_fst)
+                 fst::Fst<fst::StdArc> *const decode_fst)
     : decode_fst_(decode_fst) {
 
     try {
@@ -190,9 +190,8 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         decodable_opts_.acoustic_scale = acoustic_scale;
         decodable_opts_.frame_subsampling_factor = frame_subsampling_factor;
 
-        // IMPORTANT ::
+        // IMPORTANT :: DO NOT REMOVE CURLY BRACES (some memory dealloc issue arises if done so)
         {
-            // DO NOT REMOVE CURLY BRACES (some memory dealloc issue arises if done so)
             bool binary;
             kaldi::Input ki(model_filepath, &binary);
 
@@ -203,7 +202,6 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
             kaldi::nnet3::SetDropoutTestMode(true, &(am_nnet_.GetNnet()));
             kaldi::nnet3::CollapseModel(kaldi::nnet3::CollapseModelConfig(), &(am_nnet_.GetNnet()));
         }
-        // IMPORTANT ::
 
         word_syms_ = NULL;
         if (word_syms_filepath != "" && !(word_syms_ = fst::SymbolTable::ReadText(word_syms_filepath))) {
@@ -299,6 +297,9 @@ class DecoderFactory {
     const std::string ie_conf_filepath_;
 
   public:
+    // Constructor for DecoderFactory
+    // Accepts an HCLG filepath and other decoder config parameters
+    // to share across all decoders produced by factory.
     explicit DecoderFactory(const std::string &,
                             const kaldi::BaseFloat &,
                             const std::size_t &,
@@ -313,8 +314,12 @@ class DecoderFactory {
 
     ~DecoderFactory();
 
+    // Producer method for the Factory.
+    // Does the actual work :: produces a new Decoder object
+    // using the shared config and returns a pointer to it.
     inline Decoder *produce() const;
 
+    // friendly alias for the producer method
     inline Decoder *operator()() const;
 };
 
@@ -356,14 +361,21 @@ inline Decoder *DecoderFactory::operator()() const {
 class DecoderQueue {
 
   private:
+    // underlying STL "unsafe" queue for holding decoders
     std::queue<Decoder *> queue_;
+    // custom mutex to make queue "thread-safe"
     std::mutex mutex_;
+    // helper for holding mutex and notification of waiting threads when concerned resources are available
     std::condition_variable cond_;
-
+    // factory for producing new decoders on demand
     std::unique_ptr<DecoderFactory> decoder_factory_;
 
-    void push_(Decoder *);
+    // Push method that supports multi-threaded thread-safe concurrency
+    // pushes a decoder object onto the queue
+    void push_(Decoder *const);
 
+    // Pop method that supports multi-threaded thread-safe concurrency
+    // pops a decoder object from the queue
     Decoder *pop_();
 
   public:
@@ -375,9 +387,11 @@ class DecoderQueue {
 
     ~DecoderQueue();
 
+    // friendly alias for `pop`
     inline Decoder *acquire();
 
-    inline void release(Decoder *);
+    // friendly alias for `push`
+    inline void release(Decoder *const);
 };
 
 DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
@@ -419,19 +433,29 @@ DecoderQueue::~DecoderQueue() {
     }
 }
 
-void DecoderQueue::push_(Decoder *item) {
+void DecoderQueue::push_(Decoder *const item) {
+    // acquires a lock on the queue (mutex)
     std::unique_lock<std::mutex> mlock(mutex_);
+    // pushes item into queue
     queue_.push(item);
+    // releases the lock on queue
     mlock.unlock();
+    // condition var notifies another suspended thread (in `pop`)
     cond_.notify_one();
 }
 
 Decoder *DecoderQueue::pop_() {
+    // acquires a lock on the queue (mutex)
     std::unique_lock<std::mutex> mlock(mutex_);
+    // waits until queue is empty
     while (queue_.empty()) {
+        // suspends current thread execution (as well as lock on queue)
+        // and waits for condition var notification
         cond_.wait(mlock);
     }
+    // obtains an item from front of queue
     Decoder *item = queue_.front();
+    // pops it from queue
     queue_.pop();
     return item;
 }
@@ -440,6 +464,6 @@ inline Decoder *DecoderQueue::acquire() {
     return pop_();
 }
 
-inline void DecoderQueue::release(Decoder *decoder) {
+inline void DecoderQueue::release(Decoder *const decoder) {
     push_(decoder);
 }
