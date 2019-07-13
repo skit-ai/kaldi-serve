@@ -48,8 +48,8 @@ using utterance_results_t = std::vector<std::pair<alternative_t, std::vector<ali
 // https://github.com/dialogflow/asr-server/blob/master/src/OnlineDecoder.cc#L90
 // NOTE: This might not be very useful for us right now. Depending on the
 //       situation, we might actually want to weigh components differently.
-inline double calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words) {
-    return std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
+inline void calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words, double &confidence) {
+    confidence = std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
 }
 
 // Computes n-best alternative from lattice. Output symbols are converted to words
@@ -72,59 +72,63 @@ void find_alternatives(const fst::SymbolTable *word_syms,
 
     if (nbest_lats.empty()) {
         KALDI_WARN << "no N-best entries";
-    } else {
-        for (auto const &l : nbest_lats) {
-            kaldi::LatticeWeight weight;
+        return;
+    }
 
-            // NOTE: Check why int32s specifically are used here
-            std::vector<int32> input_ids;
-            std::vector<int32> word_ids;
-            fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
+    for (auto const &l : nbest_lats) {
+        kaldi::LatticeWeight weight;
 
-            std::vector<std::string> words;
-            for (auto const &wid : word_ids) {
-                words.push_back(word_syms->Find(wid));
-            }
+        // NOTE: Check why int32s specifically are used here
+        std::vector<int32> input_ids;
+        std::vector<int32> word_ids;
+        fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
 
-            // An alignment is a tuple like (word, start, end). Note that the start
-            // and end time at the moment are not based on any unit and represent
-            // relative values depending on the total number of input symbols. This,
-            // when multiplied into audio lengths should give actual second values.
-            std::vector<alignment_t> alignments;
-            bool in_word = false;
-            if (words.size() > 0) {
-                size_t n_input_tokens = input_ids.size();
-                // HACK: We assume inputs below 3 to be whitespaces. This is not 'the'
-                //       right way since we haven't looked into the exact set of input
-                //       symbols.
-                float start, end;
-                int word_index = 0;
-                for (auto i = 0; i < n_input_tokens; i++) {
-                    if (input_ids[i] < 3) {
-                        if (in_word) {
-                            // Exited a word
-                            end = (i - 1) / (float)n_input_tokens;
-                            alignments.push_back(std::make_tuple(words[word_index], start, end));
-                            word_index += 1;
-                        }
-                        in_word = false;
-                    } else {
-                        if (!in_word) {
-                            // Entered a new word
-                            start = (i - 1) / (float)n_input_tokens;
-                        }
-                        in_word = true;
+        std::vector<std::string> words;
+        for (auto const &wid : word_ids) {
+            words.push_back(word_syms->Find(wid));
+        }
+
+        // An alignment is a tuple like (word, start, end). Note that the start
+        // and end time at the moment are not based on any unit and represent
+        // relative values depending on the total number of input symbols. This,
+        // when multiplied into audio lengths should give actual second values.
+        std::vector<alignment_t> alignments;
+        bool in_word = false;
+        if (words.size() > 0) {
+            size_t n_input_tokens = input_ids.size();
+            // HACK: We assume inputs below 3 to be whitespaces. This is not 'the'
+            //       right way since we haven't looked into the exact set of input
+            //       symbols.
+            float start, end;
+            int word_index = 0;
+            for (auto i = 0; i < n_input_tokens; i++) {
+                if (input_ids[i] < 3) {
+                    if (in_word) {
+                        // Exited a word
+                        end = (i - 1) / (float)n_input_tokens;
+                        alignments.push_back(std::make_tuple(words[word_index], start, end));
+                        word_index += 1;
                     }
+                    in_word = false;
+                } else {
+                    if (!in_word) {
+                        // Entered a new word
+                        start = (i - 1) / (float)n_input_tokens;
+                    }
+                    in_word = true;
                 }
             }
-            std::string sentence;
-            string_join(words, " ", sentence);
-
-            alternative_t alt = std::make_pair(sentence, calculate_confidence(float(weight.Value1()),
-                                                                              float(weight.Value2()),
-                                                                              word_ids.size()));
-            results.push_back(std::make_pair(alt, alignments));
         }
+        std::string sentence;
+        string_join(words, " ", sentence);
+
+        double confidence;
+        calculate_confidence(float(weight.Value1()),
+                             float(weight.Value2()),
+                             word_ids.size(),
+                             confidence);
+        alternative_t alt = std::make_pair(sentence, confidence);
+        results.push_back(std::make_pair(alt, alignments));
     }
 }
 
@@ -159,12 +163,14 @@ class Decoder {
     void decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &,
                                kaldi::OnlineSilenceWeighting &,
                                kaldi::SingleUtteranceNnet3Decoder &,
-                               std::istream &) const;
+                               std::istream &,
+                               const kaldi::BaseFloat & = 1) const;
 
     // get the final utterances based on the compact lattice
-    utterance_results_t decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
-                                            kaldi::SingleUtteranceNnet3Decoder &,
-                                            const std::size_t &) const;
+    void decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
+                             kaldi::SingleUtteranceNnet3Decoder &,
+                             const std::size_t &,
+                             utterance_results_t &) const;
 };
 
 Decoder::Decoder(const kaldi::BaseFloat &beam,
@@ -222,7 +228,8 @@ Decoder::~Decoder() {
 void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
                                     kaldi::OnlineSilenceWeighting &silence_weighting,
                                     kaldi::SingleUtteranceNnet3Decoder &decoder,
-                                    std::istream &wav_stream) const {
+                                    std::istream &wav_stream,
+                                    const kaldi::BaseFloat &chunk_size) const {
     kaldi::WaveData wave_data;
     wave_data.Read(wav_stream);
 
@@ -232,14 +239,14 @@ void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_p
     kaldi::BaseFloat samp_freq = wave_data.SampFreq();
 
     int32 chunk_length;
-    kaldi::BaseFloat chunk_length_secs = 1;
-    if (chunk_length_secs > 0) {
-        chunk_length = int32(samp_freq * chunk_length_secs);
+    if (chunk_size > 0) {
+        chunk_length = int32(samp_freq * chunk_size);
         if (chunk_length == 0)
             chunk_length = 1;
     } else {
         chunk_length = std::numeric_limits<int32>::max();
     }
+
     int32 samp_offset = 0;
     std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
 
@@ -261,21 +268,20 @@ void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_p
     }
 }
 
-utterance_results_t Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
-                                                 kaldi::SingleUtteranceNnet3Decoder &decoder,
-                                                 const std::size_t &n_best) const {
+void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
+                                  kaldi::SingleUtteranceNnet3Decoder &decoder,
+                                  const std::size_t &n_best,
+                                  utterance_results_t &results) const {
     feature_pipeline.InputFinished();
     decoder.FinalizeDecoding();
 
     kaldi::CompactLattice clat;
-    utterance_results_t results;
     try {
         decoder.GetLattice(true, &clat);
         find_alternatives(word_syms_, clat, n_best, results);
     } catch (const std::exception &e) {
         std::cout << "ERROR :: client timed out" << std::endl;
     }
-    return results;
 }
 
 // Factory for creating decoders with shared decoding graph and model parameters
@@ -365,7 +371,7 @@ class DecoderQueue {
     std::queue<Decoder *> queue_;
     // custom mutex to make queue "thread-safe"
     std::mutex mutex_;
-    // helper for holding mutex and notification of waiting threads when concerned resources are available
+    // helper for holding mutex and notification on waiting threads when concerned resources are available
     std::condition_variable cond_;
     // factory for producing new decoders on demand
     std::unique_ptr<DecoderFactory> decoder_factory_;
@@ -427,7 +433,7 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
 
 DecoderQueue::~DecoderQueue() {
     while (!queue_.empty()) {
-        Decoder *decoder = queue_.front();
+        auto decoder = queue_.front();
         queue_.pop();
         delete decoder;
     }
@@ -454,7 +460,7 @@ Decoder *DecoderQueue::pop_() {
         cond_.wait(mlock);
     }
     // obtains an item from front of queue
-    Decoder *item = queue_.front();
+    auto item = queue_.front();
     // pops it from queue
     queue_.pop();
     return item;
@@ -465,5 +471,5 @@ inline Decoder *DecoderQueue::acquire() {
 }
 
 inline void DecoderQueue::release(Decoder *const decoder) {
-    push_(decoder);
+    return push_(decoder);
 }

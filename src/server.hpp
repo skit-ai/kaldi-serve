@@ -51,12 +51,12 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
     // Map of Thread-safe Decoder MPMC Queues for diff languages/models
     std::map<model_id_t, std::unique_ptr<DecoderQueue>> decoder_queue_map;
 
+    // Tells if a given model name and language code is available for use.
+    inline bool is_model_present(const model_id_t &) const;
+
   public:
     // Main Constructor for Kaldi Service
     explicit KaldiServeImpl(const std::vector<ModelSpec> &);
-
-    // Tell if a given model name and language code is available for use.
-    inline bool is_model_present(const model_id_t &) const;
 
     // Non-Streaming Request Handler RPC service
     // Accepts a single `RecognizeRequest` message
@@ -81,7 +81,7 @@ KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> &model_specs) {
 }
 
 inline bool KaldiServeImpl::is_model_present(const model_id_t &model_id) const {
-  return decoder_queue_map.find(model_id) != decoder_queue_map.end();
+    return decoder_queue_map.find(model_id) != decoder_queue_map.end();
 }
 
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
@@ -123,12 +123,15 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     // decode speech signals
     decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
 
-    kaldi_serve::SpeechRecognitionResult *results = response->add_results();
+    kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
 
+    utterance_results_t k_results_;
+    decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_);
+
     // find alternatives on final `lattice` after all chunks have been processed
-    for (auto const &res : decoder_->decode_stream_final(feature_pipeline, decoder, n_best)) {
-        alternative = results->add_alternatives();
+    for (auto const &res : k_results_) {
+        alternative = sr_result->add_alternatives();
         alternative->set_transcript(res.first.first);
         alternative->set_confidence(res.first.second);
     }
@@ -162,7 +165,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     model_id_t model_id = std::make_pair(model_name, language_code);
 
     if (!is_model_present(model_id)) {
-      return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
+        return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
     // IMPORTANT ::
@@ -201,12 +204,15 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
         decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
     } while (reader->Read(&request_));
 
-    kaldi_serve::SpeechRecognitionResult *results = response->add_results();
+    kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
 
+    utterance_results_t k_results_;
+    decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_);
+
     // find alternatives on final `lattice` after all chunks have been processed
-    for (auto const &res : decoder_->decode_stream_final(feature_pipeline, decoder, n_best)) {
-        alternative = results->add_alternatives();
+    for (auto const &res : k_results_) {
+        alternative = sr_result->add_alternatives();
         alternative->set_transcript(res.first.first);
         alternative->set_confidence(res.first.second);
     }
