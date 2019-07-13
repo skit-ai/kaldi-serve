@@ -447,7 +447,7 @@ void DecoderQueue::push_(Decoder *const item) {
 Decoder *DecoderQueue::pop_() {
     // acquires a lock on the queue (mutex)
     std::unique_lock<std::mutex> mlock(mutex_);
-    // waits until queue is empty
+    // waits until queue is not empty
     while (queue_.empty()) {
         // suspends current thread execution (as well as lock on queue)
         // and waits for condition var notification
