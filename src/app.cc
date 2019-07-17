@@ -29,13 +29,13 @@ int main(int argc, char *argv[]) {
     parse_model_specs(model_spec_toml, model_specs);
 
     if (model_specs.size() == 0) {
-        std::cout << ":: No model found in toml for loading" << std::endl;
+        std::cout << ":: No model found in toml for loading" << ENDL;
         return 1;
     }
 
-    std::cout << ":: Loading " << model_specs.size() << " models" << std::endl;
+    std::cout << ":: Loading " << model_specs.size() << " models" << ENDL;
     for (auto const &model_spec : model_specs) {
-        std::cout << "::   - " << model_spec.name + " (" + model_spec.language_code + ")" << std::endl;
+        std::cout << "::   - " << model_spec.name + " (" + model_spec.language_code + ")" << ENDL;
     }
 
     run_server(model_specs);

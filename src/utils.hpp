@@ -13,7 +13,7 @@
 #include "vendor/cpptoml.h"
 
 // Fills a list of model specifications from the config
-void parse_model_specs(std::string &toml_path, std::vector<ModelSpec> &model_specs) {
+void parse_model_specs(const std::string &toml_path, std::vector<ModelSpec> &model_specs) {
     auto config = cpptoml::parse_file(toml_path);
     auto models = config->get_table_array("model");
 

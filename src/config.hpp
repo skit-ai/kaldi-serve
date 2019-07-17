@@ -1,4 +1,5 @@
 #define DEBUG true
+#define ENDL '\n'
 
 #if DEBUG
 #define NUM_DECODERS 5

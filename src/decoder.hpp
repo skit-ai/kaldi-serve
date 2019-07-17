@@ -48,7 +48,7 @@ using utterance_results_t = std::vector<std::pair<alternative_t, std::vector<ali
 // https://github.com/dialogflow/asr-server/blob/master/src/OnlineDecoder.cc#L90
 // NOTE: This might not be very useful for us right now. Depending on the
 //       situation, we might actually want to weigh components differently.
-inline void calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words, double &confidence) {
+inline void calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words, double &confidence) noexcept {
     confidence = std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
 }
 
@@ -132,7 +132,7 @@ void find_alternatives(const fst::SymbolTable *word_syms,
     }
 }
 
-class Decoder {
+class Decoder final {
 
   private:
     fst::SymbolTable *word_syms_;
@@ -280,13 +280,13 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
         decoder.GetLattice(true, &clat);
         find_alternatives(word_syms_, clat, n_best, results);
     } catch (const std::exception &e) {
-        std::cout << "ERROR :: client timed out" << std::endl;
+        std::cout << "ERROR :: client timed out" << ENDL;
     }
 }
 
 // Factory for creating decoders with shared decoding graph and model parameters
 // Caches the graph and params to be able to produce uniform decoders later in queue.
-class DecoderFactory {
+class DecoderFactory final {
 
   private:
     fst::Fst<fst::StdArc> *const decode_fst_;
@@ -364,7 +364,7 @@ inline Decoder *DecoderFactory::operator()() const {
 
 // Decoder Queue for providing thread safety to multiple request handler
 // threads producing and consuming decoder instances on demand.
-class DecoderQueue {
+class DecoderQueue final {
 
   private:
     // underlying STL "unsafe" queue for holding decoders
@@ -401,7 +401,7 @@ class DecoderQueue {
 };
 
 DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
-    std::cout << ":: Loading model from " << model_dir << std::endl;
+    std::cout << ":: Loading model from " << model_dir << ENDL;
 
     // TODO: Better organize a kaldi model for distribution
     std::string hclg_filepath = model_dir + "/tree_a_sp/graph/HCLG.fst";
@@ -427,7 +427,7 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
 
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(
         end_time - start_time);
-    std::cout << ":: Decoder models concurrent queue init in: " << secs.count() << 's' << std::endl;
+    std::cout << ":: Decoder models concurrent queue init in: " << secs.count() << 's' << ENDL;
 #endif
 }
 

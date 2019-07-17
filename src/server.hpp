@@ -9,7 +9,7 @@
 
 // C++ stl includes
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <string>
 
@@ -49,7 +49,7 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
     // Map of Thread-safe Decoder MPMC Queues for diff languages/models
-    std::map<model_id_t, std::unique_ptr<DecoderQueue>> decoder_queue_map;
+    std::unordered_map<model_id_t, std::unique_ptr<DecoderQueue>> decoder_queue_map;
 
     // Tells if a given model name and language code is available for use.
     inline bool is_model_present(const model_id_t &) const;
@@ -143,7 +143,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *context,
     // LOG REQUEST RESOLVE TIME --> END
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(
         end_time - start_time);
-    std::cout << "request resolved in: " << secs.count() << 's' << std::endl;
+    std::cout << "request resolved in: " << secs.count() << 's' << ENDL;
 #endif
 
     // return OK status when request is resolved
@@ -226,7 +226,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *context,
     // LOG REQUEST RESOLVE TIME --> END
     auto secs = std::chrono::duration_cast<std::chrono::seconds>(
         end_time - start_time);
-    std::cout << "request resolved in: " << secs.count() << 's' << std::endl;
+    std::cout << "request resolved in: " << secs.count() << 's' << ENDL;
 #endif
 
     // return OK status when request is resolved
@@ -245,7 +245,7 @@ void run_server(const std::vector<ModelSpec> &model_specs) {
 
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
 
-    std::cout << "kaldi-serve gRPC Streaming Server listening on " << server_address << std::endl;
+    std::cout << "kaldi-serve gRPC Streaming Server listening on " << server_address << ENDL;
     server->Wait();
 }
 
