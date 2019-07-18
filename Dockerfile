@@ -1,4 +1,4 @@
-FROM gcr.io/vernacular-voice-services/asr/kaldi:latest
+FROM gcr.io/vernacular-voice-services/asr/kaldi:latest as builder
 
 # gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
 RUN apt-get update && \
@@ -34,5 +34,9 @@ ENV KALDI_ROOT="/home/kaldi" \
     LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
 
 RUN make
+
+FROM ubuntu:bionic
+WORKDIR /home/app
+COPY --from=builder /home/app/build build
 
 CMD [ "./build/kaldi_serve_app" ]
