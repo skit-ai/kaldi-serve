@@ -26,6 +26,9 @@ RUN cd /home/ && \
 # Install Protobuf v3
 RUN cd /home/grpc/third_party/protobuf && make install
 
+# Remove gRPC source code
+RUN rm -rf /home/grpc/
+
 WORKDIR /home/app
 
 COPY . .
