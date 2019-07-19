@@ -384,11 +384,11 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
     std::cout << ":: Loading model from " << model_dir << std::endl;
 
     // TODO: Better organize a kaldi model for distribution
-    std::string hclg_filepath = model_dir + "/tree_a_sp/graph/HCLG.fst";
-    std::string words_filepath = model_dir + "/tree_a_sp/graph/words.txt";
-    std::string model_filepath = model_dir + "/tdnn1g_sp_online/final.mdl";
-    std::string mfcc_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/mfcc.conf";
-    std::string ivec_conf_filepath = model_dir + "/tdnn1g_sp_online/conf/ivector_extractor.conf";
+    std::string hclg_filepath = model_dir + "/HCLG.fst";
+    std::string words_filepath = model_dir + "/words.txt";
+    std::string model_filepath = model_dir + "/final.mdl";
+    std::string mfcc_conf_filepath = model_dir + "/mfcc.conf";
+    std::string ivec_conf_filepath = model_dir + "/ivector_extractor.conf";
 
 #if DEBUG
     // LOG MODELS LOAD TIME --> START
