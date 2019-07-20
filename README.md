@@ -17,7 +17,7 @@ Make sure you have gRPC, protobuf installed on your system. Kaldi also needs to
 be present and built. Let's build the server:
 
 ```bash
-make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
+~$ make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
 ```
 
 Run `make clean` to clear old build files.
@@ -36,7 +36,7 @@ tells the program which models to load and where to look for. Structure of
 # Alternatively, you can also put all the required .so files in the ./lib/ directory since
 # that is added to the binary's rpath.
 
-$ ./build/kaldi_serve_app --help
+~$ ./build/kaldi_serve_app --help
 
 Kaldi gRPC server
 Usage: ./build/kaldi_serve_app [OPTIONS] model_spec_toml
@@ -53,10 +53,17 @@ Options:
 
 Python client for the server is present in [./python](./python) directory.
 
-### Running Tests
+### Load Testing
 
-We use [Catch2](https://github.com/catchorg/Catch2) for unit testing.
+We perform load testing using [ghz](https://ghz.sh/) which is a gRPC benchmarking and load testing tool. You will need to download it's binary into your PATH and load test the application using the following command template:
 
 ```bash
-make check -j8
+~$ ghz \
+--insecure \
+--proto ./protos/kaldi_serve.proto \
+--call kaldi_serve.KaldiServe.StreamingRecognize \
+-n [NUM REQUESTS] -c [CONCURRENT REQUESTS] \
+--cpus [NUM CORES] \
+-d "[{\"audio\": {\"content\": \"$chunk1\"}, \"config\": {\"max_alternatives\": [N_BEST], \"language_code\": \"[LANGUUAGE]\", \"model\": \"[MODEL]\"}}, ...more chunks]" \
+0.0.0.0:5016
 ```
