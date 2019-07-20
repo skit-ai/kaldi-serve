@@ -57,7 +57,7 @@ inline void calculate_confidence(const float &lm_score, const float &am_score, c
 void find_alternatives(const fst::SymbolTable *word_syms,
                        const kaldi::CompactLattice &clat,
                        const std::size_t &n_best,
-                       utterance_results_t &results) {
+                       utterance_results_t &results) noexcept {
     if (clat.NumStates() == 0) {
         KALDI_LOG << "Empty lattice.";
     }
@@ -135,7 +135,7 @@ void find_alternatives(const fst::SymbolTable *word_syms,
 class Decoder final {
 
   private:
-    fst::SymbolTable *word_syms_;
+    std::unique_ptr<fst::SymbolTable> word_syms_;
 
   public:
     fst::Fst<fst::StdArc> *const decode_fst_;
@@ -143,7 +143,7 @@ class Decoder final {
     kaldi::TransitionModel trans_model_;
 
     kaldi::OnlineNnet2FeaturePipelineConfig feature_opts_;
-    kaldi::OnlineNnet2FeaturePipelineInfo *feature_info_;
+    std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
 
     kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config_;
     kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts_;
@@ -153,9 +153,7 @@ class Decoder final {
                      const kaldi::BaseFloat &, const std::size_t &,
                      const std::string &, const std::string &,
                      const std::string &, const std::string &,
-                     fst::Fst<fst::StdArc> *const);
-
-    ~Decoder();
+                     fst::Fst<fst::StdArc> *const) noexcept;
 
     // Decoding processes
 
@@ -183,7 +181,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
                  const std::string &model_filepath,
                  const std::string &mfcc_conf_filepath,
                  const std::string &ie_conf_filepath,
-                 fst::Fst<fst::StdArc> *const decode_fst)
+                 fst::Fst<fst::StdArc> *const decode_fst) noexcept
     : decode_fst_(decode_fst) {
 
     try {
@@ -209,20 +207,14 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
             kaldi::nnet3::CollapseModel(kaldi::nnet3::CollapseModelConfig(), &(am_nnet_.GetNnet()));
         }
 
-        word_syms_ = NULL;
-        if (word_syms_filepath != "" && !(word_syms_ = fst::SymbolTable::ReadText(word_syms_filepath))) {
+        if (word_syms_filepath != "" && !(word_syms_ = std::unique_ptr<fst::SymbolTable>(fst::SymbolTable::ReadText(word_syms_filepath)))) {
             KALDI_ERR << "Could not read symbol table from file " << word_syms_filepath;
         }
-        feature_info_ = new kaldi::OnlineNnet2FeaturePipelineInfo(feature_opts_);
+        feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>(feature_opts_);
 
     } catch (const std::exception &e) {
         KALDI_ERR << e.what();
     }
-}
-
-Decoder::~Decoder() {
-    delete word_syms_;
-    delete feature_info_;
 }
 
 void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
@@ -278,7 +270,7 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
     kaldi::CompactLattice clat;
     try {
         decoder.GetLattice(true, &clat);
-        find_alternatives(word_syms_, clat, n_best, results);
+        find_alternatives(word_syms_.get(), clat, n_best, results);
     } catch (const std::exception &e) {
         std::cout << "ERROR :: client timed out" << ENDL;
     }
@@ -289,7 +281,7 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
 class DecoderFactory final {
 
   private:
-    fst::Fst<fst::StdArc> *const decode_fst_;
+    const std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
 
     const kaldi::BaseFloat beam_;
     const std::size_t max_active_;
@@ -316,17 +308,15 @@ class DecoderFactory final {
                             const std::string &,
                             const std::string &,
                             const std::string &,
-                            const std::string &);
-
-    ~DecoderFactory();
+                            const std::string &) noexcept;
 
     // Producer method for the Factory.
     // Does the actual work :: produces a new Decoder object
     // using the shared config and returns a pointer to it.
-    inline Decoder *produce() const;
+    inline Decoder *produce() const noexcept;
 
     // friendly alias for the producer method
-    inline Decoder *operator()() const;
+    inline Decoder *operator()() const noexcept;
 };
 
 DecoderFactory::DecoderFactory(const std::string &hclg_filepath,
@@ -339,26 +329,22 @@ DecoderFactory::DecoderFactory(const std::string &hclg_filepath,
                                const std::string &word_syms_filepath,
                                const std::string &model_filepath,
                                const std::string &mfcc_conf_filepath,
-                               const std::string &ie_conf_filepath)
+                               const std::string &ie_conf_filepath) noexcept
     : decode_fst_(fst::ReadFstKaldiGeneric(hclg_filepath)),
       beam_(beam), max_active_(max_active), min_active_(min_active), lattice_beam_(lattice_beam),
       acoustic_scale_(acoustic_scale), frame_subsampling_factor_(frame_subsampling_factor),
       word_syms_filepath_(word_syms_filepath), model_filepath_(model_filepath),
       mfcc_conf_filepath_(mfcc_conf_filepath), ie_conf_filepath_(ie_conf_filepath) {}
 
-DecoderFactory::~DecoderFactory() {
-    delete decode_fst_;
-}
-
-inline Decoder *DecoderFactory::produce() const {
+inline Decoder *DecoderFactory::produce() const noexcept {
     return new Decoder(beam_, max_active_, min_active_, lattice_beam_,
                        acoustic_scale_, frame_subsampling_factor_,
                        word_syms_filepath_, model_filepath_,
                        mfcc_conf_filepath_, ie_conf_filepath_,
-                       decode_fst_);
+                       decode_fst_.get());
 }
 
-inline Decoder *DecoderFactory::operator()() const {
+inline Decoder *DecoderFactory::operator()() const noexcept {
     return produce();
 }
 
@@ -391,7 +377,7 @@ class DecoderQueue final {
 
     DecoderQueue &operator=(const DecoderQueue &) = delete; // disable assignment
 
-    ~DecoderQueue();
+    ~DecoderQueue() noexcept;
 
     // friendly alias for `pop`
     inline Decoder *acquire();
@@ -421,6 +407,7 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
     for (size_t i = 0; i < n; i++) {
         queue_.push(decoder_factory_->produce());
     }
+
 #if DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG MODELS LOAD TIME --> END
@@ -431,7 +418,7 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
 #endif
 }
 
-DecoderQueue::~DecoderQueue() {
+DecoderQueue::~DecoderQueue() noexcept {
     while (!queue_.empty()) {
         auto decoder = queue_.front();
         queue_.pop();

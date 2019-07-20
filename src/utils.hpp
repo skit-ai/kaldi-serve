@@ -5,6 +5,8 @@
 // Include guard
 #pragma once
 
+#include "config.hpp"
+
 // C++ stl includes
 #include <string>
 #include <vector>

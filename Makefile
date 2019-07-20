@@ -5,11 +5,13 @@ SYSTEM ?= $(HOST_SYSTEM)
 CXX = g++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
 CXXFLAGS += -std=c++17 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare -Wno-unused-local-typedefs \
-	-Wno-unused-variable -Winit-self
+	-Wno-unused-variable -Winit-self -O3
 
 LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++` \
 	-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl \
 	'-Wl,-rpath,$$ORIGIN/../lib' -L${KALDI_ROOT}/src/lib -L${KALDI_ROOT}/tools/openfst/lib
+
+LIBS = -lboost_system
 
 KALDI_INCLUDES = -I${KALDI_ROOT}/src/ -I${KALDI_ROOT}/tools/openfst/include
 KALDI_LIBS = -rdynamic -lm -lpthread -ldl -lkaldi-decoder -lkaldi-lat -lkaldi-fstext \
@@ -31,7 +33,7 @@ build/kaldi_serve_app: $(PROTOS_PATH)/kaldi_serve.pb.o $(PROTOS_PATH)/kaldi_serv
 	$(CXX) $^ $(LDFLAGS) $(LIBS) $(KALDI_LIBS) -o $@
 
 build/kaldi_serve_app.o: src/app.cc
-	$(CXX) $(CXXFLAGS) $(KALDI_INCLUDES) -I $(PROTOS_PATH) -c $^ -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(KALDI_INCLUDES) -I $(PROTOS_PATH) -c $^ -o $@
 
 .PRECIOUS: %.grpc.pb.cc
 %.grpc.pb.cc: %.proto
