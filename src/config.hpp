@@ -24,7 +24,16 @@ struct ModelSpec {
 // A pair of model_name and language_code
 using model_id_t = std::pair<std::string, std::string>;
 
+#include <boost/version.hpp>
+
+constexpr bool BOOST_1_67_X = ((BOOST_VERSION / 100000) >= 1) && (((BOOST_VERSION / 100) % 1000) >= 67);
+
+// boost headers for hash functions was changed after version 1_67_X
+#if BOOST_1_67_X
+#include <boost/container_hash/hash.hpp>
+#else
 #include <boost/functional/hash.hpp>
+#endif
 
 // custom hash function for model id type (pair of strings) for use as key in unordered_map
 struct model_id_hash {

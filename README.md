@@ -13,7 +13,7 @@ based ASR.
 
 ### Setup
 
-Make sure you have gRPC, protobuf installed on your system. Kaldi also needs to
+Make sure you have gRPC, protobuf and Boost C++ libraries installed on your system. Kaldi also needs to
 be present and built. Let's build the server:
 
 ```bash
@@ -22,7 +22,7 @@ be present and built. Let's build the server:
 
 Run `make clean` to clear old build files.
 
-### Running the Server
+### Running the gRPC C++ Server
 
 For running the server, you need to first write model config in a toml which
 tells the program which models to load and where to look for. Structure of
@@ -49,7 +49,7 @@ Options:
   -h,--help                   Print this help message and exit
 ```
 
-### Python
+### Python Client
 
 Python client for the server is present in [./python](./python) directory.
 

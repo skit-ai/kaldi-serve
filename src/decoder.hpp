@@ -157,12 +157,17 @@ class Decoder final {
 
     // Decoding processes
 
-    // decode intermediate frames of wav streams
-    void decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &,
-                               kaldi::OnlineSilenceWeighting &,
-                               kaldi::SingleUtteranceNnet3Decoder &,
-                               std::istream &,
-                               const kaldi::BaseFloat & = 1) const;
+    // decode an intermediate frame/chunk of a wav audio stream
+    void decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &,
+                                     kaldi::OnlineSilenceWeighting &,
+                                     kaldi::SingleUtteranceNnet3Decoder &,
+                                     std::istream &) const;
+
+    // chunk a wav audio stream and decode the frames/chunks
+    void decode_stream_process_audio(std::istream &,
+                                     const size_t &,
+                                     utterance_results_t &,
+                                     const kaldi::BaseFloat & = 1);
 
     // get the final utterances based on the compact lattice
     void decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
@@ -217,11 +222,47 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
     }
 }
 
-void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
-                                    kaldi::OnlineSilenceWeighting &silence_weighting,
-                                    kaldi::SingleUtteranceNnet3Decoder &decoder,
-                                    std::istream &wav_stream,
-                                    const kaldi::BaseFloat &chunk_size) const {
+void Decoder::decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
+                                          kaldi::OnlineSilenceWeighting &silence_weighting,
+                                          kaldi::SingleUtteranceNnet3Decoder &decoder,
+                                          std::istream &wav_stream) const {
+    kaldi::WaveData wave_data;
+    wave_data.Read(wav_stream);
+
+    // get the data for channel zero (if the signal is not mono, we only
+    // take the first channel).
+    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data.Data(), 0);
+    kaldi::BaseFloat samp_freq = wave_data.SampFreq();
+    std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
+
+    feature_pipeline.AcceptWaveform(samp_freq, wave_part);
+
+    if (silence_weighting.Active() && feature_pipeline.IvectorFeature() != NULL) {
+        silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
+        silence_weighting.GetDeltaWeights(feature_pipeline.NumFramesReady(),
+                                          &delta_weights);
+        feature_pipeline.IvectorFeature()->UpdateFrameWeights(delta_weights);
+    }
+    decoder.AdvanceDecoding();
+}
+
+void Decoder::decode_stream_process_audio(std::istream &wav_stream,
+                                          const size_t &n_best,
+                                          utterance_results_t &results,
+                                          const kaldi::BaseFloat &chunk_size) {
+    // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
+    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
+    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info_);
+    feature_pipeline.SetAdaptationState(adaptation_state);
+
+    kaldi::OnlineSilenceWeighting silence_weighting(trans_model_, feature_info_->silence_weighting_config,
+                                                    decodable_opts_.frame_subsampling_factor);
+    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts_, &am_nnet_);
+
+    kaldi::SingleUtteranceNnet3Decoder decoder(lattice_faster_decoder_config_,
+                                               trans_model_, decodable_info, *decode_fst_,
+                                               &feature_pipeline);
+
     kaldi::WaveData wave_data;
     wave_data.Read(wav_stream);
 
@@ -258,6 +299,8 @@ void Decoder::decode_stream_process(kaldi::OnlineNnet2FeaturePipeline &feature_p
         decoder.AdvanceDecoding();
         samp_offset += num_samp;
     }
+
+    decode_stream_final(feature_pipeline, decoder, n_best, results);
 }
 
 void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,

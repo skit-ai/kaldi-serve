@@ -87,19 +87,6 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
 
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
 
-    // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
-    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
-    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*decoder_->feature_info_);
-    feature_pipeline.SetAdaptationState(adaptation_state);
-
-    kaldi::OnlineSilenceWeighting silence_weighting(decoder_->trans_model_, decoder_->feature_info_->silence_weighting_config,
-                                                    decoder_->decodable_opts_.frame_subsampling_factor);
-    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decoder_->decodable_opts_, &decoder_->am_nnet_);
-
-    kaldi::SingleUtteranceNnet3Decoder decoder(decoder_->lattice_faster_decoder_config_,
-                                               decoder_->trans_model_, decodable_info, *decoder_->decode_fst_,
-                                               &feature_pipeline);
-
 #if DEBUG
     std::chrono::system_clock::time_point start_time;
     // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actual latency)
@@ -108,14 +95,16 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     kaldi_serve::RecognitionAudio audio = request->audio();
     std::stringstream input_stream(audio.content());
 
-    // decode speech signals
-    decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
-
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
 
     utterance_results_t k_results_;
-    decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_);
+
+    // TODO: take as parameter in request config
+    const size_t chunk_size = 1;
+
+    // decode speech signals in chunks
+    decoder_->decode_stream_process_audio(input_stream, n_best, k_results_, chunk_size);
 
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
@@ -186,10 +175,11 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         start_time = std::chrono::system_clock::now();
 #endif
         kaldi_serve::RecognitionAudio audio = request_.audio();
-        std::stringstream input_stream(audio.content());
+        std::stringstream input_stream_chunk(audio.content());
 
         // decode intermediate speech signals
-        decoder_->decode_stream_process(feature_pipeline, silence_weighting, decoder, input_stream);
+        // Assumption :: audio stream has already been chunked into desired length
+        decoder_->decode_stream_process_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
     } while (reader->Read(&request_));
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
