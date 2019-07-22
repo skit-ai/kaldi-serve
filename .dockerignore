@@ -6,3 +6,4 @@ tests/
 # gitlab ci
 skaffold.yaml
 tox.ini
+.git
