@@ -40,6 +40,7 @@ void parse_model_specs(const std::string &toml_path, std::vector<ModelSpec> &mod
     }
 }
 
+// Joins vector of strings together using a separator token
 void string_join(const std::vector<std::string> &strings, std::string separator, std::string &output) {
     output.clear();
 

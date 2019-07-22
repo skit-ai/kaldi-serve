@@ -139,7 +139,7 @@ class Decoder final {
 
   public:
     fst::Fst<fst::StdArc> *const decode_fst_;
-    kaldi::nnet3::AmNnetSimple am_nnet_;
+    mutable kaldi::nnet3::AmNnetSimple am_nnet_; // TODO: check why kaldi decodable_info needs a non-const ref of am_net model
     kaldi::TransitionModel trans_model_;
 
     kaldi::OnlineNnet2FeaturePipelineConfig feature_opts_;
@@ -167,7 +167,7 @@ class Decoder final {
     void decode_stream_process_audio(std::istream &,
                                      const size_t &,
                                      utterance_results_t &,
-                                     const kaldi::BaseFloat & = 1);
+                                     const kaldi::BaseFloat & = 1) const;
 
     // get the final utterances based on the compact lattice
     void decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
@@ -249,7 +249,7 @@ void Decoder::decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &fea
 void Decoder::decode_stream_process_audio(std::istream &wav_stream,
                                           const size_t &n_best,
                                           utterance_results_t &results,
-                                          const kaldi::BaseFloat &chunk_size) {
+                                          const kaldi::BaseFloat &chunk_size) const {
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
     kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info_);

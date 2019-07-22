@@ -85,6 +85,10 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
+    // IMPORTANT ::
+    // - Attain the lock and pop a decoder from the `free` queue
+    // - Wait here until lock on queue is attained and a decoder is obtained.
+    // - Each new stream gets it's own decoder instance.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
 
 #if DEBUG
@@ -95,16 +99,14 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     kaldi_serve::RecognitionAudio audio = request->audio();
     std::stringstream input_stream(audio.content());
 
-    kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
-    kaldi_serve::SpeechRecognitionAlternative *alternative;
-
     utterance_results_t k_results_;
 
-    // TODO: take as parameter in request config
-    const size_t chunk_size = 1;
-
     // decode speech signals in chunks
-    decoder_->decode_stream_process_audio(input_stream, n_best, k_results_, chunk_size);
+    // TODO: take chunk length (secs) as parameter in request config
+    decoder_->decode_stream_process_audio(input_stream, n_best, k_results_);
+
+    kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
+    kaldi_serve::SpeechRecognitionAlternative *alternative;
 
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
@@ -113,6 +115,8 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         alternative->set_confidence(res.first.second);
     }
 
+    // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
+    // also notifies another request handler thread that a decoder is available.
     decoder_queue_map_[model_id]->release(decoder_);
 
 #if DEBUG
