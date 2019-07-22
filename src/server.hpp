@@ -111,8 +111,8 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
         alternative = sr_result->add_alternatives();
-        alternative->set_transcript(res.first.first);
-        alternative->set_confidence(res.first.second);
+        alternative->set_transcript(res.first);
+        alternative->set_confidence(res.second);
     }
 
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
@@ -195,8 +195,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
         alternative = sr_result->add_alternatives();
-        alternative->set_transcript(res.first.first);
-        alternative->set_confidence(res.first.second);
+        alternative->set_transcript(res.first);
+        alternative->set_confidence(res.second);
     }
 
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.

@@ -38,11 +38,8 @@
 // An alternative is a pair of string (hypothesis) and it's confidence
 using alternative_t = std::pair<std::string, double>;
 
-// An alignment tells start and end time (consider total audio to be of length 1) of a word
-using alignment_t = std::tuple<std::string, float, float>;
-
 // Result for one continuous utterance
-using utterance_results_t = std::vector<std::pair<alternative_t, std::vector<alignment_t>>>;
+using utterance_results_t = std::vector<alternative_t>;
 
 // Find confidence by merging lm and am scores. Taken from
 // https://github.com/dialogflow/asr-server/blob/master/src/OnlineDecoder.cc#L90
@@ -75,51 +72,19 @@ void find_alternatives(const fst::SymbolTable *word_syms,
         return;
     }
 
+    // NOTE: Check why int32s specifically are used here
+    std::vector<int32> input_ids;
+    std::vector<int32> word_ids;
+    std::vector<std::string> words;
+    std::string sentence;
+
     for (auto const &l : nbest_lats) {
         kaldi::LatticeWeight weight;
-
-        // NOTE: Check why int32s specifically are used here
-        std::vector<int32> input_ids;
-        std::vector<int32> word_ids;
         fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
 
-        std::vector<std::string> words;
         for (auto const &wid : word_ids) {
             words.push_back(word_syms->Find(wid));
         }
-
-        // An alignment is a tuple like (word, start, end). Note that the start
-        // and end time at the moment are not based on any unit and represent
-        // relative values depending on the total number of input symbols. This,
-        // when multiplied into audio lengths should give actual second values.
-        std::vector<alignment_t> alignments;
-        bool in_word = false;
-        if (words.size() > 0) {
-            size_t n_input_tokens = input_ids.size();
-            // HACK: We assume inputs below 3 to be whitespaces. This is not 'the'
-            //       right way since we haven't looked into the exact set of input
-            //       symbols.
-            float start, end;
-            int word_index = 0;
-            for (auto i = 0; i < n_input_tokens; i++) {
-                if (input_ids[i] < 3) {
-                    if (in_word) {
-                        // Exited a word
-                        end = (i - 1) / (float)n_input_tokens;
-                        alignments.push_back(std::make_tuple(words[word_index], start, end));
-                        word_index += 1;
-                    }
-                    in_word = false;
-                } else {
-                    if (!in_word) {
-                        // Entered a new word
-                        start = (i - 1) / (float)n_input_tokens;
-                    }
-                    in_word = true;
-                }
-            }
-        }
-        std::string sentence;
         string_join(words, " ", sentence);
 
         double confidence;
@@ -127,8 +92,12 @@ void find_alternatives(const fst::SymbolTable *word_syms,
                              float(weight.Value2()),
                              word_ids.size(),
                              confidence);
-        alternative_t alt = std::make_pair(sentence, confidence);
-        results.push_back(std::make_pair(alt, alignments));
+        results.push_back(std::make_pair(sentence, confidence));
+
+        input_ids.clear();
+        word_ids.clear();
+        words.clear();
+        sentence.clear();
     }
 }
 
