@@ -12,6 +12,7 @@ RUN apt-get update && \
     libgtest-dev \
     clang \
     libc++-dev \
+    libboost-all-dev \
     curl \
     vim
 
