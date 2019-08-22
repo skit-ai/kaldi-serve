@@ -172,6 +172,9 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     std::chrono::system_clock::time_point start_time;
 #endif
 
+    kaldi::BaseFloat samp_freq = 0; // dummy value; will be set by the chunk processor func
+    bool first = true; // func needs a bool to specify first chunk in stream; reads the wav header
+
     // read chunks until end of stream
     do {
 #if DEBUG
@@ -183,7 +186,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
 
         // decode intermediate speech signals
         // Assumption :: audio stream has already been chunked into desired length
-        decoder_->decode_stream_process_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
+        decoder_->decode_stream_process_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, first, samp_freq);
     } while (reader->Read(&request_));
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();

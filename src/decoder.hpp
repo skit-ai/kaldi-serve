@@ -130,7 +130,9 @@ class Decoder final {
     void decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &,
                                      kaldi::OnlineSilenceWeighting &,
                                      kaldi::SingleUtteranceNnet3Decoder &,
-                                     std::istream &) const;
+                                     std::istream &,
+                                     bool &,
+                                     kaldi::BaseFloat &) const;
 
     // chunk a wav audio stream and decode the frames/chunks
     void decode_stream_process_audio(std::istream &,
@@ -194,18 +196,23 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
 void Decoder::decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
                                           kaldi::OnlineSilenceWeighting &silence_weighting,
                                           kaldi::SingleUtteranceNnet3Decoder &decoder,
-                                          std::istream &wav_stream) const {
-    // kaldi::WaveData wave_data;
-    // wave_data.Read(wav_stream);
-    kaldi::Matrix wave_data;
-    wave_date.Read(wav_stream, true);
+                                          std::istream &wav_stream,
+                                          bool &first,
+                                          kaldi::BaseFloat &samp_freq) const {
+    kaldi::Matrix<kaldi::BaseFloat> wave_matrix;
+    if (first) {
+        kaldi::WaveData wave_data;
+        wave_data.Read(wav_stream);
+        samp_freq = wave_data.SampFreq();
+        wave_matrix = wave_data.Data();
+        first = false;
+    } else {
+        wave_matrix.Read(wav_stream, true);
+    }
 
     // get the data for channel zero (if the signal is not mono, we only
     // take the first channel).
-    // kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data.Data(), 0);
-    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data, 0);
-    // kaldi::BaseFloat samp_freq = wave_data.SampFreq();
-    kaldi::BaseFloat samp_freq = 8000;
+    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_matrix, 0);
     std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
 
     feature_pipeline.AcceptWaveform(samp_freq, wave_part);
