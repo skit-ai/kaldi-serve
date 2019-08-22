@@ -195,13 +195,17 @@ void Decoder::decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &fea
                                           kaldi::OnlineSilenceWeighting &silence_weighting,
                                           kaldi::SingleUtteranceNnet3Decoder &decoder,
                                           std::istream &wav_stream) const {
-    kaldi::WaveData wave_data;
-    wave_data.Read(wav_stream);
+    // kaldi::WaveData wave_data;
+    // wave_data.Read(wav_stream);
+    kaldi::Matrix wave_data;
+    wave_date.Read(wav_stream, true);
 
     // get the data for channel zero (if the signal is not mono, we only
     // take the first channel).
-    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data.Data(), 0);
-    kaldi::BaseFloat samp_freq = wave_data.SampFreq();
+    // kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data.Data(), 0);
+    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data, 0);
+    // kaldi::BaseFloat samp_freq = wave_data.SampFreq();
+    kaldi::BaseFloat samp_freq = 8000;
     std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
 
     feature_pipeline.AcceptWaveform(samp_freq, wave_part);
