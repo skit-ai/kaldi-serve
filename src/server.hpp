@@ -75,11 +75,11 @@ inline bool KaldiServeImpl::is_model_present(const model_id_t &model_id) const n
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
                                        const kaldi_serve::RecognizeRequest *const request,
                                        kaldi_serve::RecognizeResponse *const response) {
-    kaldi_serve::RecognitionConfig config = request->config();
-    int32 n_best = config.max_alternatives();
-    std::string model_name = config.model();
-    std::string language_code = config.language_code();
-    model_id_t model_id = std::make_pair(model_name, language_code);
+    const kaldi_serve::RecognitionConfig config = request->config();
+    const int32 n_best = config.max_alternatives();
+    const std::string model_name = config.model();
+    const std::string language_code = config.language_code();
+    const model_id_t model_id = std::make_pair(model_name, language_code);
 
     if (!is_model_present(model_id)) {
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
@@ -103,7 +103,11 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
 
     // decode speech signals in chunks
     // TODO: take chunk length (secs) as parameter in request config
-    decoder_->decode_stream_process_audio(input_stream, n_best, k_results_);
+    if (config.raw()) {
+        decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_);    
+    } else {
+        decoder_->decode_wav_audio(input_stream, n_best, k_results_);
+    }
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
@@ -137,13 +141,13 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     kaldi_serve::RecognizeRequest request_;
     reader->Read(&request_);
 
-    // We first read the request to see if we have the correct model and
-    // language to load Also assuming that the config won't change mid request
+    // We first read the request to see if we have the correct model and language to load
+    // Assuming: config may change mid-way (only `raw` and `data_bytes` fields)
     kaldi_serve::RecognitionConfig config = request_.config();
-    int32 n_best = config.max_alternatives();
-    std::string model_name = config.model();
-    std::string language_code = config.language_code();
-    model_id_t model_id = std::make_pair(model_name, language_code);
+    const int32 n_best = config.max_alternatives();
+    const std::string model_name = config.model();
+    const std::string language_code = config.language_code();
+    const model_id_t model_id = std::make_pair(model_name, language_code);
 
     if (!is_model_present(model_id)) {
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
@@ -172,21 +176,23 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     std::chrono::system_clock::time_point start_time;
 #endif
 
-    kaldi::BaseFloat samp_freq = 0; // dummy value; will be set by the chunk processor func
-    bool first = true; // func needs a bool to specify first chunk in stream; reads the wav header
-
     // read chunks until end of stream
     do {
 #if DEBUG
         // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actual latency)
         start_time = std::chrono::system_clock::now();
 #endif
+        config = request_.config();
         kaldi_serve::RecognitionAudio audio = request_.audio();
         std::stringstream input_stream_chunk(audio.content());
 
         // decode intermediate speech signals
         // Assumption :: audio stream has already been chunked into desired length
-        decoder_->decode_stream_process_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, first, samp_freq);
+        if (config.raw()) {
+            decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, config.data_bytes());
+        } else {
+            decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
+        }
     } while (reader->Read(&request_));
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();

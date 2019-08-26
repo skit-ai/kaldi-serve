@@ -54,7 +54,7 @@ def chunks_from_mic(secs: int, frame_rate: int, channels: int):
     p.terminate()
 
 
-def chunks_from_file(filename: str, chunk_size=1):
+def chunks_from_file(filename: str, chunk_size=1, raw=False):
     """
     Return wav chunks of given size (in seconds) from the file.
     """
@@ -70,8 +70,11 @@ def chunks_from_file(filename: str, chunk_size=1):
     chunks = []
     for i in range(0, len(audio), int(chunk_size * 1000)):
         chunk = audio[i: i + chunk_size * 1000]
-        chunk_stream = io.BytesIO()
-        chunk.export(chunk_stream, format="wav")
-        chunks.append(chunk_stream.getvalue())
+        if raw:
+            chunks.append(chunk.raw_data)
+        else:
+            chunk_stream = io.BytesIO()
+            chunk.export(chunk_stream, format="wav")
+            chunks.append(chunk_stream.getvalue())
 
     return chunks
