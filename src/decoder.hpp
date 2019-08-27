@@ -101,6 +101,50 @@ void find_alternatives(const fst::SymbolTable *word_syms,
     }
 }
 
+inline void print_wav_info(const kaldi::WaveInfo &wave_info) noexcept {
+    std::cout << "sample freq: " << wave_info.SampFreq() << ENDL
+              << "sample count: " << wave_info.SampleCount() << ENDL
+              << "num channels: " << wave_info.NumChannels() << ENDL
+              << "reverse bytes: " << wave_info.ReverseBytes() << ENDL
+              << "dat bytes: " << wave_info.DataBytes() << ENDL
+              << "is streamed: " << wave_info.IsStreamed() << ENDL
+              << "block align: " << wave_info.BlockAlign() << ENDL;
+}
+
+void read_raw_wav_stream(std::istream &wav_stream,
+                         const size_t &data_bytes,
+                         kaldi::Matrix<kaldi::BaseFloat> &wav_data) {
+    constexpr size_t num_channels = 1;     // mono-channel audio
+    constexpr size_t bits_per_sample = 16; // LINEAR16 PCM audio
+    constexpr size_t block_align = num_channels * bits_per_sample / 8;
+
+    std::vector<char> buffer(data_bytes);
+    wav_stream.read(&buffer[0], data_bytes);
+
+    if (wav_stream.bad())
+        KALDI_ERR << "WaveData: file read error";
+
+    if (buffer.size() == 0)
+        KALDI_ERR << "WaveData: empty file (no data)";
+
+    if (buffer.size() < data_bytes) {
+        KALDI_WARN << "Expected " << data_bytes << " bytes of wave data, "
+                   << "but read only " << buffer.size() << " bytes. "
+                   << "Truncated file?";
+    }
+
+    uint16 *data_ptr = reinterpret_cast<uint16 *>(&buffer[0]);
+
+    // The matrix is arranged row per channel, column per sample.
+    wav_data.Resize(num_channels, data_bytes / block_align);
+    for (uint32 i = 0; i < wav_data.NumCols(); ++i) {
+        for (uint32 j = 0; j < wav_data.NumRows(); ++j) {
+            int16 k = *data_ptr++;
+            wav_data(j, i) = k;
+        }
+    }
+}
+
 class Decoder final {
 
   private:
@@ -125,18 +169,40 @@ class Decoder final {
                      fst::Fst<fst::StdArc> *const) noexcept;
 
     // Decoding processes
+    void _decode_wave(kaldi::OnlineNnet2FeaturePipeline &,
+                      kaldi::OnlineSilenceWeighting &,
+                      kaldi::SingleUtteranceNnet3Decoder &,
+                      kaldi::SubVector<kaldi::BaseFloat> &,
+                      std::vector<std::pair<int32, kaldi::BaseFloat>> &,
+                      const kaldi::BaseFloat &) const;
 
     // decode an intermediate frame/chunk of a wav audio stream
-    void decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &,
+    void decode_stream_wav_chunk(kaldi::OnlineNnet2FeaturePipeline &,
+                                 kaldi::OnlineSilenceWeighting &,
+                                 kaldi::SingleUtteranceNnet3Decoder &,
+                                 std::istream &) const;
+
+    // decode an intermediate frame/chunk of a raw headerless wav audio stream
+    void decode_stream_raw_wav_chunk(kaldi::OnlineNnet2FeaturePipeline &,
                                      kaldi::OnlineSilenceWeighting &,
                                      kaldi::SingleUtteranceNnet3Decoder &,
-                                     std::istream &) const;
+                                     std::istream &,
+                                     const size_t &) const;
 
-    // chunk a wav audio stream and decode the frames/chunks
-    void decode_stream_process_audio(std::istream &,
-                                     const size_t &,
-                                     utterance_results_t &,
-                                     const kaldi::BaseFloat & = 1) const;
+    // decodes an (independent) wav audio stream
+    // internally chunks a wav audio stream and decodes them
+    void decode_wav_audio(std::istream &,
+                          const size_t &,
+                          utterance_results_t &,
+                          const kaldi::BaseFloat & = 1) const;
+
+    // decodes an (independent) raw headerless wav audio stream
+    // internally chunks a wav audio stream and decodes them
+    void decode_raw_wav_audio(std::istream &,
+                              const size_t &,
+                              const size_t &,
+                              utterance_results_t &,
+                              const kaldi::BaseFloat & = 1) const;
 
     // get the final utterances based on the compact lattice
     void decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
@@ -191,18 +257,12 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
     }
 }
 
-void Decoder::decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
-                                          kaldi::OnlineSilenceWeighting &silence_weighting,
-                                          kaldi::SingleUtteranceNnet3Decoder &decoder,
-                                          std::istream &wav_stream) const {
-    kaldi::WaveData wave_data;
-    wave_data.Read(wav_stream);
-
-    // get the data for channel zero (if the signal is not mono, we only
-    // take the first channel).
-    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data.Data(), 0);
-    kaldi::BaseFloat samp_freq = wave_data.SampFreq();
-    std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
+void Decoder::_decode_wave(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
+                           kaldi::OnlineSilenceWeighting &silence_weighting,
+                           kaldi::SingleUtteranceNnet3Decoder &decoder,
+                           kaldi::SubVector<kaldi::BaseFloat> &wave_part,
+                           std::vector<std::pair<int32, kaldi::BaseFloat>> &delta_weights,
+                           const kaldi::BaseFloat &samp_freq) const {
 
     feature_pipeline.AcceptWaveform(samp_freq, wave_part);
 
@@ -215,10 +275,45 @@ void Decoder::decode_stream_process_chunk(kaldi::OnlineNnet2FeaturePipeline &fea
     decoder.AdvanceDecoding();
 }
 
-void Decoder::decode_stream_process_audio(std::istream &wav_stream,
-                                          const size_t &n_best,
-                                          utterance_results_t &results,
-                                          const kaldi::BaseFloat &chunk_size) const {
+void Decoder::decode_stream_wav_chunk(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
+                                      kaldi::OnlineSilenceWeighting &silence_weighting,
+                                      kaldi::SingleUtteranceNnet3Decoder &decoder,
+                                      std::istream &wav_stream) const {
+
+    kaldi::WaveData wave_data;
+    wave_data.Read(wav_stream);
+
+    const kaldi::BaseFloat samp_freq = wave_data.SampFreq();
+
+    // get the data for channel zero (if the signal is not mono, we only
+    // take the first channel).
+    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_data.Data(), 0);
+    std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
+    _decode_wave(feature_pipeline, silence_weighting, decoder, wave_part, delta_weights, samp_freq);
+}
+
+void Decoder::decode_stream_raw_wav_chunk(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
+                                          kaldi::OnlineSilenceWeighting &silence_weighting,
+                                          kaldi::SingleUtteranceNnet3Decoder &decoder,
+                                          std::istream &wav_stream,
+                                          const size_t &data_bytes) const {
+
+    kaldi::Matrix<kaldi::BaseFloat> wave_matrix;
+    read_raw_wav_stream(wav_stream, data_bytes, wave_matrix);
+
+    constexpr kaldi::BaseFloat samp_freq = 8000;
+
+    // get the data for channel zero (if the signal is not mono, we only
+    // take the first channel).
+    kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_matrix, 0);
+    std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
+    _decode_wave(feature_pipeline, silence_weighting, decoder, wave_part, delta_weights, samp_freq);
+}
+
+void Decoder::decode_wav_audio(std::istream &wav_stream,
+                               const size_t &n_best,
+                               utterance_results_t &results,
+                               const kaldi::BaseFloat &chunk_size) const {
     // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
     kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info_);
@@ -238,7 +333,7 @@ void Decoder::decode_stream_process_audio(std::istream &wav_stream,
     // get the data for channel zero (if the signal is not mono, we only
     // take the first channel).
     kaldi::SubVector<kaldi::BaseFloat> data(wave_data.Data(), 0);
-    kaldi::BaseFloat samp_freq = wave_data.SampFreq();
+    const kaldi::BaseFloat samp_freq = wave_data.SampFreq();
 
     int32 chunk_length;
     if (chunk_size > 0) {
@@ -257,15 +352,59 @@ void Decoder::decode_stream_process_audio(std::istream &wav_stream,
         int32 num_samp = chunk_length < samp_remaining ? chunk_length : samp_remaining;
 
         kaldi::SubVector<kaldi::BaseFloat> wave_part(data, samp_offset, num_samp);
-        feature_pipeline.AcceptWaveform(samp_freq, wave_part);
+        _decode_wave(feature_pipeline, silence_weighting, decoder, wave_part, delta_weights, samp_freq);
 
-        if (silence_weighting.Active() && feature_pipeline.IvectorFeature() != NULL) {
-            silence_weighting.ComputeCurrentTraceback(decoder.Decoder());
-            silence_weighting.GetDeltaWeights(feature_pipeline.NumFramesReady(),
-                                              &delta_weights);
-            feature_pipeline.IvectorFeature()->UpdateFrameWeights(delta_weights);
-        }
-        decoder.AdvanceDecoding();
+        samp_offset += num_samp;
+    }
+
+    decode_stream_final(feature_pipeline, decoder, n_best, results);
+}
+
+void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
+                                   const size_t &data_bytes,
+                                   const size_t &n_best,
+                                   utterance_results_t &results,
+                                   const kaldi::BaseFloat &chunk_size) const {
+    // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
+    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
+    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info_);
+    feature_pipeline.SetAdaptationState(adaptation_state);
+
+    kaldi::OnlineSilenceWeighting silence_weighting(trans_model_, feature_info_->silence_weighting_config,
+                                                    decodable_opts_.frame_subsampling_factor);
+    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts_, &am_nnet_);
+
+    kaldi::SingleUtteranceNnet3Decoder decoder(lattice_faster_decoder_config_,
+                                               trans_model_, decodable_info, *decode_fst_,
+                                               &feature_pipeline);
+
+    kaldi::Matrix<kaldi::BaseFloat> wave_matrix;
+    read_raw_wav_stream(wav_stream, data_bytes, wave_matrix);
+
+    // get the data for channel zero (if the signal is not mono, we only
+    // take the first channel).
+    kaldi::SubVector<kaldi::BaseFloat> data(wave_matrix, 0);
+    constexpr kaldi::BaseFloat samp_freq = 8000;
+
+    int32 chunk_length;
+    if (chunk_size > 0) {
+        chunk_length = int32(samp_freq * chunk_size);
+        if (chunk_length == 0)
+            chunk_length = 1;
+    } else {
+        chunk_length = std::numeric_limits<int32>::max();
+    }
+
+    int32 samp_offset = 0;
+    std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
+
+    while (samp_offset < data.Dim()) {
+        int32 samp_remaining = data.Dim() - samp_offset;
+        int32 num_samp = chunk_length < samp_remaining ? chunk_length : samp_remaining;
+
+        kaldi::SubVector<kaldi::BaseFloat> wave_part(data, samp_offset, num_samp);
+        _decode_wave(feature_pipeline, silence_weighting, decoder, wave_part, delta_weights, samp_freq);
+
         samp_offset += num_samp;
     }
 

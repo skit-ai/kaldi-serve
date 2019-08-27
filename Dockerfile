@@ -1,4 +1,4 @@
-FROM gcr.io/vernacular-voice-services/asr/kaldi:latest as builder
+FROM vernacularai/kaldi:1.0.0 as builder
 
 # gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
 RUN apt-get update && \
