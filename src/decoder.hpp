@@ -93,6 +93,7 @@ void find_alternatives(const fst::SymbolTable *word_syms,
         string_join(words, " ", sentence);
 
         Alternative alt;
+        alt.transcript = sentence;
         alt.lm_score = float(weight.Value1());
         alt.am_score = float(weight.Value2());
         alt.confidence = calculate_confidence(alt.lm_score, alt.am_score, word_ids.size());
