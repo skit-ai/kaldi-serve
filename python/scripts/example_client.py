@@ -33,7 +33,12 @@ def parse_response(response):
 
     for res in response.results:
         output.append([
-            {"transcript": alt.transcript, "confidence": alt.confidence}
+            {
+                "transcript": alt.transcript,
+                "confidence": alt.confidence,
+                "am_score": alt.am_score,
+                "lm_score": alt.lm_score
+            }
             for alt in res.alternatives
         ])
     return output

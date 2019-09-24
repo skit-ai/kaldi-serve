@@ -35,18 +35,23 @@
 // Local includes
 #include "utils.hpp"
 
-// An alternative is a pair of string (hypothesis) and it's confidence
-using alternative_t = std::pair<std::string, double>;
+// An alternative defines a single hypothesis and certain details about the
+// parse (only scores for now).
+struct Alternative {
+  std::string transcript;
+  double confidence;
+  float am_score, lm_score;
+};
 
 // Result for one continuous utterance
-using utterance_results_t = std::vector<alternative_t>;
+using utterance_results_t = std::vector<Alternative>;
 
 // Find confidence by merging lm and am scores. Taken from
 // https://github.com/dialogflow/asr-server/blob/master/src/OnlineDecoder.cc#L90
 // NOTE: This might not be very useful for us right now. Depending on the
 //       situation, we might actually want to weigh components differently.
-inline void calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words, double &confidence) noexcept {
-    confidence = std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
+inline double calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words) noexcept {
+    return std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
 }
 
 // Computes n-best alternative from lattice. Output symbols are converted to words
@@ -87,12 +92,12 @@ void find_alternatives(const fst::SymbolTable *word_syms,
         }
         string_join(words, " ", sentence);
 
-        double confidence;
-        calculate_confidence(float(weight.Value1()),
-                             float(weight.Value2()),
-                             word_ids.size(),
-                             confidence);
-        results.push_back(std::make_pair(sentence, confidence));
+        Alternative alt;
+        alt.transcript = sentence;
+        alt.lm_score = float(weight.Value1());
+        alt.am_score = float(weight.Value2());
+        alt.confidence = calculate_confidence(alt.lm_score, alt.am_score, word_ids.size());
+        results.push_back(alt);
 
         input_ids.clear();
         word_ids.clear();

@@ -62,6 +62,8 @@ message SpeechRecognitionResult {
 message SpeechRecognitionAlternative {
   string transcript = 1;
   float confidence = 2;
+  float am_score = 3;
+  float lm_score = 4;
 }
 
 message SpeechContext {

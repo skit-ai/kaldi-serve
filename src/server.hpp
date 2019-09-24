@@ -104,7 +104,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // decode speech signals in chunks
     // TODO: take chunk length (secs) as parameter in request config
     if (config.raw()) {
-        decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_);    
+        decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_);
     } else {
         decoder_->decode_wav_audio(input_stream, n_best, k_results_);
     }
@@ -115,8 +115,10 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
         alternative = sr_result->add_alternatives();
-        alternative->set_transcript(res.first);
-        alternative->set_confidence(res.second);
+        alternative->set_transcript(res.transcript);
+        alternative->set_confidence(res.confidence);
+        alternative->set_am_score(res.am_score);
+        alternative->set_lm_score(res.lm_score);
     }
 
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
@@ -204,8 +206,10 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
         alternative = sr_result->add_alternatives();
-        alternative->set_transcript(res.first);
-        alternative->set_confidence(res.second);
+        alternative->set_transcript(res.transcript);
+        alternative->set_confidence(res.confidence);
+        alternative->set_am_score(res.am_score);
+        alternative->set_lm_score(res.lm_score);
     }
 
     // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
