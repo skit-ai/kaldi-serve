@@ -35,7 +35,7 @@
 // Local includes
 #include "utils.hpp"
 
-// An alternative is a pair of string (hypothesis) and it's confidence
+// An alternative is a pair of string (hypothesis) and its confidence
 using alternative_t = std::pair<std::string, double>;
 
 // Result for one continuous utterance
