@@ -24,6 +24,8 @@ Run `make clean` to clear old build files.
 
 ### Running the gRPC C++ Server
 
+> Model directory to be pointed to in the `toml` file is not documented at the moment. Track [this issue](https://github.com/Vernacular-ai/kaldi-serve/issues/3) for updates.
+
 For running the server, you need to first write model config in a toml which
 tells the program which models to load and where to look for. Structure of
 `model_spec_toml` file is specified in a sample in
