@@ -160,7 +160,6 @@ class Decoder final {
     mutable kaldi::nnet3::AmNnetSimple am_nnet_; // TODO: check why kaldi decodable_info needs a non-const ref of am_net model
     kaldi::TransitionModel trans_model_;
 
-    kaldi::OnlineNnet2FeaturePipelineConfig feature_opts_;
     std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
 
     kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config_;
@@ -169,9 +168,7 @@ class Decoder final {
     explicit Decoder(const kaldi::BaseFloat &, const std::size_t &,
                      const std::size_t &, const kaldi::BaseFloat &,
                      const kaldi::BaseFloat &, const std::size_t &,
-                     const std::string &, const std::string &,
-                     const std::string &, const std::string &,
-                     fst::Fst<fst::StdArc> *const) noexcept;
+                     const std::string &, fst::Fst<fst::StdArc> *const) noexcept;
 
     // Decoding processes
     void _decode_wave(kaldi::OnlineNnet2FeaturePipeline &,
@@ -222,16 +219,11 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
                  const kaldi::BaseFloat &lattice_beam,
                  const kaldi::BaseFloat &acoustic_scale,
                  const std::size_t &frame_subsampling_factor,
-                 const std::string &word_syms_filepath,
-                 const std::string &model_filepath,
-                 const std::string &mfcc_conf_filepath,
-                 const std::string &ie_conf_filepath,
+                 const std::string &model_dir,
                  fst::Fst<fst::StdArc> *const decode_fst) noexcept
     : decode_fst_(decode_fst) {
 
     try {
-        feature_opts_.mfcc_config = mfcc_conf_filepath;
-        feature_opts_.ivector_extraction_config = ie_conf_filepath;
         lattice_faster_decoder_config_.max_active = max_active;
         lattice_faster_decoder_config_.min_active = min_active;
         lattice_faster_decoder_config_.beam = beam;
@@ -239,7 +231,12 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         decodable_opts_.acoustic_scale = acoustic_scale;
         decodable_opts_.frame_subsampling_factor = frame_subsampling_factor;
 
-        // IMPORTANT :: DO NOT REMOVE CURLY BRACES (some memory dealloc issue arises if done so)
+        std::string word_syms_filepath = join_path(model_dir, "words.txt");
+        std::string model_filepath = join_path(model_dir, "final.mdl");
+        std::string conf_dir = join_path(model_dir, "conf");
+        std::string mfcc_conf_filepath = join_path(conf_dir, "mfcc.conf");
+        std::string ivector_conf_filepath = join_path(conf_dir, "ivector_extractor.conf");
+
         {
             bool binary;
             kaldi::Input ki(model_filepath, &binary);
@@ -255,9 +252,27 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         if (word_syms_filepath != "" && !(word_syms_ = std::unique_ptr<fst::SymbolTable>(fst::SymbolTable::ReadText(word_syms_filepath)))) {
             KALDI_ERR << "Could not read symbol table from file " << word_syms_filepath;
         }
-        feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>(feature_opts_);
 
-    } catch (const std::exception &e) {
+        feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>();
+        feature_info_->feature_type = "mfcc";
+        kaldi::ReadConfigFromFile(mfcc_conf_filepath, &(feature_info_->mfcc_opts));
+
+        feature_info_->use_ivectors = true;
+        kaldi::OnlineIvectorExtractionConfig ivector_extraction_opts;
+        kaldi::ReadConfigFromFile(ivector_conf_filepath, &ivector_extraction_opts);
+
+        // Expand paths if relative provided. We use model_dir as the base in
+        // such cases.
+        ivector_extraction_opts.lda_mat_rxfilename = expand_relative_path(ivector_extraction_opts.lda_mat_rxfilename, model_dir);
+        ivector_extraction_opts.global_cmvn_stats_rxfilename = expand_relative_path(ivector_extraction_opts.global_cmvn_stats_rxfilename, model_dir);
+        ivector_extraction_opts.diag_ubm_rxfilename = expand_relative_path(ivector_extraction_opts.diag_ubm_rxfilename, model_dir);
+        ivector_extraction_opts.ivector_extractor_rxfilename = expand_relative_path(ivector_extraction_opts.ivector_extractor_rxfilename, model_dir);
+        ivector_extraction_opts.cmvn_config_rxfilename = expand_relative_path(ivector_extraction_opts.cmvn_config_rxfilename, model_dir);
+        ivector_extraction_opts.splice_config_rxfilename = expand_relative_path(ivector_extraction_opts.splice_config_rxfilename, model_dir);
+
+        feature_info_->ivector_extractor_info.Init(ivector_extraction_opts);
+    }
+    catch (const std::exception &e) {
         KALDI_ERR << e.what();
     }
 }
@@ -439,32 +454,22 @@ class DecoderFactory final {
   private:
     const std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
 
+    const std::string model_dir_;
     const kaldi::BaseFloat beam_;
     const std::size_t max_active_;
     const std::size_t min_active_;
     const kaldi::BaseFloat lattice_beam_;
     const kaldi::BaseFloat acoustic_scale_;
     const std::size_t frame_subsampling_factor_;
-    const std::string word_syms_filepath_;
-    const std::string model_filepath_;
-    const std::string mfcc_conf_filepath_;
-    const std::string ie_conf_filepath_;
 
   public:
-    // Constructor for DecoderFactory
-    // Accepts an HCLG filepath and other decoder config parameters
-    // to share across all decoders produced by factory.
     explicit DecoderFactory(const std::string &,
                             const kaldi::BaseFloat &,
                             const std::size_t &,
                             const std::size_t &,
                             const kaldi::BaseFloat &,
                             const kaldi::BaseFloat &,
-                            const std::size_t &,
-                            const std::string &,
-                            const std::string &,
-                            const std::string &,
-                            const std::string &) noexcept;
+                            const std::size_t &) noexcept;
 
     // Producer method for the Factory.
     // Does the actual work :: produces a new Decoder object
@@ -475,29 +480,22 @@ class DecoderFactory final {
     inline Decoder *operator()() const noexcept;
 };
 
-DecoderFactory::DecoderFactory(const std::string &hclg_filepath,
+DecoderFactory::DecoderFactory(const std::string &model_dir,
                                const kaldi::BaseFloat &beam,
                                const std::size_t &max_active,
                                const std::size_t &min_active,
                                const kaldi::BaseFloat &lattice_beam,
                                const kaldi::BaseFloat &acoustic_scale,
-                               const std::size_t &frame_subsampling_factor,
-                               const std::string &word_syms_filepath,
-                               const std::string &model_filepath,
-                               const std::string &mfcc_conf_filepath,
-                               const std::string &ie_conf_filepath) noexcept
-    : decode_fst_(fst::ReadFstKaldiGeneric(hclg_filepath)),
-      beam_(beam), max_active_(max_active), min_active_(min_active), lattice_beam_(lattice_beam),
-      acoustic_scale_(acoustic_scale), frame_subsampling_factor_(frame_subsampling_factor),
-      word_syms_filepath_(word_syms_filepath), model_filepath_(model_filepath),
-      mfcc_conf_filepath_(mfcc_conf_filepath), ie_conf_filepath_(ie_conf_filepath) {}
+                               const std::size_t &frame_subsampling_factor) noexcept
+  : decode_fst_(fst::ReadFstKaldiGeneric(join_path(model_dir, "HCLG.fst"))),
+    model_dir_ (model_dir),
+    beam_(beam), max_active_(max_active), min_active_(min_active), lattice_beam_(lattice_beam),
+    acoustic_scale_(acoustic_scale), frame_subsampling_factor_(frame_subsampling_factor) {}
 
 inline Decoder *DecoderFactory::produce() const noexcept {
     return new Decoder(beam_, max_active_, min_active_, lattice_beam_,
                        acoustic_scale_, frame_subsampling_factor_,
-                       word_syms_filepath_, model_filepath_,
-                       mfcc_conf_filepath_, ie_conf_filepath_,
-                       decode_fst_.get());
+                       model_dir_, decode_fst_.get());
 }
 
 inline Decoder *DecoderFactory::operator()() const noexcept {
@@ -545,21 +543,12 @@ class DecoderQueue final {
 DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
     std::cout << ":: Loading model from " << model_dir << ENDL;
 
-    // TODO: Better organize a kaldi model for distribution
-    std::string hclg_filepath = model_dir + "/HCLG.fst";
-    std::string words_filepath = model_dir + "/words.txt";
-    std::string model_filepath = model_dir + "/final.mdl";
-    std::string mfcc_conf_filepath = model_dir + "/mfcc.conf";
-    std::string ivec_conf_filepath = model_dir + "/ivector_extractor.conf";
-
 #if DEBUG
     // LOG MODELS LOAD TIME --> START
     std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 #endif
-    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(hclg_filepath, 13.0, 7000, 200,
-                                                                          6.0, 1.0, 3, words_filepath,
-                                                                          model_filepath, mfcc_conf_filepath,
-                                                                          ivec_conf_filepath));
+    // TODO: The decoding config should be going in toml
+    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_dir, 13.0, 7000, 200, 6.0, 1.0, 3));
     for (size_t i = 0; i < n; i++) {
         queue_.push(decoder_factory_->produce());
     }
@@ -568,9 +557,8 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG MODELS LOAD TIME --> END
 
-    auto secs = std::chrono::duration_cast<std::chrono::seconds>(
-        end_time - start_time);
-    std::cout << ":: Decoder models concurrent queue init in: " << secs.count() << 's' << ENDL;
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << ":: Decoder models concurrent queue init in: " << ms.count() << "ms" << ENDL;
 #endif
 }
 

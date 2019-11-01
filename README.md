@@ -24,10 +24,8 @@ Run `make clean` to clear old build files.
 
 ### Running the gRPC C++ Server
 
-> Model directory to be pointed to in the `toml` file is not documented at the moment. Track [this issue](https://github.com/Vernacular-ai/kaldi-serve/issues/3) for updates.
-
-For running the server, you need to first write model config in a toml which
-tells the program which models to load and where to look for. Structure of
+For running the server, you need to first specify model config in a toml which
+tells the program which models to load, where to look for etc. Structure of
 `model_spec_toml` file is specified in a sample in
 [resources](./resources/model-spec.toml).
 
@@ -45,10 +43,11 @@ Usage: ./build/kaldi_serve_app [OPTIONS] model_spec_toml
 
 Positionals:
   model_spec_toml TEXT:FILE REQUIRED
-                              Path to toml specifying models to load.
+                              Path to toml specifying models to load
 
 Options:
   -h,--help                   Print this help message and exit
+  -v,--version                Show program version and exit
 ```
 
 ### Python Client

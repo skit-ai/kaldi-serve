@@ -2,11 +2,8 @@
 # Here we specify a list of model with extra properties like model name,
 # language code etc.
 
-# At the moment, the model itself is kept as a strict directory tree. This will
-# change and finally config parameters will go in this spec file while the main
-# model data will be packed in a single archive (pointed to by a path here).
-
-# Compulsory keys are `name', `language' and `path'.
+# Compulsory keys are `name', `language' (both used to identify a loaded model)
+# and `path'.
 [[model]]
 name = "general"
 language_code = "hi"
@@ -17,3 +14,31 @@ name = "bbq"
 language_code = "en"
 n_decoders = 2  # Defaults to 1 if not specified
 path = "./path/to/model/dir"
+
+# A model `path` looks something like the following (for minimal transcription
+# only use case):
+
+# ├── conf
+# │   ├── ivector_extractor.conf
+# │   ├── mfcc.conf
+# │   ├── online_cmvn.conf
+# │   └── splice.conf
+# ├── final.mdl
+# ├── HCLG.fst
+# ├── ivector_extractor
+# │   ├── final.dubm
+# │   ├── final.ie
+# │   ├── final.mat
+# │   └── global_cmvn.stats
+# └── words.txt
+
+# The files above have the default kaldi chain model interpretation (with
+# ivector also as an input). A few things to notes:
+# - `final.mdl` contains the neural net and transition model
+# - `HCLG.fst` is the decoding FST.
+# -`words.txt` is a symbol table mapping decoder output ids to words.
+# - For feature pipeline, mfcc config is picked from`conf/mfcc.conf`.
+# - For ivector, we read the `conf/
+# - We allow two kinds of paths for params in ivector config.
+#   - Absolute like /mnt/model/ivector_extractor/final.mat
+#   - Relative to the model-dir, something like ivector_extractor/final.mat
