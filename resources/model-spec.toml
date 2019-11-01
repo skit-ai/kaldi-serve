@@ -38,7 +38,7 @@ path = "./path/to/model/dir"
 # + `HCLG.fst` is the decoding FST.
 # + `words.txt` is a symbol table mapping decoder output ids to words.
 # + For feature pipeline, mfcc config is picked from`conf/mfcc.conf`.
-# + For ivector, we read the `conf/ivector_extractor.conf` allow two kinds of
+# + For ivector, we read the `conf/ivector_extractor.conf` allowing two kinds of
 #   paths for params in ivector config.
 #   - Absolute like /mnt/model/ivector_extractor/final.mat
 #   - Relative to the model-dir, something like ivector_extractor/final.mat
