@@ -30,10 +30,10 @@ vpath %.proto $(PROTOS_PATH)
 all: system-check build/kaldi_serve_app
 
 build/kaldi_serve_app: $(PROTOS_PATH)/kaldi_serve.pb.o $(PROTOS_PATH)/kaldi_serve.grpc.pb.o build/kaldi_serve_app.o
-	$(CXX) $^ $(LDFLAGS) $(LIBS) $(KALDI_LIBS) -static-libstdc++ -o $@ 
+	$(CXX) $^ $(LDFLAGS) $(LIBS) $(KALDI_LIBS) -static-libstdc++ -o $@
 
-build/kaldi_serve_app.o: src/app.cc
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(KALDI_INCLUDES) -I $(PROTOS_PATH) -c $^ -o $@
+build/kaldi_serve_app.o: src/app.cc $(wildcard src/*.hpp)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(KALDI_INCLUDES) -I $(PROTOS_PATH) -c src/app.cc -o $@
 
 .PRECIOUS: %.grpc.pb.cc
 %.grpc.pb.cc: %.proto
