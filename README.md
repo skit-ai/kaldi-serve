@@ -1,5 +1,7 @@
 # Kaldi-Serve
 
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/Vernacular-ai/kaldi-serve?style=flat-square) ![GitHub](https://img.shields.io/github/license/Vernacular-ai/kaldi-serve?style=flat-square)
+
 [gRPC](https://grpc.io/) server component for [Kaldi](https://kaldi-asr.org/)
 based ASR.
 
@@ -13,8 +15,8 @@ based ASR.
 
 ### Setup
 
-Make sure you have gRPC, protobuf and Boost C++ libraries installed on your system. Kaldi also needs to
-be present and built. Let's build the server:
+Make sure you have gRPC, protobuf and Boost C++ libraries installed on your
+system. Kaldi also needs to be present and built. Let's build the server:
 
 ```bash
 make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
@@ -22,7 +24,7 @@ make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
 
 Run `make clean` to clear old build files.
 
-### Running the gRPC C++ Server
+### Running the server
 
 For running the server, you need to first specify model config in a toml which
 tells the program which models to load, where to look for etc. Structure of
@@ -50,13 +52,23 @@ Options:
   -v,--version                Show program version and exit
 ```
 
-### Python Client
+### Clients
 
-Python client for the server is present in [./python](./python) directory.
+For simple testing, you can do something like the following (needs
+[evans](https://github.com/ktr0731/evans) installed):
 
-### Load Testing
+```bash
+audio_bytes=$(arecord -f S16_LE -d 5 -r 8000 -c 1 | base64 -w0) # Recording 5 seconds of audio
+echo "{\"audio\": {\"content\": \"$audio_bytes\"}, \"config\": {\"max_alternatives\": 10, \"model\": \"general\", \"language_code\": \"en\"} }" | evans --package kaldi_serve --service KaldiServe ./protos/kaldi_serve.proto  --call Recognize --port 5016 | jq
+```
 
-We perform load testing using [ghz](https://ghz.sh/) which is a gRPC benchmarking and load testing tool. You will need to download it's binary into your PATH and load test the application using the following command template:
+A Python client is also present in [python](./python) directory with a few
+example scripts.
+
+### Load testing
+
+We perform load testing using [ghz](https://ghz.sh/) which is a gRPC
+benchmarking and load testing tool. You can use the following command template:
 
 ```bash
 ghz \
