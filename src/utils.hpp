@@ -28,7 +28,7 @@ std::string expand_relative_path(std::string path, std::string root_path) {
 
 std::string join_path(std::string a, std::string b) {
   std::filesystem::path fs_a(a);
-  std::filesystem::path (b);
+  std::filesystem::path fs_b(b);
   return (fs_a / fs_b).string();
 }
 
