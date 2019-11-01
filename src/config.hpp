@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEBUG true
+#define DEBUG false
 #define ENDL '\n'
 
 #if DEBUG
