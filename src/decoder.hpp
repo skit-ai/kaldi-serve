@@ -557,9 +557,8 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG MODELS LOAD TIME --> END
 
-    auto secs = std::chrono::duration_cast<std::chrono::seconds>(
-        end_time - start_time);
-    std::cout << ":: Decoder models concurrent queue init in: " << secs.count() << 's' << ENDL;
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << ":: Decoder models concurrent queue init in: " << ms.count() << "ms" << ENDL;
 #endif
 }
 

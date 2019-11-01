@@ -130,9 +130,8 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
 #if DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG REQUEST RESOLVE TIME --> END
-    auto secs = std::chrono::duration_cast<std::chrono::seconds>(
-        end_time - start_time);
-    std::cout << "request resolved in: " << secs.count() << 's' << ENDL;
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
 #endif
 
     // return OK status when request is resolved
@@ -223,9 +222,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
 #if DEBUG
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
     // LOG REQUEST RESOLVE TIME --> END
-    auto secs = std::chrono::duration_cast<std::chrono::seconds>(
-        end_time - start_time);
-    std::cout << "request resolved in: " << secs.count() << 's' << ENDL;
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
 #endif
 
     // return OK status when request is resolved
