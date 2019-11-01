@@ -17,7 +17,7 @@ Make sure you have gRPC, protobuf and Boost C++ libraries installed on your syst
 be present and built. Let's build the server:
 
 ```bash
-~$ make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
+make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
 ```
 
 Run `make clean` to clear old build files.
@@ -38,7 +38,7 @@ tells the program which models to load and where to look for. Structure of
 # Alternatively, you can also put all the required .so files in the ./lib/ directory since
 # that is added to the binary's rpath.
 
-~$ ./build/kaldi_serve_app --help
+./build/kaldi_serve_app --help
 
 Kaldi gRPC server
 Usage: ./build/kaldi_serve_app [OPTIONS] model_spec_toml
@@ -60,7 +60,7 @@ Python client for the server is present in [./python](./python) directory.
 We perform load testing using [ghz](https://ghz.sh/) which is a gRPC benchmarking and load testing tool. You will need to download it's binary into your PATH and load test the application using the following command template:
 
 ```bash
-~$ ghz \
+ghz \
 --insecure \
 --proto ./protos/kaldi_serve.proto \
 --call kaldi_serve.KaldiServe.StreamingRecognize \
