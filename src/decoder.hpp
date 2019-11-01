@@ -556,6 +556,7 @@ DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
     // LOG MODELS LOAD TIME --> START
     std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 #endif
+    // TODO: The decoding config should be going in toml
     decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(hclg_filepath, 13.0, 7000, 200,
                                                                           6.0, 1.0, 3, words_filepath,
                                                                           model_filepath, mfcc_conf_filepath,
