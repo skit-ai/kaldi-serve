@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <stdlib.h>
 
 // Local includes
 #include "decoder.hpp"
@@ -15,13 +16,22 @@
 #include "vendor/CLI11.hpp"
 #include "vendor/cpptoml.h"
 
+#define VERSION "0.0.1"
+
+void print_version() {
+  std::cout << VERSION << std::endl;
+  exit(EXIT_SUCCESS);
+}
+
 int main(int argc, char *argv[]) {
     CLI::App app{"Kaldi gRPC server"};
 
     std::string model_spec_toml;
-    app.add_option("model_spec_toml", model_spec_toml, "Path to toml specifying models to load.")
-        ->required()
-        ->check(CLI::ExistingFile);
+    app.add_option("model_spec_toml", model_spec_toml, "Path to toml specifying models to load")
+      ->required()
+      ->check(CLI::ExistingFile);
+
+    app.add_flag_callback("-v,--version", print_version, "Show program version and exit");
 
     CLI11_PARSE(app, argc, argv);
 
