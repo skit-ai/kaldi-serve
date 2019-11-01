@@ -54,12 +54,36 @@ Options:
 
 ### Clients
 
-For simple testing, you can do something like the following (needs
+For simple microphone testing, you can do something like the following (needs
 [evans](https://github.com/ktr0731/evans) installed):
 
 ```bash
 audio_bytes=$(arecord -f S16_LE -d 5 -r 8000 -c 1 | base64 -w0) # Recording 5 seconds of audio
-echo "{\"audio\": {\"content\": \"$audio_bytes\"}, \"config\": {\"max_alternatives\": 10, \"model\": \"general\", \"language_code\": \"en\"} }" | evans --package kaldi_serve --service KaldiServe ./protos/kaldi_serve.proto  --call Recognize --port 5016 | jq
+echo "{\"audio\": {\"content\": \"$audio_bytes\"}, \"config\": {\"max_alternatives\": 10, \"model\": \"general\", \"language_code\": \"hi\"} }" | evans --package kaldi_serve --service KaldiServe ./protos/kaldi_serve.proto  --call Recognize --port 5016 | jq
+```
+
+The output structure looks like the following:
+```
+{
+  "results": [
+    {
+      "alternatives": [
+        {
+          "transcript": "हेलो दुनिया",
+          "confidence": 0.95897794,
+          "amScore": -374.5963,
+          "lmScore": 131.33058
+        },
+        {
+          "transcript": "हैलो दुनिया",
+          "confidence": 0.95882875,
+          "amScore": -372.76187,
+          "lmScore": 131.84035
+        }
+      ]
+    }
+  ]
+}
 ```
 
 A Python client is also present in [python](./python) directory with a few
