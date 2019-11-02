@@ -525,7 +525,7 @@ class DecoderQueue final {
     Decoder *pop_();
 
   public:
-    explicit DecoderQueue(const std::string &, const size_t &);
+    explicit DecoderQueue(const ModelSpec &);
 
     DecoderQueue(const DecoderQueue &) = delete; // disable copying
 
@@ -540,16 +540,15 @@ class DecoderQueue final {
     inline void release(Decoder *const);
 };
 
-DecoderQueue::DecoderQueue(const std::string &model_dir, const size_t &n) {
-    std::cout << ":: Loading model from " << model_dir << ENDL;
+DecoderQueue::DecoderQueue(const ModelSpec &model_spec) {
+    std::cout << ":: Loading model from " << model_spec.path << ENDL;
 
 #if DEBUG
     // LOG MODELS LOAD TIME --> START
     std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 #endif
-    // TODO: The decoding config should be going in toml
-    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_dir, 13.0, 7000, 200, 6.0, 1.0, 3));
-    for (size_t i = 0; i < n; i++) {
+    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec.path, 13.0, 7000, 200, 6.0, 1.0, 3));
+    for (size_t i = 0; i < model_spec.n_decoders; i++) {
         queue_.push(decoder_factory_->produce());
     }
 

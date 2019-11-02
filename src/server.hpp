@@ -64,7 +64,7 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> &model_specs) noexcept {
     for (auto const &model_spec : model_specs) {
         model_id_t model_id = std::make_pair(model_spec.name, model_spec.language_code);
-        decoder_queue_map_[model_id] = std::make_unique<DecoderQueue>(model_spec.path, model_spec.n_decoders);
+        decoder_queue_map_[model_id] = std::make_unique<DecoderQueue>(model_spec);
     }
 }
 
