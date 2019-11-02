@@ -214,8 +214,8 @@ class Decoder final {
 };
 
 Decoder::Decoder(const kaldi::BaseFloat &beam,
-                 const std::size_t &max_active,
                  const std::size_t &min_active,
+                 const std::size_t &max_active,
                  const kaldi::BaseFloat &lattice_beam,
                  const kaldi::BaseFloat &acoustic_scale,
                  const std::size_t &frame_subsampling_factor,
@@ -224,8 +224,8 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
     : decode_fst_(decode_fst) {
 
     try {
-        lattice_faster_decoder_config_.max_active = max_active;
         lattice_faster_decoder_config_.min_active = min_active;
+        lattice_faster_decoder_config_.max_active = max_active;
         lattice_faster_decoder_config_.beam = beam;
         lattice_faster_decoder_config_.lattice_beam = lattice_beam;
         decodable_opts_.acoustic_scale = acoustic_scale;
@@ -456,8 +456,8 @@ class DecoderFactory final {
 
     const std::string model_dir_;
     const kaldi::BaseFloat beam_;
-    const std::size_t max_active_;
     const std::size_t min_active_;
+    const std::size_t max_active_;
     const kaldi::BaseFloat lattice_beam_;
     const kaldi::BaseFloat acoustic_scale_;
     const std::size_t frame_subsampling_factor_;
@@ -482,18 +482,18 @@ class DecoderFactory final {
 
 DecoderFactory::DecoderFactory(const std::string &model_dir,
                                const kaldi::BaseFloat &beam,
-                               const std::size_t &max_active,
                                const std::size_t &min_active,
+                               const std::size_t &max_active,
                                const kaldi::BaseFloat &lattice_beam,
                                const kaldi::BaseFloat &acoustic_scale,
                                const std::size_t &frame_subsampling_factor) noexcept
   : decode_fst_(fst::ReadFstKaldiGeneric(join_path(model_dir, "HCLG.fst"))),
     model_dir_ (model_dir),
-    beam_(beam), max_active_(max_active), min_active_(min_active), lattice_beam_(lattice_beam),
+    beam_(beam), min_active_(min_active), max_active_(max_active), lattice_beam_(lattice_beam),
     acoustic_scale_(acoustic_scale), frame_subsampling_factor_(frame_subsampling_factor) {}
 
 inline Decoder *DecoderFactory::produce() const noexcept {
-    return new Decoder(beam_, max_active_, min_active_, lattice_beam_,
+    return new Decoder(beam_, min_active_, max_active_, lattice_beam_,
                        acoustic_scale_, frame_subsampling_factor_,
                        model_dir_, decode_fst_.get());
 }
@@ -547,7 +547,7 @@ DecoderQueue::DecoderQueue(const ModelSpec &model_spec) {
     // LOG MODELS LOAD TIME --> START
     std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 #endif
-    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec.path, 13.0, 7000, 200, 6.0, 1.0, 3));
+    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec.path, 13.0, 200, 7000, 6.0, 1.0, 3));
     for (size_t i = 0; i < model_spec.n_decoders; i++) {
         queue_.push(decoder_factory_->produce());
     }
