@@ -6,13 +6,23 @@
 #include <iostream>
 #include <string>
 
+#include "base/kaldi-types.h"
+
 // Model Specification for Kaldi ASR
 // contains model config for a particular model.
 struct ModelSpec {
-    std::string name;
-    std::string language_code;
-    std::string path;
-    std::size_t n_decoders = 1;
+  std::string name;
+  std::string language_code;
+  std::string path;
+  std::size_t n_decoders = 1;
+
+  // Decoding parameters
+  kaldi::BaseFloat beam = 13.0;
+  std::size_t min_active = 200;
+  std::size_t max_active = 7000;
+  kaldi::BaseFloat lattice_beam = 6.0;
+  kaldi::BaseFloat acoustic_scale = 1.0;
+  std::size_t frame_subsampling_factor = 3;
 };
 
 // A pair of model_name and language_code
