@@ -44,16 +44,26 @@ void parse_model_specs(const std::string &toml_path, std::vector<ModelSpec> &mod
         auto maybe_language_code = model->get_as<std::string>("language_code");
         auto maybe_n_decoders = model->get_as<std::size_t>("n_decoders");
 
+        auto maybe_beam = model->get_as<double>("beam");
+        auto maybe_min_active = model->get_as<std::size_t>("min_active");
+        auto maybe_max_active = model->get_as<std::size_t>("max_active");
+        auto maybe_lattice_beam = model->get_as<double>("lattice_beam");
+        auto maybe_acoustic_scale = model->get_as<double>("acoustic_scale");
+        auto maybe_frame_subsampling_factor = model->get_as<std::size_t>("frame_subsampling_factor");
+
         // TODO: Throw error in case of invalid toml
         spec.path = *maybe_path;
         spec.name = *maybe_name;
         spec.language_code = *maybe_language_code;
 
-        if (maybe_n_decoders) {
-            spec.n_decoders = *maybe_n_decoders;
-        } else {
-            spec.n_decoders = 1;
-        }
+        if (maybe_n_decoders) spec.n_decoders = *maybe_n_decoders;
+        if (maybe_beam) spec.beam = *maybe_beam;
+        if (maybe_min_active) spec.min_active = *maybe_min_active;
+        if (maybe_max_active) spec.max_active = *maybe_max_active;
+        if (maybe_lattice_beam) spec.lattice_beam = *maybe_lattice_beam;
+        if (maybe_acoustic_scale) spec.acoustic_scale = *maybe_acoustic_scale;
+        if (maybe_frame_subsampling_factor) spec.frame_subsampling_factor = *maybe_frame_subsampling_factor;
+
         model_specs.push_back(spec);
     }
 }

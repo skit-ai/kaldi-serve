@@ -12,8 +12,17 @@ path = "./path/to/model/dir"
 [[model]]
 name = "general"
 language_code = "en"
-n_decoders = 20  # Defaults to 1 if not specified
 path = "./path/to/model/dir"
+# A few optional decoder related parameters. Default value listed in comment at
+# the end. Most of the viterbi params can be tuned to trade-off speed vs
+# accuracy.
+n_decoders = 20 # 1
+beam = 7.0 # 13.0
+min_active = 200 # 200
+max_active = 3000 # 7000
+lattice_beam = 3.0 # 6.0
+acoustic_scale = 1.0 # 1.0
+frame_subsampling_factor = 3 # 3
 
 # A model `path` looks something like the following (for minimal transcription
 # only use case):

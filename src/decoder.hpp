@@ -547,7 +547,13 @@ DecoderQueue::DecoderQueue(const ModelSpec &model_spec) {
     // LOG MODELS LOAD TIME --> START
     std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
 #endif
-    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec.path, 13.0, 200, 7000, 6.0, 1.0, 3));
+    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec.path,
+                                                                          model_spec.beam,
+                                                                          model_spec.min_active,
+                                                                          model_spec.max_active,
+                                                                          model_spec.lattice_beam,
+                                                                          model_spec.acoustic_scale,
+                                                                          model_spec.frame_subsampling_factor));
     for (size_t i = 0; i < model_spec.n_decoders; i++) {
         queue_.push(decoder_factory_->produce());
     }
