@@ -1,13 +1,9 @@
-/*
- * Decoding graph and operations.
- */
-
-// Include guard
+// Decoding graph and operations.
 #pragma once
 
 #include "config.hpp"
 
-// C++ stl includes
+// stl includes
 #include <condition_variable>
 #include <iostream>
 #include <memory>
@@ -20,7 +16,7 @@
 #include <chrono>
 #endif
 
-// Kaldi includes
+// kaldi includes
 #include "feat/wave-reader.h"
 #include "fstext/fstext-lib.h"
 #include "lat/kaldi-lattice.h"
@@ -32,7 +28,7 @@
 #include "online2/onlinebin-util.h"
 #include "util/kaldi-thread.h"
 
-// Local includes
+// local includes
 #include "utils.hpp"
 
 // An alternative defines a single hypothesis and certain details about the
@@ -334,7 +330,7 @@ void Decoder::decode_wav_audio(std::istream &wav_stream,
                                const size_t &n_best,
                                utterance_results_t &results,
                                const kaldi::BaseFloat &chunk_size) const {
-    // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
+    // decoder state variables need to be statically initialized
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
     kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info_);
     feature_pipeline.SetAdaptationState(adaptation_state);
@@ -385,7 +381,7 @@ void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
                                    const size_t &n_best,
                                    utterance_results_t &results,
                                    const kaldi::BaseFloat &chunk_size) const {
-    // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
+    // decoder state variables need to be statically initialized
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
     kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*feature_info_);
     feature_pipeline.SetAdaptationState(adaptation_state);
@@ -448,7 +444,7 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
 }
 
 // Factory for creating decoders with shared decoding graph and model parameters
-// Caches the graph and params to be able to produce uniform decoders later in queue.
+// Caches the graph and params to be able to produce decoders on demand.
 class DecoderFactory final {
 
   private:
@@ -471,9 +467,6 @@ class DecoderFactory final {
                             const kaldi::BaseFloat &,
                             const std::size_t &) noexcept;
 
-    // Producer method for the Factory.
-    // Does the actual work :: produces a new Decoder object
-    // using the shared config and returns a pointer to it.
     inline Decoder *produce() const noexcept;
 
     // friendly alias for the producer method
@@ -507,7 +500,7 @@ inline Decoder *DecoderFactory::operator()() const noexcept {
 class DecoderQueue final {
 
   private:
-    // underlying STL "unsafe" queue for holding decoders
+    // underlying STL "unsafe" queue for storing decoder objects
     std::queue<Decoder *> queue_;
     // custom mutex to make queue "thread-safe"
     std::mutex mutex_;
@@ -576,28 +569,20 @@ DecoderQueue::~DecoderQueue() noexcept {
 }
 
 void DecoderQueue::push_(Decoder *const item) {
-    // acquires a lock on the queue (mutex)
     std::unique_lock<std::mutex> mlock(mutex_);
-    // pushes item into queue
     queue_.push(item);
-    // releases the lock on queue
     mlock.unlock();
-    // condition var notifies another suspended thread (in `pop`)
-    cond_.notify_one();
+    cond_.notify_one(); // condition var notifies another suspended thread (help up in `pop`)
 }
 
 Decoder *DecoderQueue::pop_() {
-    // acquires a lock on the queue (mutex)
     std::unique_lock<std::mutex> mlock(mutex_);
-    // waits until queue is not empty
+    // waits until a decoder object is available
     while (queue_.empty()) {
-        // suspends current thread execution (as well as lock on queue)
-        // and waits for condition var notification
+        // suspends current thread execution and awaits condition notification
         cond_.wait(mlock);
     }
-    // obtains an item from front of queue
     auto item = queue_.front();
-    // pops it from queue
     queue_.pop();
     return item;
 }

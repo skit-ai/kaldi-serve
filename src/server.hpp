@@ -1,13 +1,9 @@
-/*
- * Server operations.
- */
-
-// Include guard
+// Server operations.
 #pragma once
 
 #include "config.hpp"
 
-// C++ stl includes
+// stl includes
 #include <iostream>
 #include <unordered_map>
 #include <memory>
@@ -24,15 +20,15 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 
-// Local includes
+// local includes
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
-// KaldiServeImpl :: Kaldi Service interface Implementation
+// KaldiServeImpl ::
 // Defines the core server logic and request/response handlers.
-// Keeps a few `Decoder` instances cached in a thread-safe
+// Keeps `Decoder` instances cached in a thread-safe
 // multiple producer multiple consumer queue to handle each
-// request with a different `Decoder`.
+// request with a separate `Decoder`.
 class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 
   private:
@@ -43,7 +39,6 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
     inline bool is_model_present(const model_id_t &) const noexcept;
 
   public:
-    // Main Constructor for Kaldi Service
     explicit KaldiServeImpl(const std::vector<ModelSpec> &) noexcept;
 
     // Non-Streaming Request Handler RPC service
@@ -85,15 +80,15 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
-    // IMPORTANT ::
-    // - Attain the lock and pop a decoder from the `free` queue
-    // - Wait here until lock on queue is attained and a decoder is obtained.
-    // - Each new stream gets it's own decoder instance.
+    // Decoder Acquisition ::
+    // - Tries to attain lock and obtain decoder from the queue.
+    // - Waits here until lock on queue is attained.
+    // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
 
 #if DEBUG
     std::chrono::system_clock::time_point start_time;
-    // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actual latency)
+    // LOG REQUEST RESOLVE TIME --> START
     start_time = std::chrono::system_clock::now();
 #endif
     kaldi_serve::RecognitionAudio audio = request->audio();
@@ -123,8 +118,9 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         }
     }
 
-    // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
-    // also notifies another request handler thread that a decoder is available.
+    // Decoder Release ::
+    // - Releases the lock on the decoder and pushes back into queue.
+    // - Notifies another request handler thread of availability.
     decoder_queue_map_[model_id]->release(decoder_);
 
 #if DEBUG
@@ -134,7 +130,6 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
 #endif
 
-    // return OK status when request is resolved
     return grpc::Status::OK;
 }
 
@@ -156,13 +151,13 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
-    // IMPORTANT ::
-    // - Attain the lock and pop a decoder from the `free` queue
-    // - Wait here until lock on queue is attained and a decoder is obtained.
-    // - Each new stream gets it's own decoder instance.
+    // Decoder Acquisition ::
+    // - Tries to attain lock and obtain decoder from the queue.
+    // - Waits here until lock on queue is attained.
+    // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
 
-    // IMPORTANT :: decoder state variables need to be statically initialized (on the stack) :: Kaldi errors out on heap
+    // decoder state variables need to be statically initialized
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
     kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*decoder_->feature_info_);
     feature_pipeline.SetAdaptationState(adaptation_state);
@@ -190,7 +185,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         std::stringstream input_stream_chunk(audio.content());
 
         // decode intermediate speech signals
-        // Assumption :: audio stream has already been chunked into desired length
+        // Assuming: audio stream has already been chunked into desired length
         if (config.raw()) {
             decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, config.data_bytes());
         } else {
@@ -215,8 +210,9 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         }
     }
 
-    // IMPORTANT :: release the lock on the decoder and push back into `free` queue.
-    // also notifies another request handler thread that a decoder is available.
+    // Decoder Release ::
+    // - Releases the lock on the decoder and pushes back into queue.
+    // - Notifies another request handler thread of availability.
     decoder_queue_map_[model_id]->release(decoder_);
 
 #if DEBUG
@@ -226,7 +222,6 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
 #endif
 
-    // return OK status when request is resolved
     return grpc::Status::OK;
 }
 

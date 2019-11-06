@@ -1,11 +1,14 @@
+// Configuration options.
 #pragma once
 
 #define DEBUG false
 #define ENDL '\n'
 
+// stl includes
 #include <iostream>
 #include <string>
 
+// kaldi includes
 #include "base/kaldi-types.h"
 
 // Model Specification for Kaldi ASR
@@ -16,7 +19,7 @@ struct ModelSpec {
   std::string path;
   std::size_t n_decoders = 1;
 
-  // Decoding parameters
+  // decoding parameters
   kaldi::BaseFloat beam = 13.0;
   std::size_t min_active = 200;
   std::size_t max_active = 7000;
@@ -25,7 +28,7 @@ struct ModelSpec {
   std::size_t frame_subsampling_factor = 3;
 };
 
-// A pair of model_name and language_code
+// a pair of model_name and language_code
 using model_id_t = std::pair<std::string, std::string>;
 
 #include <boost/version.hpp>
@@ -39,7 +42,7 @@ constexpr bool BOOST_1_67_X = ((BOOST_VERSION / 100000) >= 1) && (((BOOST_VERSIO
 #include <boost/functional/hash.hpp>
 #endif
 
-// custom hash function for model id type (pair of strings) for use as key in unordered_map
+// hash function for model id type (pair of strings) for unordered_map hashing fn
 struct model_id_hash {
     std::size_t operator () (const model_id_t &id) const {
         std::size_t seed = 0;

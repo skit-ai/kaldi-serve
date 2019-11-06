@@ -1,18 +1,14 @@
-/*
- * Utility functions.
- */
-
-// Include guard
+// Utility functions.
 #pragma once
 
 #include "config.hpp"
 
-// C++ stl includes
+// stl includes
 #include <filesystem>
 #include <string>
 #include <vector>
 
-// Vendor includes
+// vendor includes
 #include "vendor/cpptoml.h"
 
 // If the provided path is relative, expand by prefixing the root_path

@@ -1,18 +1,18 @@
 #include "config.hpp"
 
-// C++ stl includes
+// stl includes
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 #include <stdlib.h>
 
-// Local includes
+// local includes
 #include "decoder.hpp"
 #include "server.hpp"
 #include "utils.hpp"
 
-// Vendor includes
+// vendor includes
 #include "vendor/CLI11.hpp"
 #include "vendor/cpptoml.h"
 
