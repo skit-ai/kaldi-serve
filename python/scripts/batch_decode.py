@@ -2,14 +2,14 @@
 Script for transcribing audios in batches using Kaldi-Serve ASR server.
 
 Usage:
-  batch_decode.py <audio_paths_file> [--model=<model>] [--lang=<lang>] [--num-proc=<num-proc>] [--output-json=<output-json>] [--segment-long-utt] [--raw]
+  batch_decode.py <audio_paths_file> [--model=<model>] [--lang=<lang>] [--num-proc=<num-proc>] [--output-json=<output-json>] [--segment-long-utts] [--raw]
 
 Options:
   --model=<model>               Name of the model to hit [default: general]
   --lang=<lang>                 Language code of the model [default: hi]
   --num-proc=<num-proc>         Number of parallel processes [default: 8]
   --output-json=<output-json>   Output json file path for decoded transcriptions [default: transcripts.json]
-  --segment-long-utt            Flag that specifies whether to segment long audios with some overlap.
+  --segment-long-utts           Flag that specifies whether to segment long audios with some overlap.
   --raw                         Flag that specifies whether to stream raw audio bytes to server.
 """
 
