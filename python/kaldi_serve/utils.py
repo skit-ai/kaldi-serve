@@ -120,6 +120,6 @@ def non_silent_segments_from_file(filename: str, segment_length=10):
         for x in not_silence_ranges:
             segment += audio[x[0]: x[1]] + AudioSegment.silent(duration=500, frame_rate=8000)
         for i in range(0, len(segment), segment_length * 1000):
-            segments.append(segment[i: i + 1000])
+            segments.append(segment[i: i + (segment_length * 1000)])
 
     return segments
