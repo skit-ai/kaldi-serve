@@ -2,7 +2,7 @@
 Script for transcribing audios in batches using Kaldi-Serve ASR server.
 
 Usage:
-  batch_decode.py <audio_paths_file> [--model=<model>] [--lang=<lang>] [--num-proc=<num-proc>] [--output-json=<output-json>] [--segment-long-utts] [--raw]
+  batch_decode.py <audio_paths_file> [--model=<model>] [--lang=<lang>] [--num-proc=<num-proc>] [--output-json=<output-json>] [--segment-long-utts] [--transcripts-only] [--raw]
 
 Options:
   --model=<model>               Name of the model to hit [default: general]
@@ -10,6 +10,7 @@ Options:
   --num-proc=<num-proc>         Number of parallel processes [default: 8]
   --output-json=<output-json>   Output json file path for decoded transcriptions [default: transcripts.json]
   --segment-long-utts           Flag that specifies whether to segment long audios with some overlap.
+  --transcripts-only            Flag that specifies whether or now to keep decoder metadata for transcripts.
   --raw                         Flag that specifies whether to stream raw audio bytes to server.
 """
 
@@ -47,6 +48,8 @@ def parse_response(response):
             }
             for alt in res.alternatives
         ])
+    if len(output) == 1:
+        return output[0]
     return output
 
 
@@ -71,7 +74,7 @@ def transcribe_chunks(audio_chunks, model: str, language_code: str, raw: bool=Fa
                 data_bytes=chunk_len
             )
             audio_params = [(config(len(chunk)), RecognitionAudio(content=chunk)) for chunk in audio_chunks]
-            response = client.streaming_recognize_raw(audio_params, uuid="")
+            response = client.streaming_recognize_raw(audio_params, uuid="", timeout=1000)
         else:
             audio = (RecognitionAudio(content=chunk) for chunk in audio_chunks)
             config = RecognitionConfig(
@@ -81,7 +84,7 @@ def transcribe_chunks(audio_chunks, model: str, language_code: str, raw: bool=Fa
                 max_alternatives=10,
                 model=model,
             )
-            response = client.streaming_recognize(config, audio, uuid="")
+            response = client.streaming_recognize(config, audio, uuid="", timeout=1000)
     except Exception as e:
         traceback.print_exc()
         print(f'error: {str(e)}')
@@ -106,7 +109,7 @@ def decode_audios(audio_paths: List[str], model: str, language_code: str, num_pr
         results = []
         for audio_segs in args:
             with Pool(num_proc) as pool:
-                results.extend(pool.starmap(transcribe_chunks, audio_segs))
+                results.append(pool.starmap(transcribe_chunks, audio_segs))
     else:
         chunked_audios = [chunks_from_file(x, chunk_size=1, raw=raw) for x in audio_paths]
 
@@ -131,6 +134,7 @@ if __name__ == "__main__":
     output_json = args['--output-json']
 
     segment_long_utt = args['--segment-long-utts']
+    transcripts_only = args['--transcripts-only']
     raw = args['--raw']
 
     audio_paths_file = args["<audio_paths_file>"]
@@ -140,6 +144,11 @@ if __name__ == "__main__":
     audio_paths = list(filter(lambda x: x.endswith(".wav"), audio_paths))
 
     results_dict = decode_audios(audio_paths, model, language_code, num_proc=num_proc, segment_long_utt=segment_long_utt, raw=raw)
+    
+    if transcripts_only:
+        for audio_file, transcripts in results_dict.items():
+            transcripts = [[alt['transcript'] if isinstance(alt, dict) else alt[0]['transcript'] for alt in segment] for segment in transcripts]
+            results_dict[audio_file] = transcripts
     with open(output_json, 'w', encoding='utf-8') as f:
         f.write(json.dumps(results_dict))
 
