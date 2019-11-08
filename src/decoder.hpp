@@ -21,6 +21,8 @@
 #include "fstext/fstext-lib.h"
 #include "lat/kaldi-lattice.h"
 #include "lat/lattice-functions.h"
+#include "lat/word-align-lattice.h"
+#include "lat/sausages.h"
 #include "nnet3/nnet-utils.h"
 #include "online2/online-endpoint.h"
 #include "online2/online-nnet2-feature-pipeline.h"
@@ -31,12 +33,18 @@
 // local includes
 #include "utils.hpp"
 
+struct WordLevelConfidence {
+    float startTime, endTime, confidence;
+    std::string word;
+};
+
 // An alternative defines a single hypothesis and certain details about the
 // parse (only scores for now).
 struct Alternative {
   std::string transcript;
   double confidence;
   float am_score, lm_score;
+  std::vector<WordLevelConfidence> words;
 };
 
 // Result for one continuous utterance
@@ -53,6 +61,10 @@ inline double calculate_confidence(const float &lm_score, const float &am_score,
 // Computes n-best alternative from lattice. Output symbols are converted to words
 // based on word-syms.
 void find_alternatives(const fst::SymbolTable *word_syms,
+                       const kaldi::WordBoundaryInfo *wb_info,
+                       const kaldi::TransitionModel &trans_model,
+                       const kaldi::BaseFloat &acoustic_scale,
+                       const kaldi::BaseFloat &lm_scale,
                        const kaldi::CompactLattice &clat,
                        const std::size_t &n_best,
                        utterance_results_t &results) noexcept {
@@ -73,13 +85,13 @@ void find_alternatives(const fst::SymbolTable *word_syms,
         return;
     }
 
-    // NOTE: Check why int32s specifically are used here
-    std::vector<int32> input_ids;
-    std::vector<int32> word_ids;
-    std::vector<std::string> words;
-    std::string sentence;
-
     for (auto const &l : nbest_lats) {
+        // NOTE: Check why int32s specifically are used here
+        std::vector<int32> input_ids;
+        std::vector<int32> word_ids;
+        std::vector<std::string> words;
+        std::string sentence;
+
         kaldi::LatticeWeight weight;
         fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
 
@@ -93,12 +105,66 @@ void find_alternatives(const fst::SymbolTable *word_syms,
         alt.lm_score = float(weight.Value1());
         alt.am_score = float(weight.Value2());
         alt.confidence = calculate_confidence(alt.lm_score, alt.am_score, word_ids.size());
-        results.push_back(alt);
 
-        input_ids.clear();
-        word_ids.clear();
-        words.clear();
-        sentence.clear();
+        results.push_back(alt);
+    }
+
+    kaldi::CompactLattice aligned_clat;
+    kaldi::BaseFloat max_expand = 0.0;
+    int32 max_states;
+
+    if (max_expand > 0) max_states = 1000 + max_expand * clat.NumStates();
+    else max_states = 0;
+    
+    bool ok = kaldi::WordAlignLattice(clat, trans_model, *wb_info, max_states, &aligned_clat);
+
+    if (!ok) {
+        if (aligned_clat.Start() != fst::kNoStateId) {
+            ok = true;
+            KALDI_WARN << "Outputting partial lattice";
+            kaldi::TopSortCompactLatticeIfNeeded(&aligned_clat);
+        } else {
+            KALDI_WARN << "Empty aligned lattice"
+                        << ", producing no output.";
+        }
+    } else {
+        if (aligned_clat.Start() == fst::kNoStateId) {
+            ok = false;
+            KALDI_WARN << "Lattice was empty";
+        } else {
+            kaldi::TopSortCompactLatticeIfNeeded(&aligned_clat);
+        }
+    }
+
+    std::vector<WordLevelConfidence> word_confs;
+    // compute confidences and times only if alignment was ok
+    if (ok) {
+        kaldi::BaseFloat frame_shift = 0.01;
+        kaldi::MinimumBayesRiskOptions mbr_opts;
+        mbr_opts.decode_mbr = false;
+
+        fst::ScaleLattice(fst::LatticeScale(lm_scale, acoustic_scale), &aligned_clat);
+        kaldi::MinimumBayesRisk *mbr = new kaldi::MinimumBayesRisk(aligned_clat, mbr_opts);
+
+        const std::vector<kaldi::BaseFloat> &conf = mbr->GetOneBestConfidences();
+        const std::vector<int32> &words = mbr->GetOneBest();
+        const std::vector<std::pair<kaldi::BaseFloat, kaldi::BaseFloat>> &times = mbr->GetOneBestTimes();
+
+        KALDI_ASSERT(conf.size() == words.size() && words.size() == times.size());
+
+        for (size_t i = 0; i < words.size(); i++) {
+            KALDI_ASSERT(words[i] != 0 || mbr_opts.print_silence); // Should not have epsilons.
+
+            WordLevelConfidence word_conf;
+            word_conf.startTime = frame_shift * times[i].first;
+            word_conf.endTime = frame_shift * times[i].second;
+            word_conf.word = word_syms->Find(words[i]); // lookup word in SymbolTable
+            word_conf.confidence = conf[i];
+            word_confs.push_back(word_conf);
+        }
+    }
+    if (!results.empty() and !word_confs.empty()) {
+        results[0].words = word_confs;
     }
 }
 
@@ -150,6 +216,7 @@ class Decoder final {
 
   private:
     std::unique_ptr<fst::SymbolTable> word_syms_;
+    kaldi::WordBoundaryInfo* wb_info_;
 
   public:
     fst::Fst<fst::StdArc> *const decode_fst_;
@@ -228,6 +295,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         decodable_opts_.frame_subsampling_factor = frame_subsampling_factor;
 
         std::string word_syms_filepath = join_path(model_dir, "words.txt");
+        std::string word_boundary_filepath = join_path(model_dir, "word_boundary.int");
         std::string model_filepath = join_path(model_dir, "final.mdl");
         std::string conf_dir = join_path(model_dir, "conf");
         std::string mfcc_conf_filepath = join_path(conf_dir, "mfcc.conf");
@@ -248,6 +316,9 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         if (word_syms_filepath != "" && !(word_syms_ = std::unique_ptr<fst::SymbolTable>(fst::SymbolTable::ReadText(word_syms_filepath)))) {
             KALDI_ERR << "Could not read symbol table from file " << word_syms_filepath;
         }
+
+        kaldi::WordBoundaryInfoNewOpts opts;
+        wb_info_ = new kaldi::WordBoundaryInfo(opts, word_boundary_filepath);
 
         feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>();
         feature_info_->feature_type = "mfcc";
@@ -437,7 +508,7 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
     kaldi::CompactLattice clat;
     try {
         decoder.GetLattice(true, &clat);
-        find_alternatives(word_syms_.get(), clat, n_best, results);
+        find_alternatives(word_syms_.get(), wb_info_, trans_model_, decodable_opts_.acoustic_scale, 1.0, clat, n_best, results);
     } catch (const std::exception &e) {
         std::cout << "ERROR :: client timed out" << ENDL;
     }

@@ -64,6 +64,14 @@ message SpeechRecognitionAlternative {
   float confidence = 2;
   float am_score = 3;
   float lm_score = 4;
+  repeated WordLevelConfidence words = 5;
+}
+
+message WordLevelConfidence {
+  float startTime = 1;
+  float endTime = 2;
+  string word = 3;
+  float confidence = 4;
 }
 
 message SpeechContext {
