@@ -8,10 +8,14 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <exception>
 
 #if DEBUG
 #include <chrono>
 #endif
+
+// kaldi includes
+#include <base/kaldi-error.h>
 
 // gRPC inludes
 #include <grpc/grpc.h>
@@ -98,10 +102,19 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
 
     // decode speech signals in chunks
     // TODO: take chunk length (secs) as parameter in request config
-    if (config.raw()) {
-        decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_);
-    } else {
-        decoder_->decode_wav_audio(input_stream, n_best, k_results_);
+    try {
+        if (config.raw()) {
+            decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_);
+        } else {
+            decoder_->decode_wav_audio(input_stream, n_best, k_results_);
+        }
+    } catch (kaldi::KaldiFatalError &e) {
+        decoder_queue_map_[model_id]->release(decoder_);
+        std::string message = std::string(e.what()) + " :: " + std::string(e.KaldiMessage());
+        return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, message);
+    } catch (std::exception &e) {
+        decoder_queue_map_[model_id]->release(decoder_);
+        return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
     }
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
@@ -186,10 +199,19 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
 
         // decode intermediate speech signals
         // Assuming: audio stream has already been chunked into desired length
-        if (config.raw()) {
-            decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, config.data_bytes());
-        } else {
-            decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
+        try {
+            if (config.raw()) {
+                decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, config.data_bytes());
+            } else {
+                decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
+            }
+        } catch (kaldi::KaldiFatalError &e) {
+            decoder_queue_map_[model_id]->release(decoder_);
+            std::string message = std::string(e.what()) + " :: " + std::string(e.KaldiMessage());
+            return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, message);
+        } catch (std::exception &e) {
+            decoder_queue_map_[model_id]->release(decoder_);
+            return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
         }
     } while (reader->Read(&request_));
 
