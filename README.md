@@ -10,6 +10,8 @@ based ASR.
 - Multithreaded gRPC server.
 - Supports streaming recognition.
 - Thread-safe concurrent queue to process each audio stream separately.
+- N-best alternatives with LM and AM costs.
+- Word level timing and confidence scores.
 
 ## Getting Started
 
