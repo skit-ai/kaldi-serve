@@ -1,0 +1,10 @@
+[[model]]
+name = "aspire"
+language_code = "en"
+path = "examples/aspire/model"
+n_decoders = 1
+beam = 15.0
+max_active = 7000
+lattice_beam = 6.0
+acoustic_scale = 1.0
+frame_subsampling_factor = 3
