@@ -44,16 +44,7 @@ def parse_response(response):
                 "transcript": alt.transcript,
                 "confidence": alt.confidence,
                 "am_score": alt.am_score,
-                "lm_score": alt.lm_score,
-                "words": [
-			        {
-                        "startTime": word.startTime,
-                        "endTime": word.endTime,
-                        "word": word.word,
-                        "confidence": word.confidence
-			        }	
-		        for word in alt.words
-                ]
+                "lm_score": alt.lm_score
             }
             for alt in res.alternatives
         ])
