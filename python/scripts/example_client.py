@@ -3,14 +3,13 @@ Script for testing out ASR server.
 
 Usage:
   example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>] [--raw]
-  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--raw] [--word-level]
+  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--raw]
 
 Options:
   --n-secs=<n-secs>     Number of seconds to records, ideally there should be a VAD here. [default: 3]
   --model=<model>       Name of the model to hit [default: general]
   --lang=<lang>         Language code of the model [default: hi]
   --raw                 Flag that specifies whether to stream raw audio bytes to server.
-  --word-level          Flag that specifies whether to query word level confidences from server.
 """
 
 import random
@@ -54,7 +53,7 @@ def parse_response(response):
     return output
 
 
-def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw: bool=False, word_level: bool=False):
+def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw: bool=False):
     """
     Transcribe the given audio chunks
     """
@@ -72,7 +71,6 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
                 max_alternatives=10,
                 model=model,
                 raw=True,
-                word_level=word_level,
                 data_bytes=chunk_len
             )
             audio_params = [(config(len(chunk)), RecognitionAudio(content=chunk)) for chunk in audio_chunks]
@@ -86,7 +84,6 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
                 language_code=language_code,
                 max_alternatives=10,
                 model=model,
-                word_level=word_level
             )
             response = client.streaming_recognize(config, audio, uuid="")
     except Exception as e:
@@ -96,7 +93,7 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
     pprint(parse_response(response))
 
 
-def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False, word_level: bool=False):
+def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False):
     """
     Decode files using threaded requests
     """
@@ -104,7 +101,7 @@ def decode_files(client, audio_paths: List[str], model: str, language_code: str,
     chunked_audios = [chunks_from_file(x, chunk_size=random.randint(1, 3), raw=raw) for x in audio_paths]
 
     threads = [
-        threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code, raw, word_level))
+        threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code, raw))
         for chunks in chunked_audios
     ]
 
@@ -121,9 +118,8 @@ if __name__ == "__main__":
     model = args["--model"]
     language_code = args["--lang"]
     raw = args['--raw']
-    word_level = args['--word-level']
 
     if args["mic"]:
-        transcribe_chunks(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, raw, word_level)
+        transcribe_chunks(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, raw)
     else:
-        decode_files(client, args["<file>"], model, language_code, raw, word_level)
+        decode_files(client, args["<file>"], model, language_code, raw)

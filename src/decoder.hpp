@@ -118,8 +118,7 @@ class Decoder final {
 
     void _find_alternatives(const kaldi::CompactLattice &clat,
                             const std::size_t &n_best,
-                            utterance_results_t &results,
-                            const bool &word_level) const;
+                            utterance_results_t &results) const;
 
   public:
     fst::Fst<fst::StdArc> *const decode_fst_;
@@ -154,7 +153,6 @@ class Decoder final {
     void decode_wav_audio(std::istream &,
                           const size_t &,
                           utterance_results_t &,
-                          const bool &,
                           const kaldi::BaseFloat & = 1) const;
 
     // decodes an (independent) raw headerless wav audio stream
@@ -163,15 +161,13 @@ class Decoder final {
                               const size_t &,
                               const size_t &,
                               utterance_results_t &,
-                              const bool &,
                               const kaldi::BaseFloat & = 1) const;
 
     // get the final utterances based on the compact lattice
     void decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
                              kaldi::SingleUtteranceNnet3Decoder &,
                              const std::size_t &,
-                             utterance_results_t &,
-                             const bool &) const;
+                             utterance_results_t &) const;
 };
 
 Decoder::Decoder(const kaldi::BaseFloat &beam,
@@ -265,8 +261,7 @@ void Decoder::_decode_wave(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
 // based on word-syms.
 void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
                                  const std::size_t &n_best,
-                                 utterance_results_t &results,
-                                 const bool &word_level) const {
+                                 utterance_results_t &results) const {
     if (clat.NumStates() == 0) {
         KALDI_LOG << "Empty lattice.";
     }
@@ -307,9 +302,6 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
 
         results.push_back(alt);
     }
-
-    // don't compute word-level features unless user specifies
-    if (!word_level) return;
 
     kaldi::CompactLattice aligned_clat;
     kaldi::BaseFloat max_expand = 0.0;
@@ -412,7 +404,6 @@ void Decoder::decode_stream_raw_wav_chunk(kaldi::OnlineNnet2FeaturePipeline &fea
 void Decoder::decode_wav_audio(std::istream &wav_stream,
                                const size_t &n_best,
                                utterance_results_t &results,
-                               const bool &word_level,
                                const kaldi::BaseFloat &chunk_size) const {
     // decoder state variables need to be statically initialized
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
@@ -457,14 +448,13 @@ void Decoder::decode_wav_audio(std::istream &wav_stream,
         samp_offset += num_samp;
     }
 
-    decode_stream_final(feature_pipeline, decoder, n_best, results, word_level);
+    decode_stream_final(feature_pipeline, decoder, n_best, results);
 }
 
 void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
                                    const size_t &data_bytes,
                                    const size_t &n_best,
                                    utterance_results_t &results,
-                                   const bool &word_level,
                                    const kaldi::BaseFloat &chunk_size) const {
     // decoder state variables need to be statically initialized
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
@@ -509,21 +499,20 @@ void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
         samp_offset += num_samp;
     }
 
-    decode_stream_final(feature_pipeline, decoder, n_best, results, word_level);
+    decode_stream_final(feature_pipeline, decoder, n_best, results);
 }
 
 void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
                                   kaldi::SingleUtteranceNnet3Decoder &decoder,
                                   const std::size_t &n_best,
-                                  utterance_results_t &results,
-                                  const bool &word_level) const {
+                                  utterance_results_t &results) const {
     feature_pipeline.InputFinished();
     decoder.FinalizeDecoding();
 
     kaldi::CompactLattice clat;
 
     decoder.GetLattice(true, &clat);
-    _find_alternatives(clat, n_best, results, word_level);
+    _find_alternatives(clat, n_best, results);
 }
 
 // Factory for creating decoders with shared decoding graph and model parameters

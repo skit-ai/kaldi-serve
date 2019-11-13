@@ -45,7 +45,6 @@ message RecognitionConfig {
   string model = 10;
   bool raw = 11;
   int32 data_bytes = 12;
-  bool word_level = 13;
 }
 
 // Either `content` or `uri` must be supplied.
