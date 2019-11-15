@@ -2,6 +2,7 @@ tests/
 .pytest_cache
 .pyproject.lock
 .vscode
+models/
 
 # gitlab ci
 skaffold.yaml
