@@ -11,7 +11,7 @@ LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++` \
 	-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl \
 	'-Wl,-rpath,$$ORIGIN/../lib' -L${KALDI_ROOT}/src/lib -L${KALDI_ROOT}/tools/openfst/lib
 
-LIBS = -lboost_system -lstdc++fs
+LIBS = -lboost_system -lboost_filesystem
 
 KALDI_INCLUDES = -I${KALDI_ROOT}/src/ -I${KALDI_ROOT}/tools/openfst/include
 KALDI_LIBS = -rdynamic -lm -lpthread -ldl -lkaldi-decoder -lkaldi-lat -lkaldi-fstext \
