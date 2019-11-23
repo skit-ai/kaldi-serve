@@ -3,8 +3,7 @@
 
 #include "config.hpp"
 
-// stl includes
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <string>
 #include <vector>
 
@@ -13,18 +12,18 @@
 
 // If the provided path is relative, expand by prefixing the root_path
 std::string expand_relative_path(std::string path, std::string root_path) {
-  std::filesystem::path fs_path(path);
+  boost::filesystem::path fs_path(path);
   if (fs_path.is_absolute()) {
     return path;
   } else {
-    std::filesystem::path fs_root_path(root_path);
+    boost::filesystem::path fs_root_path(root_path);
     return (fs_root_path / fs_path).string();
   }
 }
 
 std::string join_path(std::string a, std::string b) {
-  std::filesystem::path fs_a(a);
-  std::filesystem::path fs_b(b);
+  boost::filesystem::path fs_a(a);
+  boost::filesystem::path fs_b(b);
   return (fs_a / fs_b).string();
 }
 
