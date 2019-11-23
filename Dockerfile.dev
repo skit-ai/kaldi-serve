@@ -1,4 +1,4 @@
-FROM vernacularai/kaldi:1.0.0
+FROM vernacularai/kaldi:2019-11-23
 
 # gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
 RUN apt-get update && \
