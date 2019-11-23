@@ -4,43 +4,59 @@
 # We follow calvar style tags based on kaldi's master date. Ideally we should be
 # doing commit based tags but they are not readable so ¯\_(ツ)_/¯
 
-FROM python:3.6-slim
+# TODO: Why are we not using kaldi's images directly?
 
-RUN apt-get update \
- && apt-get install -y \
-      build-essential \
-      zlib1g-dev \
-      automake \
-      autoconf \
-      unzip \
-      wget \
-      libtool-bin \
-      libatlas3-base \
-      git
+FROM debian:9.8
 
-RUN mkdir /home/kaldi
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+            g++ \
+            make \
+            automake \
+            autoconf \
+            bzip2 \
+            unzip \
+            wget \
+            sox \
+            libtool \
+            git \
+            subversion \
+            python2.7 \
+            python3 \
+            zlib1g-dev \
+            ca-certificates \
+            gfortran \
+            patch \
+            ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY . /home/kaldi
+RUN ln -s /usr/bin/python2.7 /usr/bin/python
 
-RUN cd /home/kaldi/tools && make -j$(nproc) && \
-     cd /home/kaldi/src && ./configure --shared --use-cuda=no && \
-     sed -i 's/-g # -O0 -DKALDI_PARANOID/-O3 -DNDEBUG/g' kaldi.mk && \
-     make depend -j$(nproc) && make -j$(nproc) && \
-      rm -rf /home/kaldi/src/cudamatrix/kaldi-cudamatrix.a && \
-      rm -rf /home/kaldi/src/fstext/kaldi-fstext.a && \
-      rm -rf /home/kaldi/src/nnet3/kaldi-nnet3.a && \
-      rm -rf /home/kaldi/src/tree/kaldi-tree.a && \
-      rm -rf /home/kaldi/src/base/kaldi-base.a && \
-      rm -rf /home/kaldi/src/decoder/kaldi-decoder.a && \
-      rm -rf /home/kaldi/src/gmm/kaldi-gmm.a && \
-      rm -rf /home/kaldi/src/ivector/kaldi-ivector.a && \
-      rm -rf /home/kaldi/src/lat/kaldi-online2.a && \
-      rm -rf /home/kaldi/src/util/kaldi-util.a && \
-      rm -rf /home/kaldi/src/feat/kaldi-feat.a && \
-      rm -rf /home/kaldi/src/hmm/kaldi-hmm.a && \
-      rm -rf /home/kaldi/src/matrix/kaldi-matrix.a && \
-      rm -rf /home/kaldi/src/lat/kaldi-lat.a && \
-      rm -rf /home/kaldi/src/transform/kaldi-transform.a \
-      rm -rf /home/kaldi/tools/openfst-1.6.7/src/script/ && \
-      rm -rf /home/kaldi/tools/openfst-1.6.7/src/extensions/ && \
-      rm -rf /home/kaldi/tools/openfst-1.6.7/src/lib/*.a
+RUN git clone --depth 1 https://github.com/kaldi-asr/kaldi.git /home/kaldi
+
+RUN cd /home/kaldi/tools && \
+    ./extras/install_mkl.sh && \
+    make -j$(nproc) && \
+    cd /home/kaldi/src && \
+    ./configure --shared --use-cuda=no && \
+    sed -i 's/-g # -O0 -DKALDI_PARANOID/-O3 -DNDEBUG/g' kaldi.mk && \
+    make depend -j$(nproc) && \
+    make -j$(nproc) && \
+    rm -rf /home/kaldi/src/cudamatrix/kaldi-cudamatrix.a && \
+    rm -rf /home/kaldi/src/fstext/kaldi-fstext.a && \
+    rm -rf /home/kaldi/src/nnet3/kaldi-nnet3.a && \
+    rm -rf /home/kaldi/src/tree/kaldi-tree.a && \
+    rm -rf /home/kaldi/src/base/kaldi-base.a && \
+    rm -rf /home/kaldi/src/decoder/kaldi-decoder.a && \
+    rm -rf /home/kaldi/src/gmm/kaldi-gmm.a && \
+    rm -rf /home/kaldi/src/ivector/kaldi-ivector.a && \
+    rm -rf /home/kaldi/src/lat/kaldi-online2.a && \
+    rm -rf /home/kaldi/src/util/kaldi-util.a && \
+    rm -rf /home/kaldi/src/feat/kaldi-feat.a && \
+    rm -rf /home/kaldi/src/hmm/kaldi-hmm.a && \
+    rm -rf /home/kaldi/src/matrix/kaldi-matrix.a && \
+    rm -rf /home/kaldi/src/lat/kaldi-lat.a && \
+    rm -rf /home/kaldi/src/transform/kaldi-transform.a \
+    rm -rf /home/kaldi/tools/openfst-1.6.7/src/script/ && \
+    rm -rf /home/kaldi/tools/openfst-1.6.7/src/extensions/ && \
+    rm -rf /home/kaldi/tools/openfst-1.6.7/src/lib/*.a
