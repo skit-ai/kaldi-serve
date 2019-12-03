@@ -35,6 +35,7 @@ ENV KALDI_ROOT="/home/kaldi" \
     LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
 
 RUN make
+RUN bash -c "mkdir /so-files/; cp /opt/intel/mkl/lib/intel64/lib*.so /so-files/"
 
 FROM debian:jessie-slim
 WORKDIR /home/app
@@ -66,9 +67,7 @@ COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/local/lib/libs
 COPY --from=builder /home/kaldi/src/lib/libkaldi-lat.so /home/kaldi/src/lib/libkaldi-lat.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-tree.so /home/kaldi/src/lib/libkaldi-tree.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-transform.so /home/kaldi/src/lib/libkaldi-transform.so
-COPY --from=builder /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.so /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.so
-COPY --from=builder /opt/intel/mkl/lib/intel64/libmkl_core.so /opt/intel/mkl/lib/intel64/libmkl_core.so
-COPY --from=builder /opt/intel/mkl/lib/intel64/libmkl_sequential.so /opt/intel/mkl/lib/intel64/libmkl_sequential.so
+COPY --from=builder /so-files /opt/intel/mkl/lib/intel64/
 COPY --from=builder /home/kaldi/src/lib/libkaldi-chain.so /home/kaldi/src/lib/libkaldi-chain.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-nnet2.so /home/kaldi/src/lib/libkaldi-nnet2.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-gmm.so /home/kaldi/src/lib/libkaldi-gmm.so
