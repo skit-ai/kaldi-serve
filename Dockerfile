@@ -1,4 +1,4 @@
-FROM vernacularai/kaldi:1.0.0 as builder
+FROM vernacularai/kaldi:2019-11-23 as builder
 
 # gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
 RUN apt-get update && \
@@ -35,9 +35,9 @@ ENV KALDI_ROOT="/home/kaldi" \
     LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
 
 RUN make
+RUN bash -c "mkdir /so-files/; cp /opt/intel/mkl/lib/intel64/lib*.so /so-files/"
 
-FROM alpine:3.10.1
-RUN apk --no-cache add ca-certificates
+FROM debian:jessie-slim
 WORKDIR /home/app
 
 COPY --from=builder /home/app/build build
@@ -47,8 +47,8 @@ ENV LD_LIBRARY_PATH="/usr/local/lib:/home/kaldi/tools/openfst/lib:/home/kaldi/sr
 
 COPY --from=builder /usr/local/lib/libgrpc++.so.1 /usr/local/lib/libgrpc++.so.1
 COPY --from=builder /usr/local/lib/libgrpc++_reflection.so.1 /usr/local/lib/libgrpc++_reflection.so.1
-COPY --from=builder /usr/local/lib/libgrpc++_reflection.so.1 /usr/local/lib/libgrpc++_reflection.so.1
-COPY --from=builder /lib/x86_64-linux-gnu/libpthread.so.0 /lib/x86_64-linux-gnu/libpthread.so.0
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost_system.so.1.62.0 /usr/local/lib/libboost_system.so.1.62.0
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.62.0 /usr/local/lib/libboost_filesystem.so.1.62.0
 COPY --from=builder /home/kaldi/src/lib/libkaldi-decoder.so /home/kaldi/src/lib/libkaldi-decoder.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-fstext.so /home/kaldi/src/lib/libkaldi-fstext.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-hmm.so /home/kaldi/src/lib/libkaldi-hmm.so
@@ -61,25 +61,15 @@ COPY --from=builder /home/kaldi/src/lib/libkaldi-online2.so /home/kaldi/src/lib/
 COPY --from=builder /home/kaldi/src/lib/libkaldi-cudamatrix.so /home/kaldi/src/lib/libkaldi-cudamatrix.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-ivector.so /home/kaldi/src/lib/libkaldi-ivector.so
 COPY --from=builder /home/kaldi/tools/openfst/lib/libfst.so.10 /home/kaldi/tools/openfst/lib/libfst.so.10
-COPY --from=builder /lib/x86_64-linux-gnu/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6
-COPY --from=builder /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/libgcc_s.so.1
-COPY --from=builder /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
-COPY --from=builder /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so.2
-COPY --from=builder /lib/x86_64-linux-gnu/librt.so.1 /lib/x86_64-linux-gnu/librt.so.1
-COPY --from=builder /lib/x86_64-linux-gnu/libz.so.1 /lib/x86_64-linux-gnu/libz.so.1
 COPY --from=builder /usr/local/lib/libgrpc.so.7 /usr/local/lib/libgrpc.so.7
 COPY --from=builder /usr/local/lib/libgpr.so.7 /usr/local/lib/libgpr.so.7
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/local/lib/libstdc++.so.6
 COPY --from=builder /home/kaldi/src/lib/libkaldi-lat.so /home/kaldi/src/lib/libkaldi-lat.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-tree.so /home/kaldi/src/lib/libkaldi-tree.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-transform.so /home/kaldi/src/lib/libkaldi-transform.so
-COPY --from=builder /usr/lib/libcblas.so.3 /usr/lib/libcblas.so.3
-COPY --from=builder /usr/lib/liblapack_atlas.so.3 /usr/lib/liblapack_atlas.so.3
+COPY --from=builder /so-files /opt/intel/mkl/lib/intel64/
+COPY --from=builder /home/kaldi/src/lib/libkaldi-chain.so /home/kaldi/src/lib/libkaldi-chain.so
+COPY --from=builder /home/kaldi/src/lib/libkaldi-nnet2.so /home/kaldi/src/lib/libkaldi-nnet2.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-gmm.so /home/kaldi/src/lib/libkaldi-gmm.so
-COPY --from=builder /usr/lib/libatlas.so.3 /usr/lib/libatlas.so.3
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/x86_64-linux-gnu/libgfortran.so.3
-COPY --from=builder /usr/lib/libf77blas.so.3 /usr/lib/libf77blas.so.3
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libquadmath.so.0 /usr/lib/x86_64-linux-gnu/libquadmath.so.0
-COPY --from=builder /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
 
 CMD [ "./build/kaldi_serve_app" ]
