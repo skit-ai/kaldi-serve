@@ -21,11 +21,11 @@ RUN cd /home/ && \
     git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc && \
     cd /home/grpc/ && \
     git submodule update --init && \
-    make && \
-    make install
-
-# Install Protobuf v3
-RUN cd /home/grpc/third_party/protobuf && make install
+    ex -s -c '356i|CPPFLAGS += -Wno-unused-variable' -c x Makefile && \
+    make -j$(nproc) && \
+    make install -j$(nproc) && ldconfig && \
+    cd /home/grpc/third_party/protobuf && make install && \
+    rm -rf /home/grpc/
 
 WORKDIR /home/app
 
