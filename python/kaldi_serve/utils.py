@@ -56,14 +56,14 @@ def chunks_from_mic(secs: int, frame_rate: int, channels: int):
     p.terminate()
 
 
-def chunks_from_file(filename: str, chunk_size=1, raw=False):
+def chunks_from_file(filename: str, chunk_size=1, raw=False, pcm=False):
     """
     Return wav chunks of given size (in seconds) from the file.
     """
 
     # TODO: Should remove assumptions about audio properties from here
-    audio = AudioSegment.from_file(filename, format="wav", frame_rate=8000, channels=1, sample_width=2)
-    return chunks_from_audio_segment(audio, chunk_size=chunk_size, raw=raw)
+    audio = AudioSegment.from_file(filename, format="s16le" if pcm else "wav", frame_rate=8000, channels=1, sample_width=2)
+    return chunks_from_audio_segment(audio, chunk_size=chunk_size, raw=True if pcm else raw)
 
 def chunks_from_audio_segment(audio: str, chunk_size=1, raw=False):
     """

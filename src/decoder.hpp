@@ -434,12 +434,17 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
     feature_pipeline.InputFinished();
     decoder.FinalizeDecoding();
 
+    if (decoder.NumFramesDecoded() == 0) {
+        KALDI_WARN << "audio may be empty :: decoded no frames";
+        return;
+    }
+
     kaldi::CompactLattice clat;
     try {
         decoder.GetLattice(true, &clat);
         find_alternatives(word_syms_.get(), clat, n_best, results);
-    } catch (const std::exception &e) {
-        std::cout << "ERROR :: client timed out" << ENDL;
+    } catch (std::exception &e) {
+        KALDI_ERR << "unexpected error during decoding lattice :: " << e.what(); 
     }
 }
 

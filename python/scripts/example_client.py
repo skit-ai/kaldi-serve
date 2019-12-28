@@ -2,14 +2,15 @@
 Script for testing out ASR server.
 
 Usage:
-  example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>] [--raw]
-  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--raw]
+  example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>] [--raw] [--pcm]
+  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--raw] [--pcm]
 
 Options:
   --n-secs=<n-secs>     Number of seconds to records, ideally there should be a VAD here. [default: 3]
   --model=<model>       Name of the model to hit [default: general]
   --lang=<lang>         Language code of the model [default: hi]
   --raw                 Flag that specifies whether to stream raw audio bytes to server.
+  --pcm                 Flag for sending raw pcm bytes
 """
 
 import random
@@ -18,6 +19,7 @@ import traceback
 from pprint import pprint
 from typing import List
 
+from pydub import AudioSegment
 from docopt import docopt
 
 from kaldi_serve import KaldiServeClient, RecognitionAudio, RecognitionConfig
@@ -84,12 +86,11 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
     pprint(parse_response(response))
 
 
-def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False):
+def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False, pcm: bool=False):
     """
     Decode files using threaded requests
     """
-
-    chunked_audios = [chunks_from_file(x, chunk_size=random.randint(1, 3), raw=raw) for x in audio_paths]
+    chunked_audios = [chunks_from_file(x, chunk_size=random.randint(1, 3), raw=raw, pcm=pcm) for x in audio_paths]
 
     threads = [
         threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code, raw))
@@ -109,8 +110,9 @@ if __name__ == "__main__":
     model = args["--model"]
     language_code = args["--lang"]
     raw = args['--raw']
+    pcm = args['--pcm']
 
     if args["mic"]:
         transcribe_chunks(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, raw)
     else:
-        decode_files(client, args["<file>"], model, language_code, raw)
+        decode_files(client, args["<file>"], model, language_code, raw, pcm)
