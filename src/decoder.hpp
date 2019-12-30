@@ -126,7 +126,7 @@ class Decoder final {
     void _find_alternatives(const kaldi::CompactLattice &clat,
                             const std::size_t &n_best,
                             utterance_results_t &results,
-                            const bool &word_level) const;
+                            const bool &word_level) noexcept;
 
     // Decoding processes
     void _decode_wave(kaldi::OnlineNnet2FeaturePipeline &,
@@ -269,7 +269,7 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
     // NOTE: Check why int32s specifically are used here
     std::vector<int32> input_ids;
     std::vector<int32> word_ids;
-    std::vector<std::string> words;
+    std::vector<std::string> word_strings;
     std::string sentence;
 
     for (auto const &l : nbest_lats) {
@@ -277,9 +277,9 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
 
         for (auto const &wid : word_ids) {
-            words.push_back(word_syms_->Find(wid));
+            word_strings.push_back(word_syms_->Find(wid));
         }
-        string_join(words, " ", sentence);
+        string_join(word_strings, " ", sentence);
 
         Alternative alt;
         alt.transcript = sentence;
@@ -290,7 +290,7 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
 
         input_ids.clear();
         word_ids.clear();
-        words.clear();
+        word_strings.clear();
         sentence.clear();
     }
 
