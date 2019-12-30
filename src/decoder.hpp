@@ -346,8 +346,8 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
             KALDI_ASSERT(best_words[i] != 0 || mbr_opts.print_silence); // Should not have epsilons.
 
             Word word;
-            word.startTime = frame_shift * times[i].first;
-            word.endTime = frame_shift * times[i].second;
+            word.start_time = frame_shift * times[i].first;
+            word.end_time = frame_shift * times[i].second;
             word.word = word_syms_->Find(best_words[i]); // lookup word in SymbolTable
             word.confidence = conf[i];
 
