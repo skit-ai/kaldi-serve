@@ -126,7 +126,7 @@ class Decoder final {
     void _find_alternatives(const kaldi::CompactLattice &clat,
                             const std::size_t &n_best,
                             utterance_results_t &results,
-                            const bool &word_level) noexcept;
+                            const bool &word_level) const noexcept;
 
     // Decoding processes
     void _decode_wave(kaldi::OnlineNnet2FeaturePipeline &,
@@ -248,7 +248,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
 void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
                                  const std::size_t &n_best,
                                  utterance_results_t &results,
-                                 const bool &word_level) noexcept {
+                                 const bool &word_level) const noexcept {
     if (clat.NumStates() == 0) {
         KALDI_LOG << "Empty lattice.";
     }
