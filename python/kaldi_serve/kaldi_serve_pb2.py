@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='kaldi_serve',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x11kaldi_serve.proto\x12\x0bkaldi_serve\"~\n\x10RecognizeRequest\x12.\n\x06\x63onfig\x18\x01 \x01(\x0b\x32\x1e.kaldi_serve.RecognitionConfig\x12,\n\x05\x61udio\x18\x02 \x01(\x0b\x32\x1d.kaldi_serve.RecognitionAudio\x12\x0c\n\x04uuid\x18\x03 \x01(\t\"J\n\x11RecognizeResponse\x12\x35\n\x07results\x18\x01 \x03(\x0b\x32$.kaldi_serve.SpeechRecognitionResult\"\x9b\x03\n\x11RecognitionConfig\x12>\n\x08\x65ncoding\x18\x01 \x01(\x0e\x32,.kaldi_serve.RecognitionConfig.AudioEncoding\x12\x19\n\x11sample_rate_hertz\x18\x02 \x01(\x05\x12\x15\n\rlanguage_code\x18\x03 \x01(\t\x12\x18\n\x10max_alternatives\x18\x04 \x01(\x05\x12\x13\n\x0bpunctuation\x18\x05 \x01(\x08\x12\x33\n\x0fspeech_contexts\x18\x06 \x03(\x0b\x32\x1a.kaldi_serve.SpeechContext\x12\x1b\n\x13\x61udio_channel_count\x18\x07 \x01(\x05\x12 \n\x18\x65nable_word_time_offsets\x18\x08 \x01(\x08\x12\r\n\x05model\x18\n \x01(\t\x12\x0b\n\x03raw\x18\x0b \x01(\x08\x12\x12\n\ndata_bytes\x18\x0c \x01(\x05\"A\n\rAudioEncoding\x12\x18\n\x14\x45NCODING_UNSPECIFIED\x10\x00\x12\x0c\n\x08LINEAR16\x10\x01\x12\x08\n\x04\x46LAC\x10\x02\"D\n\x10RecognitionAudio\x12\x11\n\x07\x63ontent\x18\x01 \x01(\x0cH\x00\x12\r\n\x03uri\x18\x02 \x01(\tH\x00\x42\x0e\n\x0c\x61udio_source\"Z\n\x17SpeechRecognitionResult\x12?\n\x0c\x61lternatives\x18\x01 \x03(\x0b\x32).kaldi_serve.SpeechRecognitionAlternative\"\x8c\x01\n\x1cSpeechRecognitionAlternative\x12\x12\n\ntranscript\x18\x01 \x01(\t\x12\x12\n\nconfidence\x18\x02 \x01(\x02\x12\x10\n\x08\x61m_score\x18\x03 \x01(\x02\x12\x10\n\x08lm_score\x18\x04 \x01(\x02\x12 \n\x05words\x18\x05 \x03(\x0b\x32\x11.kaldi_serve.Word\"L\n\x04Word\x12\x11\n\tstartTime\x18\x01 \x01(\x02\x12\x0f\n\x07\x65ndTime\x18\x02 \x01(\x02\x12\x0c\n\x04word\x18\x03 \x01(\t\x12\x12\n\nconfidence\x18\x04 \x01(\x02\".\n\rSpeechContext\x12\x0f\n\x07phrases\x18\x01 \x03(\t\x12\x0c\n\x04type\x18\x02 \x01(\t2\xb3\x01\n\nKaldiServe\x12L\n\tRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00\x12W\n\x12StreamingRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00(\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x11kaldi_serve.proto\x12\x0bkaldi_serve\"~\n\x10RecognizeRequest\x12.\n\x06\x63onfig\x18\x01 \x01(\x0b\x32\x1e.kaldi_serve.RecognitionConfig\x12,\n\x05\x61udio\x18\x02 \x01(\x0b\x32\x1d.kaldi_serve.RecognitionAudio\x12\x0c\n\x04uuid\x18\x03 \x01(\t\"J\n\x11RecognizeResponse\x12\x35\n\x07results\x18\x01 \x03(\x0b\x32$.kaldi_serve.SpeechRecognitionResult\"\x8d\x03\n\x11RecognitionConfig\x12>\n\x08\x65ncoding\x18\x01 \x01(\x0e\x32,.kaldi_serve.RecognitionConfig.AudioEncoding\x12\x19\n\x11sample_rate_hertz\x18\x02 \x01(\x05\x12\x15\n\rlanguage_code\x18\x03 \x01(\t\x12\x18\n\x10max_alternatives\x18\x04 \x01(\x05\x12\x13\n\x0bpunctuation\x18\x05 \x01(\x08\x12\x33\n\x0fspeech_contexts\x18\x06 \x03(\x0b\x32\x1a.kaldi_serve.SpeechContext\x12\x1b\n\x13\x61udio_channel_count\x18\x07 \x01(\x05\x12\r\n\x05model\x18\n \x01(\t\x12\x0b\n\x03raw\x18\x0b \x01(\x08\x12\x12\n\ndata_bytes\x18\x0c \x01(\x05\x12\x12\n\nword_level\x18\r \x01(\x08\"A\n\rAudioEncoding\x12\x18\n\x14\x45NCODING_UNSPECIFIED\x10\x00\x12\x0c\n\x08LINEAR16\x10\x01\x12\x08\n\x04\x46LAC\x10\x02\"D\n\x10RecognitionAudio\x12\x11\n\x07\x63ontent\x18\x01 \x01(\x0cH\x00\x12\r\n\x03uri\x18\x02 \x01(\tH\x00\x42\x0e\n\x0c\x61udio_source\"Z\n\x17SpeechRecognitionResult\x12?\n\x0c\x61lternatives\x18\x01 \x03(\x0b\x32).kaldi_serve.SpeechRecognitionAlternative\"\x8c\x01\n\x1cSpeechRecognitionAlternative\x12\x12\n\ntranscript\x18\x01 \x01(\t\x12\x12\n\nconfidence\x18\x02 \x01(\x02\x12\x10\n\x08\x61m_score\x18\x03 \x01(\x02\x12\x10\n\x08lm_score\x18\x04 \x01(\x02\x12 \n\x05words\x18\x05 \x03(\x0b\x32\x11.kaldi_serve.Word\"N\n\x04Word\x12\x12\n\nstart_time\x18\x01 \x01(\x02\x12\x10\n\x08\x65nd_time\x18\x02 \x01(\x02\x12\x0c\n\x04word\x18\x03 \x01(\t\x12\x12\n\nconfidence\x18\x04 \x01(\x02\".\n\rSpeechContext\x12\x0f\n\x07phrases\x18\x01 \x03(\t\x12\x0c\n\x04type\x18\x02 \x01(\t2\xb3\x01\n\nKaldiServe\x12L\n\tRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00\x12W\n\x12StreamingRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00(\x01\x62\x06proto3')
 )
 
 
@@ -46,8 +46,8 @@ _RECOGNITIONCONFIG_AUDIOENCODING = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=585,
-  serialized_end=650,
+  serialized_start=571,
+  serialized_end=636,
 )
 _sym_db.RegisterEnumDescriptor(_RECOGNITIONCONFIG_AUDIOENCODING)
 
@@ -185,30 +185,30 @@ _RECOGNITIONCONFIG = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='enable_word_time_offsets', full_name='kaldi_serve.RecognitionConfig.enable_word_time_offsets', index=7,
-      number=8, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='model', full_name='kaldi_serve.RecognitionConfig.model', index=8,
+      name='model', full_name='kaldi_serve.RecognitionConfig.model', index=7,
       number=10, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='raw', full_name='kaldi_serve.RecognitionConfig.raw', index=9,
+      name='raw', full_name='kaldi_serve.RecognitionConfig.raw', index=8,
       number=11, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='data_bytes', full_name='kaldi_serve.RecognitionConfig.data_bytes', index=10,
+      name='data_bytes', full_name='kaldi_serve.RecognitionConfig.data_bytes', index=9,
       number=12, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='word_level', full_name='kaldi_serve.RecognitionConfig.word_level', index=10,
+      number=13, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -226,7 +226,7 @@ _RECOGNITIONCONFIG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=239,
-  serialized_end=650,
+  serialized_end=636,
 )
 
 
@@ -266,8 +266,8 @@ _RECOGNITIONAUDIO = _descriptor.Descriptor(
       name='audio_source', full_name='kaldi_serve.RecognitionAudio.audio_source',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=652,
-  serialized_end=720,
+  serialized_start=638,
+  serialized_end=706,
 )
 
 
@@ -297,8 +297,8 @@ _SPEECHRECOGNITIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=722,
-  serialized_end=812,
+  serialized_start=708,
+  serialized_end=798,
 )
 
 
@@ -356,8 +356,8 @@ _SPEECHRECOGNITIONALTERNATIVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=815,
-  serialized_end=955,
+  serialized_start=801,
+  serialized_end=941,
 )
 
 
@@ -369,14 +369,14 @@ _WORD = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='startTime', full_name='kaldi_serve.Word.startTime', index=0,
+      name='start_time', full_name='kaldi_serve.Word.start_time', index=0,
       number=1, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='endTime', full_name='kaldi_serve.Word.endTime', index=1,
+      name='end_time', full_name='kaldi_serve.Word.end_time', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
@@ -408,8 +408,8 @@ _WORD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=957,
-  serialized_end=1033,
+  serialized_start=943,
+  serialized_end=1021,
 )
 
 
@@ -446,8 +446,8 @@ _SPEECHCONTEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1035,
-  serialized_end=1081,
+  serialized_start=1023,
+  serialized_end=1069,
 )
 
 _RECOGNIZEREQUEST.fields_by_name['config'].message_type = _RECOGNITIONCONFIG
@@ -538,8 +538,8 @@ _KALDISERVE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1084,
-  serialized_end=1263,
+  serialized_start=1072,
+  serialized_end=1251,
   methods=[
   _descriptor.MethodDescriptor(
     name='Recognize',
