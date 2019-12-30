@@ -21,6 +21,8 @@
 #include "fstext/fstext-lib.h"
 #include "lat/kaldi-lattice.h"
 #include "lat/lattice-functions.h"
+#include "lat/word-align-lattice.h"
+#include "lat/sausages.h"
 #include "nnet3/nnet-utils.h"
 #include "online2/online-endpoint.h"
 #include "online2/online-nnet2-feature-pipeline.h"
