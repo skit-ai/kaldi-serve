@@ -47,6 +47,11 @@ struct Alternative {
   std::vector<Word> words;
 };
 
+// Options for decoder
+struct DecoderOptions {
+  bool enable_word_level;
+};
+
 // Result for one continuous utterance
 using utterance_results_t = std::vector<Alternative>;
 
@@ -112,6 +117,7 @@ class Decoder final {
     fst::Fst<fst::StdArc> *const decode_fst_;
     mutable kaldi::nnet3::AmNnetSimple am_nnet_; // TODO: check why kaldi decodable_info needs a non-const ref of am_net model
     kaldi::TransitionModel trans_model_;
+    DecoderOptions options;
 
     std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
 
@@ -215,8 +221,15 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
             KALDI_ERR << "Could not read symbol table from file " << word_syms_filepath;
         }
 
-        kaldi::WordBoundaryInfoNewOpts word_boundary_opts;
-        wb_info_ = new kaldi::WordBoundaryInfo(word_boundary_opts, word_boundary_filepath);
+        if (exists(word_boundary_filepath)) {
+            kaldi::WordBoundaryInfoNewOpts word_boundary_opts;
+            wb_info_ = new kaldi::WordBoundaryInfo(word_boundary_opts, word_boundary_filepath);
+            options.enable_word_level = true;
+        } else {
+            KALDI_WARN << "Word boundary file" << word_boundary_filepath
+                       << "not found. Disabling word level features.";
+            options.enable_word_level = false;
+        }
 
         feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>();
         feature_info_->feature_type = "mfcc";
@@ -294,7 +307,8 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         sentence.clear();
     }
 
-    if (!word_level) return;
+    if (!(options.enable_word_level && word_level))
+      return;
 
     kaldi::CompactLattice aligned_clat;
     kaldi::BaseFloat max_expand = 0.0;

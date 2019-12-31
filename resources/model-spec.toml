@@ -39,6 +39,7 @@ frame_subsampling_factor = 3 # 3
 # │   ├── final.ie
 # │   ├── final.mat
 # │   └── global_cmvn.stats
+# ├── word_boundary.int (optional; needed only for word level confidence and timing information)
 # └── words.txt
 
 # The files above have the default kaldi chain model interpretation (with
