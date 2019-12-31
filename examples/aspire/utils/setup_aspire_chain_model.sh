@@ -17,6 +17,7 @@ escape_path () {
 }
 
 if ! [ -d model/ ]; then
+    
     cd $kaldi_root/egs/aspire/s5
 
     if ! [ -f aspire_chain_model.tar.bz2 ]; then
@@ -47,8 +48,8 @@ if ! [ -d model/ ]; then
 
         escaped_model_path="$(escape_path "$kaldi_root/egs/aspire/s5/$aspire_model_path/")"
 
-        sed -i "s/$escaped_model_path//g" "conf/online.conf"
-        sed -i "s/$escaped_model_path//g" "conf/ivector_extractor.conf"
+        sed -i "s/$escaped_model_path//g" "model/conf/online.conf"
+        sed -i "s/$escaped_model_path//g" "model/conf/ivector_extractor.conf"
     fi
 
     mv model $example_root/model
