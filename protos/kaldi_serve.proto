@@ -40,11 +40,11 @@ message RecognitionConfig {
   bool punctuation = 5;
   repeated SpeechContext speech_contexts = 6;
   int32 audio_channel_count = 7;
-  bool enable_word_time_offsets = 8;
   // RecognitionMetadata metadata = 9;
   string model = 10;
   bool raw = 11;
   int32 data_bytes = 12;
+  bool word_level = 13;
 }
 
 // Either `content` or `uri` must be supplied.
@@ -64,6 +64,14 @@ message SpeechRecognitionAlternative {
   float confidence = 2;
   float am_score = 3;
   float lm_score = 4;
+  repeated Word words = 5;
+}
+
+message Word {
+  float start_time = 1;
+  float end_time = 2;
+  string word = 3;
+  float confidence = 4;
 }
 
 message SpeechContext {

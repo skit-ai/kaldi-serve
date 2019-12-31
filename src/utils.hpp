@@ -27,6 +27,11 @@ std::string join_path(std::string a, std::string b) {
   return (fs_a / fs_b).string();
 }
 
+bool exists(std::string path) {
+  boost::filesystem::path fs_path(path);
+  return boost::filesystem::exists(fs_path);
+}
+
 // Fills a list of model specifications from the config
 void parse_model_specs(const std::string &toml_path, std::vector<ModelSpec> &model_specs) {
     auto config = cpptoml::parse_file(toml_path);

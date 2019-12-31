@@ -2,8 +2,8 @@
 Script for testing out ASR server.
 
 Usage:
-  example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>] [--raw] [--pcm]
-  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--raw] [--pcm]
+  example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>] [--raw] [--pcm] [--word-level]
+  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--raw] [--pcm] [--word-level]
 
 Options:
   --n-secs=<n-secs>     Number of seconds to records, ideally there should be a VAD here. [default: 3]
@@ -11,6 +11,7 @@ Options:
   --lang=<lang>         Language code of the model [default: hi]
   --raw                 Flag that specifies whether to stream raw audio bytes to server.
   --pcm                 Flag for sending raw pcm bytes
+  --word-level          Whether to get word level features from server.
 """
 
 import random
@@ -19,8 +20,8 @@ import traceback
 from pprint import pprint
 from typing import List
 
-from pydub import AudioSegment
 from docopt import docopt
+from pydub import AudioSegment
 
 from kaldi_serve import KaldiServeClient, RecognitionAudio, RecognitionConfig
 from kaldi_serve.utils import (chunks_from_file, chunks_from_mic,
@@ -39,14 +40,23 @@ def parse_response(response):
                 "transcript": alt.transcript,
                 "confidence": alt.confidence,
                 "am_score": alt.am_score,
-                "lm_score": alt.lm_score
+                "lm_score": alt.lm_score,
+                "words": [
+                    {
+                        "start_time": word.start_time,
+                        "end_time": word.end_time,
+                        "word": word.word,
+                        "confidence": word.confidence
+                    }
+                    for word in alt.words
+                ]
             }
             for alt in res.alternatives
         ])
     return output
 
 
-def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw: bool=False):
+def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw: bool=False, word_level: bool=False):
     """
     Transcribe the given audio chunks
     """
@@ -64,6 +74,7 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
                 max_alternatives=10,
                 model=model,
                 raw=True,
+                word_level=word_level,
                 data_bytes=chunk_len
             )
             audio_params = [(config(len(chunk)), RecognitionAudio(content=chunk)) for chunk in audio_chunks]
@@ -77,6 +88,7 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
                 language_code=language_code,
                 max_alternatives=10,
                 model=model,
+                word_level=word_level
             )
             response = client.streaming_recognize(config, audio, uuid="")
     except Exception as e:
@@ -86,14 +98,14 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
     pprint(parse_response(response))
 
 
-def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False, pcm: bool=False):
+def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False, pcm: bool=False, word_level: bool=False):
     """
     Decode files using threaded requests
     """
     chunked_audios = [chunks_from_file(x, chunk_size=random.randint(1, 3), raw=raw, pcm=pcm) for x in audio_paths]
 
     threads = [
-        threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code, raw))
+        threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code, raw, word_level))
         for chunks in chunked_audios
     ]
 
@@ -111,8 +123,9 @@ if __name__ == "__main__":
     language_code = args["--lang"]
     raw = args['--raw']
     pcm = args['--pcm']
+    word_level = args["--word-level"]
 
     if args["mic"]:
-        transcribe_chunks(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, raw)
+        transcribe_chunks(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, raw, word_level)
     else:
-        decode_files(client, args["<file>"], model, language_code, raw, pcm)
+        decode_files(client, args["<file>"], model, language_code, raw, pcm, word_level)

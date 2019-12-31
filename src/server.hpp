@@ -104,9 +104,9 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // TODO: take chunk length (secs) as parameter in request config
     try {
         if (config.raw()) {
-            decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_);
+            decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_, config.word_level());
         } else {
-            decoder_->decode_wav_audio(input_stream, n_best, k_results_);
+            decoder_->decode_wav_audio(input_stream, n_best, k_results_, config.word_level());
         }
     } catch (kaldi::KaldiFatalError &e) {
         decoder_queue_map_[model_id]->release(decoder_);
@@ -119,6 +119,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
+    kaldi_serve::Word *word;
 
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
@@ -128,6 +129,15 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
             alternative->set_confidence(res.confidence);
             alternative->set_am_score(res.am_score);
             alternative->set_lm_score(res.lm_score);
+            if (config.word_level()) {
+                for (auto const &w: res.words) {
+                    word = alternative->add_words();
+                    word->set_start_time(w.start_time);
+                    word->set_end_time(w.end_time);
+                    word->set_word(w.word);
+                    word->set_confidence(w.confidence);
+                }
+            }
         }
     }
 
@@ -217,9 +227,10 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
+    kaldi_serve::Word *word;
 
     utterance_results_t k_results_;
-    decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_);
+    decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level());
 
     // find alternatives on final `lattice` after all chunks have been processed
     for (auto const &res : k_results_) {
@@ -229,6 +240,15 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
             alternative->set_confidence(res.confidence);
             alternative->set_am_score(res.am_score);
             alternative->set_lm_score(res.lm_score);
+            if (config.word_level()) {
+                for (auto const &w: res.words) {
+                    word = alternative->add_words();
+                    word->set_start_time(w.start_time);
+                    word->set_end_time(w.end_time);
+                    word->set_word(w.word);
+                    word->set_confidence(w.confidence);
+                }
+            }
         }
     }
 

@@ -21,6 +21,8 @@
 #include "fstext/fstext-lib.h"
 #include "lat/kaldi-lattice.h"
 #include "lat/lattice-functions.h"
+#include "lat/word-align-lattice.h"
+#include "lat/sausages.h"
 #include "nnet3/nnet-utils.h"
 #include "online2/online-endpoint.h"
 #include "online2/online-nnet2-feature-pipeline.h"
@@ -31,12 +33,23 @@
 // local includes
 #include "utils.hpp"
 
+struct Word {
+  float start_time, end_time, confidence;
+  std::string word;
+};
+
 // An alternative defines a single hypothesis and certain details about the
 // parse (only scores for now).
 struct Alternative {
   std::string transcript;
   double confidence;
   float am_score, lm_score;
+  std::vector<Word> words;
+};
+
+// Options for decoder
+struct DecoderOptions {
+  bool enable_word_level;
 };
 
 // Result for one continuous utterance
@@ -48,58 +61,6 @@ using utterance_results_t = std::vector<Alternative>;
 //       situation, we might actually want to weigh components differently.
 inline double calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words) noexcept {
     return std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
-}
-
-// Computes n-best alternative from lattice. Output symbols are converted to words
-// based on word-syms.
-void find_alternatives(const fst::SymbolTable *word_syms,
-                       const kaldi::CompactLattice &clat,
-                       const std::size_t &n_best,
-                       utterance_results_t &results) noexcept {
-    if (clat.NumStates() == 0) {
-        KALDI_LOG << "Empty lattice.";
-    }
-
-    kaldi::Lattice *lat = new kaldi::Lattice();
-    fst::ConvertLattice(clat, lat);
-
-    kaldi::Lattice nbest_lat;
-    std::vector<kaldi::Lattice> nbest_lats;
-    fst::ShortestPath(*lat, &nbest_lat, n_best);
-    fst::ConvertNbestToVector(nbest_lat, &nbest_lats);
-
-    if (nbest_lats.empty()) {
-        KALDI_WARN << "no N-best entries";
-        return;
-    }
-
-    // NOTE: Check why int32s specifically are used here
-    std::vector<int32> input_ids;
-    std::vector<int32> word_ids;
-    std::vector<std::string> words;
-    std::string sentence;
-
-    for (auto const &l : nbest_lats) {
-        kaldi::LatticeWeight weight;
-        fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
-
-        for (auto const &wid : word_ids) {
-            words.push_back(word_syms->Find(wid));
-        }
-        string_join(words, " ", sentence);
-
-        Alternative alt;
-        alt.transcript = sentence;
-        alt.lm_score = float(weight.Value1());
-        alt.am_score = float(weight.Value2());
-        alt.confidence = calculate_confidence(alt.lm_score, alt.am_score, word_ids.size());
-        results.push_back(alt);
-
-        input_ids.clear();
-        word_ids.clear();
-        words.clear();
-        sentence.clear();
-    }
 }
 
 inline void print_wav_info(const kaldi::WaveInfo &wave_info) noexcept {
@@ -150,11 +111,13 @@ class Decoder final {
 
   private:
     std::unique_ptr<fst::SymbolTable> word_syms_;
+    kaldi::WordBoundaryInfo* wb_info_;
 
   public:
     fst::Fst<fst::StdArc> *const decode_fst_;
     mutable kaldi::nnet3::AmNnetSimple am_nnet_; // TODO: check why kaldi decodable_info needs a non-const ref of am_net model
     kaldi::TransitionModel trans_model_;
+    DecoderOptions options;
 
     std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
 
@@ -165,6 +128,11 @@ class Decoder final {
                      const std::size_t &, const kaldi::BaseFloat &,
                      const kaldi::BaseFloat &, const std::size_t &,
                      const std::string &, fst::Fst<fst::StdArc> *const) noexcept;
+
+    void _find_alternatives(const kaldi::CompactLattice &clat,
+                            const std::size_t &n_best,
+                            utterance_results_t &results,
+                            const bool &word_level) const noexcept;
 
     // Decoding processes
     void _decode_wave(kaldi::OnlineNnet2FeaturePipeline &,
@@ -192,6 +160,7 @@ class Decoder final {
     void decode_wav_audio(std::istream &,
                           const size_t &,
                           utterance_results_t &,
+                          const bool &,
                           const kaldi::BaseFloat & = 1) const;
 
     // decodes an (independent) raw headerless wav audio stream
@@ -200,13 +169,15 @@ class Decoder final {
                               const size_t &,
                               const size_t &,
                               utterance_results_t &,
+                              const bool &,
                               const kaldi::BaseFloat & = 1) const;
 
     // get the final utterances based on the compact lattice
     void decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &,
                              kaldi::SingleUtteranceNnet3Decoder &,
                              const std::size_t &,
-                             utterance_results_t &) const;
+                             utterance_results_t &,
+                             const bool &) const;
 };
 
 Decoder::Decoder(const kaldi::BaseFloat &beam,
@@ -228,6 +199,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         decodable_opts_.frame_subsampling_factor = frame_subsampling_factor;
 
         std::string word_syms_filepath = join_path(model_dir, "words.txt");
+        std::string word_boundary_filepath = join_path(model_dir, "word_boundary.int");
         std::string model_filepath = join_path(model_dir, "final.mdl");
         std::string conf_dir = join_path(model_dir, "conf");
         std::string mfcc_conf_filepath = join_path(conf_dir, "mfcc.conf");
@@ -247,6 +219,16 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
 
         if (word_syms_filepath != "" && !(word_syms_ = std::unique_ptr<fst::SymbolTable>(fst::SymbolTable::ReadText(word_syms_filepath)))) {
             KALDI_ERR << "Could not read symbol table from file " << word_syms_filepath;
+        }
+
+        if (exists(word_boundary_filepath)) {
+            kaldi::WordBoundaryInfoNewOpts word_boundary_opts;
+            wb_info_ = new kaldi::WordBoundaryInfo(word_boundary_opts, word_boundary_filepath);
+            options.enable_word_level = true;
+        } else {
+            KALDI_WARN << "Word boundary file" << word_boundary_filepath
+                       << " not found. Disabling word level features.";
+            options.enable_word_level = false;
         }
 
         feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>();
@@ -270,6 +252,125 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
     }
     catch (const std::exception &e) {
         KALDI_ERR << e.what();
+    }
+}
+
+
+// Computes n-best alternative from lattice. Output symbols are converted to words
+// based on word-syms.
+void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
+                                 const std::size_t &n_best,
+                                 utterance_results_t &results,
+                                 const bool &word_level) const noexcept {
+    if (clat.NumStates() == 0) {
+        KALDI_LOG << "Empty lattice.";
+    }
+
+    kaldi::Lattice *lat = new kaldi::Lattice();
+    fst::ConvertLattice(clat, lat);
+
+    kaldi::Lattice nbest_lat;
+    std::vector<kaldi::Lattice> nbest_lats;
+    fst::ShortestPath(*lat, &nbest_lat, n_best);
+    fst::ConvertNbestToVector(nbest_lat, &nbest_lats);
+
+    if (nbest_lats.empty()) {
+        KALDI_WARN << "no N-best entries";
+        return;
+    }
+
+    // NOTE: Check why int32s specifically are used here
+    std::vector<int32> input_ids;
+    std::vector<int32> word_ids;
+    std::vector<std::string> word_strings;
+    std::string sentence;
+
+    for (auto const &l : nbest_lats) {
+        kaldi::LatticeWeight weight;
+        fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
+
+        for (auto const &wid : word_ids) {
+            word_strings.push_back(word_syms_->Find(wid));
+        }
+        string_join(word_strings, " ", sentence);
+
+        Alternative alt;
+        alt.transcript = sentence;
+        alt.lm_score = float(weight.Value1());
+        alt.am_score = float(weight.Value2());
+        alt.confidence = calculate_confidence(alt.lm_score, alt.am_score, word_ids.size());
+        results.push_back(alt);
+
+        input_ids.clear();
+        word_ids.clear();
+        word_strings.clear();
+        sentence.clear();
+    }
+
+    if (!(options.enable_word_level && word_level))
+      return;
+
+    kaldi::CompactLattice aligned_clat;
+    kaldi::BaseFloat max_expand = 0.0;
+    int32 max_states;
+
+    if (max_expand > 0)
+        max_states = 1000 + max_expand * clat.NumStates();
+    else
+        max_states = 0;
+
+    bool ok = kaldi::WordAlignLattice(clat, trans_model_, *wb_info_, max_states, &aligned_clat);
+
+    if (!ok) {
+        if (aligned_clat.Start() != fst::kNoStateId) {
+            KALDI_WARN << "Outputting partial lattice";
+            kaldi::TopSortCompactLatticeIfNeeded(&aligned_clat);
+            ok = true;
+        } else {
+            KALDI_WARN << "Empty aligned lattice, producing no output.";
+        }
+    } else {
+        if (aligned_clat.Start() == fst::kNoStateId) {
+            KALDI_WARN << "Lattice was empty";
+            ok = false;
+        } else {
+            kaldi::TopSortCompactLatticeIfNeeded(&aligned_clat);
+        }
+    }
+
+    std::vector<Word> words;
+
+    // compute confidences and times only if alignment was ok
+    if (ok) {
+        kaldi::BaseFloat frame_shift = 0.01;
+        kaldi::BaseFloat lm_scale = 1.0;
+        kaldi::MinimumBayesRiskOptions mbr_opts;
+        mbr_opts.decode_mbr = false;
+
+        fst::ScaleLattice(fst::LatticeScale(lm_scale, decodable_opts_.acoustic_scale), &aligned_clat);
+        kaldi::MinimumBayesRisk *mbr = new kaldi::MinimumBayesRisk(aligned_clat, mbr_opts);
+
+        const std::vector<kaldi::BaseFloat> &conf = mbr->GetOneBestConfidences();
+        const std::vector<int32> &best_words = mbr->GetOneBest();
+        const std::vector<std::pair<kaldi::BaseFloat, kaldi::BaseFloat>> &times = mbr->GetOneBestTimes();
+
+        KALDI_ASSERT(conf.size() == best_words.size() && best_words.size() == times.size());
+
+        for (size_t i = 0; i < best_words.size(); i++) {
+            KALDI_ASSERT(best_words[i] != 0 || mbr_opts.print_silence); // Should not have epsilons.
+
+            Word word;
+            word.start_time = frame_shift * times[i].first;
+            word.end_time = frame_shift * times[i].second;
+            word.word = word_syms_->Find(best_words[i]); // lookup word in SymbolTable
+            word.confidence = conf[i];
+
+            words.push_back(word);
+        }
+    }
+
+    if (!results.empty() and !words.empty()) {
+        results[0].words = words;
     }
 }
 
@@ -329,6 +430,7 @@ void Decoder::decode_stream_raw_wav_chunk(kaldi::OnlineNnet2FeaturePipeline &fea
 void Decoder::decode_wav_audio(std::istream &wav_stream,
                                const size_t &n_best,
                                utterance_results_t &results,
+                               const bool &word_level,
                                const kaldi::BaseFloat &chunk_size) const {
     // decoder state variables need to be statically initialized
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
@@ -373,13 +475,14 @@ void Decoder::decode_wav_audio(std::istream &wav_stream,
         samp_offset += num_samp;
     }
 
-    decode_stream_final(feature_pipeline, decoder, n_best, results);
+    decode_stream_final(feature_pipeline, decoder, n_best, results, word_level);
 }
 
 void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
                                    const size_t &data_bytes,
                                    const size_t &n_best,
                                    utterance_results_t &results,
+                                   const bool &word_level,
                                    const kaldi::BaseFloat &chunk_size) const {
     // decoder state variables need to be statically initialized
     kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(feature_info_->ivector_extractor_info);
@@ -424,13 +527,14 @@ void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
         samp_offset += num_samp;
     }
 
-    decode_stream_final(feature_pipeline, decoder, n_best, results);
+    decode_stream_final(feature_pipeline, decoder, n_best, results, word_level);
 }
 
 void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pipeline,
                                   kaldi::SingleUtteranceNnet3Decoder &decoder,
                                   const std::size_t &n_best,
-                                  utterance_results_t &results) const {
+                                  utterance_results_t &results,
+                                  const bool &word_level) const {
     feature_pipeline.InputFinished();
     decoder.FinalizeDecoding();
 
@@ -442,7 +546,7 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
     kaldi::CompactLattice clat;
     try {
         decoder.GetLattice(true, &clat);
-        find_alternatives(word_syms_.get(), clat, n_best, results);
+        _find_alternatives(clat, n_best, results, word_level);
     } catch (std::exception &e) {
         KALDI_ERR << "unexpected error during decoding lattice :: " << e.what(); 
     }
