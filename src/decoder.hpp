@@ -227,7 +227,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
             options.enable_word_level = true;
         } else {
             KALDI_WARN << "Word boundary file" << word_boundary_filepath
-                       << "not found. Disabling word level features.";
+                       << " not found. Disabling word level features.";
             options.enable_word_level = false;
         }
 
