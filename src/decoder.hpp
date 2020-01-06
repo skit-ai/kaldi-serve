@@ -642,9 +642,10 @@ class DecoderQueue final {
 DecoderQueue::DecoderQueue(const ModelSpec &model_spec) {
     std::cout << ":: Loading model from " << model_spec.path << ENDL;
 
+    std::chrono::system_clock::time_point start_time;
     if (DEBUG) {
         // LOG MODELS LOAD TIME --> START
-        std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+        start_time = std::chrono::system_clock::now();
     }
     decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec.path,
                                                                           model_spec.beam,
