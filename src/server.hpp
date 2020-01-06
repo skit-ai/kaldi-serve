@@ -9,10 +9,7 @@
 #include <memory>
 #include <string>
 #include <exception>
-
-#if DEBUG
 #include <chrono>
-#endif
 
 // kaldi includes
 #include <base/kaldi-error.h>
@@ -90,11 +87,11 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
 
-#if DEBUG
     std::chrono::system_clock::time_point start_time;
-    // LOG REQUEST RESOLVE TIME --> START
-    start_time = std::chrono::system_clock::now();
-#endif
+    if (DEBUG) {
+        // LOG REQUEST RESOLVE TIME --> START
+        start_time = std::chrono::system_clock::now();
+    }
     kaldi_serve::RecognitionAudio audio = request->audio();
     std::stringstream input_stream(audio.content());
 
@@ -146,12 +143,12 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // - Notifies another request handler thread of availability.
     decoder_queue_map_[model_id]->release(decoder_);
 
-#if DEBUG
-    std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-    // LOG REQUEST RESOLVE TIME --> END
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-    std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
-#endif
+    if (DEBUG) {
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        // LOG REQUEST RESOLVE TIME --> END
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
+    }
 
     return grpc::Status::OK;
 }
@@ -193,16 +190,14 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
                                                decoder_->trans_model_, decodable_info, *decoder_->decode_fst_,
                                                &feature_pipeline);
 
-#if DEBUG
     std::chrono::system_clock::time_point start_time;
-#endif
 
     // read chunks until end of stream
     do {
-#if DEBUG
-        // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actual latency)
-        start_time = std::chrono::system_clock::now();
-#endif
+        if (DEBUG) {
+            // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actual latency)
+            start_time = std::chrono::system_clock::now();
+        }
         config = request_.config();
         kaldi_serve::RecognitionAudio audio = request_.audio();
         std::stringstream input_stream_chunk(audio.content());
@@ -257,12 +252,12 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     // - Notifies another request handler thread of availability.
     decoder_queue_map_[model_id]->release(decoder_);
 
-#if DEBUG
-    std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-    // LOG REQUEST RESOLVE TIME --> END
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-    std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
-#endif
+    if (DEBUG) {
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        // LOG REQUEST RESOLVE TIME --> END
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
+    }
 
     return grpc::Status::OK;
 }

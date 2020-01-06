@@ -1,7 +1,7 @@
 // Configuration options.
 #pragma once
 
-#define DEBUG false
+// #define DEBUG false
 #define ENDL '\n'
 
 // stl includes
@@ -10,6 +10,8 @@
 
 // kaldi includes
 #include "base/kaldi-types.h"
+
+bool DEBUG = false;
 
 // Model Specification for Kaldi ASR
 // contains model config for a particular model.

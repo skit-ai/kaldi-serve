@@ -31,6 +31,8 @@ int main(int argc, char *argv[]) {
       ->required()
       ->check(CLI::ExistingFile);
 
+    app.add_flag("-d,--debug", DEBUG, "Flag to enable debug mode");
+
     app.add_flag_callback("-v,--version", print_version, "Show program version and exit");
 
     CLI11_PARSE(app, argc, argv);

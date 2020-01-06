@@ -11,10 +11,7 @@
 #include <queue>
 #include <string>
 #include <vector>
-
-#if DEBUG
 #include <chrono>
-#endif
 
 // kaldi includes
 #include "feat/wave-reader.h"
@@ -645,10 +642,10 @@ class DecoderQueue final {
 DecoderQueue::DecoderQueue(const ModelSpec &model_spec) {
     std::cout << ":: Loading model from " << model_spec.path << ENDL;
 
-#if DEBUG
-    // LOG MODELS LOAD TIME --> START
-    std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
-#endif
+    if (DEBUG) {
+        // LOG MODELS LOAD TIME --> START
+        std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+    }
     decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec.path,
                                                                           model_spec.beam,
                                                                           model_spec.min_active,
@@ -660,13 +657,12 @@ DecoderQueue::DecoderQueue(const ModelSpec &model_spec) {
         queue_.push(decoder_factory_->produce());
     }
 
-#if DEBUG
-    std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-    // LOG MODELS LOAD TIME --> END
-
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-    std::cout << ":: Decoder models concurrent queue init in: " << ms.count() << "ms" << ENDL;
-#endif
+    if (DEBUG) {
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        // LOG MODELS LOAD TIME --> END
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << ":: Decoder models concurrent queue init in: " << ms.count() << "ms" << ENDL;
+    }
 }
 
 DecoderQueue::~DecoderQueue() noexcept {
