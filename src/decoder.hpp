@@ -117,6 +117,7 @@ class Decoder final {
     DecoderOptions options;
 
     std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
+    std::unique_ptr<kaldi::nnet3::DecodableNnetSimpleLoopedInfo> decodable_info_;
 
     kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config_;
     kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts_;
@@ -125,6 +126,8 @@ class Decoder final {
                      const std::size_t &, const kaldi::BaseFloat &,
                      const kaldi::BaseFloat &, const std::size_t &,
                      const std::string &, fst::Fst<fst::StdArc> *const) noexcept;
+
+    ~Decoder();
 
     void _find_alternatives(const kaldi::CompactLattice &clat,
                             const std::size_t &n_best,
@@ -246,10 +249,16 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         ivector_extraction_opts.splice_config_rxfilename = expand_relative_path(ivector_extraction_opts.splice_config_rxfilename, model_dir);
 
         feature_info_->ivector_extractor_info.Init(ivector_extraction_opts);
+
+        decodable_info_ = std::make_unique<kaldi::nnet3::DecodableNnetSimpleLoopedInfo>(decodable_opts_, &am_nnet_);
     }
     catch (const std::exception &e) {
         KALDI_ERR << e.what();
     }
+}
+
+Decoder::~Decoder() {
+    delete wb_info_;
 }
 
 
@@ -263,12 +272,12 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         KALDI_LOG << "Empty lattice.";
     }
 
-    kaldi::Lattice *lat = new kaldi::Lattice();
-    fst::ConvertLattice(clat, lat);
+    auto lat = std::make_unique<kaldi::Lattice>();
+    fst::ConvertLattice(clat, lat.get());
 
     kaldi::Lattice nbest_lat;
     std::vector<kaldi::Lattice> nbest_lats;
-    fst::ShortestPath(*lat, &nbest_lat, n_best);
+    fst::ShortestPath(*lat.get(), &nbest_lat, n_best);
     fst::ConvertNbestToVector(nbest_lat, &nbest_lats);
 
     if (nbest_lats.empty()) {
@@ -276,13 +285,13 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         return;
     }
 
-    // NOTE: Check why int32s specifically are used here
-    std::vector<int32> input_ids;
-    std::vector<int32> word_ids;
-    std::vector<std::string> word_strings;
-    std::string sentence;
-
     for (auto const &l : nbest_lats) {
+        // NOTE: Check why int32s specifically are used here
+        std::vector<int32> input_ids;
+        std::vector<int32> word_ids;
+        std::vector<std::string> word_strings;
+        std::string sentence;
+
         kaldi::LatticeWeight weight;
         fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
 
@@ -296,12 +305,8 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         alt.lm_score = float(weight.Value1());
         alt.am_score = float(weight.Value2());
         alt.confidence = calculate_confidence(alt.lm_score, alt.am_score, word_ids.size());
-        results.push_back(alt);
 
-        input_ids.clear();
-        word_ids.clear();
-        word_strings.clear();
-        sentence.clear();
+        results.push_back(alt);
     }
 
     if (!(options.enable_word_level && word_level))
@@ -345,7 +350,7 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         mbr_opts.decode_mbr = false;
 
         fst::ScaleLattice(fst::LatticeScale(lm_scale, decodable_opts_.acoustic_scale), &aligned_clat);
-        kaldi::MinimumBayesRisk *mbr = new kaldi::MinimumBayesRisk(aligned_clat, mbr_opts);
+        auto mbr = std::make_unique<kaldi::MinimumBayesRisk>(aligned_clat, mbr_opts);
 
         const std::vector<kaldi::BaseFloat> &conf = mbr->GetOneBestConfidences();
         const std::vector<int32> &best_words = mbr->GetOneBest();
@@ -436,10 +441,8 @@ void Decoder::decode_wav_audio(std::istream &wav_stream,
 
     kaldi::OnlineSilenceWeighting silence_weighting(trans_model_, feature_info_->silence_weighting_config,
                                                     decodable_opts_.frame_subsampling_factor);
-    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts_, &am_nnet_);
-
     kaldi::SingleUtteranceNnet3Decoder decoder(lattice_faster_decoder_config_,
-                                               trans_model_, decodable_info, *decode_fst_,
+                                               trans_model_, *decodable_info_.get(), *decode_fst_,
                                                &feature_pipeline);
 
     kaldi::WaveData wave_data;
@@ -488,10 +491,8 @@ void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
 
     kaldi::OnlineSilenceWeighting silence_weighting(trans_model_, feature_info_->silence_weighting_config,
                                                     decodable_opts_.frame_subsampling_factor);
-    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decodable_opts_, &am_nnet_);
-
     kaldi::SingleUtteranceNnet3Decoder decoder(lattice_faster_decoder_config_,
-                                               trans_model_, decodable_info, *decode_fst_,
+                                               trans_model_, *decodable_info_.get(), *decode_fst_,
                                                &feature_pipeline);
 
     kaldi::Matrix<kaldi::BaseFloat> wave_matrix;

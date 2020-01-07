@@ -138,6 +138,8 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         }
     }
 
+    delete sr_result, alternative, word;
+
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
     // - Notifies another request handler thread of availability.
@@ -184,10 +186,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
 
     kaldi::OnlineSilenceWeighting silence_weighting(decoder_->trans_model_, decoder_->feature_info_->silence_weighting_config,
                                                     decoder_->decodable_opts_.frame_subsampling_factor);
-    kaldi::nnet3::DecodableNnetSimpleLoopedInfo decodable_info(decoder_->decodable_opts_, &decoder_->am_nnet_);
-
     kaldi::SingleUtteranceNnet3Decoder decoder(decoder_->lattice_faster_decoder_config_,
-                                               decoder_->trans_model_, decodable_info, *decoder_->decode_fst_,
+                                               decoder_->trans_model_, *decoder_->decodable_info_.get(), *decoder_->decode_fst_,
                                                &feature_pipeline);
 
     std::chrono::system_clock::time_point start_time;
@@ -246,6 +246,8 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
             }
         }
     }
+
+    delete sr_result, alternative, word;
 
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
