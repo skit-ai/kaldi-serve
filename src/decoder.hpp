@@ -112,7 +112,7 @@ class Decoder final {
 
   public:
     fst::Fst<fst::StdArc> *const decode_fst_;
-    mutable kaldi::nnet3::AmNnetSimple am_nnet_; // TODO: check why kaldi decodable_info needs a non-const ref of am_net model
+    mutable kaldi::nnet3::AmNnetSimple am_nnet_;
     kaldi::TransitionModel trans_model_;
     DecoderOptions options;
 

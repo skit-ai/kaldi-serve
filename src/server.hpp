@@ -98,7 +98,6 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     utterance_results_t k_results_;
 
     // decode speech signals in chunks
-    // TODO: take chunk length (secs) as parameter in request config
     try {
         if (config.raw()) {
             decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_, config.word_level());
