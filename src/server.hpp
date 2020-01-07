@@ -138,8 +138,6 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         }
     }
 
-    delete sr_result, alternative, word;
-
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
     // - Notifies another request handler thread of availability.
@@ -246,8 +244,6 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
             }
         }
     }
-
-    delete sr_result, alternative, word;
 
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.

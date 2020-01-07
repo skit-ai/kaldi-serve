@@ -258,7 +258,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
 }
 
 Decoder::~Decoder() {
-    delete wb_info_;
+    if (wb_info_ != nullptr) delete wb_info_;
 }
 
 
