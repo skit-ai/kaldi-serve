@@ -19,10 +19,18 @@ class KaldiServeClient(object):
         request = RecognizeRequest(config=config, audio=audio, uuid=uuid)
         return self._client.Recognize(request, timeout=timeout)
 
-    def streaming_recognize(self, config: RecognitionConfig, audio_chunks, uuid: str, timeout=None):
-        request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for chunk in audio_chunks)
+    def streaming_recognize(self, config: RecognitionConfig, audio_chunks_gen, uuid: str, timeout=None):
+        request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for chunk in audio_chunks_gen)
         return self._client.StreamingRecognize(request_gen, timeout=timeout)
 
-    def streaming_recognize_raw(self, audio_params, uuid: str, timeout=None):
-        request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for config, chunk in audio_params)
+    def streaming_recognize_raw(self, audio_params_gen, uuid: str, timeout=None):
+        request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for config, chunk in audio_params_gen)
         return self._client.StreamingRecognize(request_gen, timeout=timeout)
+
+    def bidi_streaming_recognize(self, config: RecognitionConfig, audio_chunks_gen, uuid: str, timeout=None):
+        request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for chunk in audio_chunks_gen)
+        return self._client.BidiStreamingRecognize(request_gen, timeout=timeout)
+
+    def bidi_streaming_recognize_raw(self, audio_params_gen, uuid: str, timeout=None):
+        request_gen = (RecognizeRequest(config=config, audio=chunk, uuid=uuid) for config, chunk in audio_params_gen)
+        return self._client.BidiStreamingRecognize(request_gen, timeout=timeout)

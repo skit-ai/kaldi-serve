@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='kaldi_serve',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x11kaldi_serve.proto\x12\x0bkaldi_serve\"~\n\x10RecognizeRequest\x12.\n\x06\x63onfig\x18\x01 \x01(\x0b\x32\x1e.kaldi_serve.RecognitionConfig\x12,\n\x05\x61udio\x18\x02 \x01(\x0b\x32\x1d.kaldi_serve.RecognitionAudio\x12\x0c\n\x04uuid\x18\x03 \x01(\t\"J\n\x11RecognizeResponse\x12\x35\n\x07results\x18\x01 \x03(\x0b\x32$.kaldi_serve.SpeechRecognitionResult\"\x8d\x03\n\x11RecognitionConfig\x12>\n\x08\x65ncoding\x18\x01 \x01(\x0e\x32,.kaldi_serve.RecognitionConfig.AudioEncoding\x12\x19\n\x11sample_rate_hertz\x18\x02 \x01(\x05\x12\x15\n\rlanguage_code\x18\x03 \x01(\t\x12\x18\n\x10max_alternatives\x18\x04 \x01(\x05\x12\x13\n\x0bpunctuation\x18\x05 \x01(\x08\x12\x33\n\x0fspeech_contexts\x18\x06 \x03(\x0b\x32\x1a.kaldi_serve.SpeechContext\x12\x1b\n\x13\x61udio_channel_count\x18\x07 \x01(\x05\x12\r\n\x05model\x18\n \x01(\t\x12\x0b\n\x03raw\x18\x0b \x01(\x08\x12\x12\n\ndata_bytes\x18\x0c \x01(\x05\x12\x12\n\nword_level\x18\r \x01(\x08\"A\n\rAudioEncoding\x12\x18\n\x14\x45NCODING_UNSPECIFIED\x10\x00\x12\x0c\n\x08LINEAR16\x10\x01\x12\x08\n\x04\x46LAC\x10\x02\"D\n\x10RecognitionAudio\x12\x11\n\x07\x63ontent\x18\x01 \x01(\x0cH\x00\x12\r\n\x03uri\x18\x02 \x01(\tH\x00\x42\x0e\n\x0c\x61udio_source\"Z\n\x17SpeechRecognitionResult\x12?\n\x0c\x61lternatives\x18\x01 \x03(\x0b\x32).kaldi_serve.SpeechRecognitionAlternative\"\x8c\x01\n\x1cSpeechRecognitionAlternative\x12\x12\n\ntranscript\x18\x01 \x01(\t\x12\x12\n\nconfidence\x18\x02 \x01(\x02\x12\x10\n\x08\x61m_score\x18\x03 \x01(\x02\x12\x10\n\x08lm_score\x18\x04 \x01(\x02\x12 \n\x05words\x18\x05 \x03(\x0b\x32\x11.kaldi_serve.Word\"N\n\x04Word\x12\x12\n\nstart_time\x18\x01 \x01(\x02\x12\x10\n\x08\x65nd_time\x18\x02 \x01(\x02\x12\x0c\n\x04word\x18\x03 \x01(\t\x12\x12\n\nconfidence\x18\x04 \x01(\x02\".\n\rSpeechContext\x12\x0f\n\x07phrases\x18\x01 \x03(\t\x12\x0c\n\x04type\x18\x02 \x01(\t2\xb3\x01\n\nKaldiServe\x12L\n\tRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00\x12W\n\x12StreamingRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00(\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x11kaldi_serve.proto\x12\x0bkaldi_serve\"~\n\x10RecognizeRequest\x12.\n\x06\x63onfig\x18\x01 \x01(\x0b\x32\x1e.kaldi_serve.RecognitionConfig\x12,\n\x05\x61udio\x18\x02 \x01(\x0b\x32\x1d.kaldi_serve.RecognitionAudio\x12\x0c\n\x04uuid\x18\x03 \x01(\t\"J\n\x11RecognizeResponse\x12\x35\n\x07results\x18\x01 \x03(\x0b\x32$.kaldi_serve.SpeechRecognitionResult\"\x8d\x03\n\x11RecognitionConfig\x12>\n\x08\x65ncoding\x18\x01 \x01(\x0e\x32,.kaldi_serve.RecognitionConfig.AudioEncoding\x12\x19\n\x11sample_rate_hertz\x18\x02 \x01(\x05\x12\x15\n\rlanguage_code\x18\x03 \x01(\t\x12\x18\n\x10max_alternatives\x18\x04 \x01(\x05\x12\x13\n\x0bpunctuation\x18\x05 \x01(\x08\x12\x33\n\x0fspeech_contexts\x18\x06 \x03(\x0b\x32\x1a.kaldi_serve.SpeechContext\x12\x1b\n\x13\x61udio_channel_count\x18\x07 \x01(\x05\x12\r\n\x05model\x18\n \x01(\t\x12\x0b\n\x03raw\x18\x0b \x01(\x08\x12\x12\n\ndata_bytes\x18\x0c \x01(\x05\x12\x12\n\nword_level\x18\r \x01(\x08\"A\n\rAudioEncoding\x12\x18\n\x14\x45NCODING_UNSPECIFIED\x10\x00\x12\x0c\n\x08LINEAR16\x10\x01\x12\x08\n\x04\x46LAC\x10\x02\"D\n\x10RecognitionAudio\x12\x11\n\x07\x63ontent\x18\x01 \x01(\x0cH\x00\x12\r\n\x03uri\x18\x02 \x01(\tH\x00\x42\x0e\n\x0c\x61udio_source\"Z\n\x17SpeechRecognitionResult\x12?\n\x0c\x61lternatives\x18\x01 \x03(\x0b\x32).kaldi_serve.SpeechRecognitionAlternative\"\x8c\x01\n\x1cSpeechRecognitionAlternative\x12\x12\n\ntranscript\x18\x01 \x01(\t\x12\x12\n\nconfidence\x18\x02 \x01(\x02\x12\x10\n\x08\x61m_score\x18\x03 \x01(\x02\x12\x10\n\x08lm_score\x18\x04 \x01(\x02\x12 \n\x05words\x18\x05 \x03(\x0b\x32\x11.kaldi_serve.Word\"N\n\x04Word\x12\x12\n\nstart_time\x18\x01 \x01(\x02\x12\x10\n\x08\x65nd_time\x18\x02 \x01(\x02\x12\x0c\n\x04word\x18\x03 \x01(\t\x12\x12\n\nconfidence\x18\x04 \x01(\x02\".\n\rSpeechContext\x12\x0f\n\x07phrases\x18\x01 \x03(\t\x12\x0c\n\x04type\x18\x02 \x01(\t2\x92\x02\n\nKaldiServe\x12L\n\tRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00\x12W\n\x12StreamingRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00(\x01\x12]\n\x16\x42idiStreamingRecognize\x12\x1d.kaldi_serve.RecognizeRequest\x1a\x1e.kaldi_serve.RecognizeResponse\"\x00(\x01\x30\x01\x62\x06proto3')
 )
 
 
@@ -539,7 +539,7 @@ _KALDISERVE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   serialized_start=1072,
-  serialized_end=1251,
+  serialized_end=1346,
   methods=[
   _descriptor.MethodDescriptor(
     name='Recognize',
@@ -554,6 +554,15 @@ _KALDISERVE = _descriptor.ServiceDescriptor(
     name='StreamingRecognize',
     full_name='kaldi_serve.KaldiServe.StreamingRecognize',
     index=1,
+    containing_service=None,
+    input_type=_RECOGNIZEREQUEST,
+    output_type=_RECOGNIZERESPONSE,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='BidiStreamingRecognize',
+    full_name='kaldi_serve.KaldiServe.BidiStreamingRecognize',
+    index=2,
     containing_service=None,
     input_type=_RECOGNIZEREQUEST,
     output_type=_RECOGNIZERESPONSE,

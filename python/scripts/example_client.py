@@ -56,7 +56,7 @@ def parse_response(response):
     return output
 
 
-def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw: bool=False, word_level: bool=False):
+def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code: str, raw: bool=False, word_level: bool=False):
     """
     Transcribe the given audio chunks
     """
@@ -66,7 +66,6 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
 
     try:
         if raw:
-            print('streaming raw')
             config = lambda chunk_len: RecognitionConfig(
                 sample_rate_hertz=SR,
                 encoding=encoding,
@@ -80,7 +79,6 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
             audio_params = [(config(len(chunk)), RecognitionAudio(content=chunk)) for chunk in audio_chunks]
             response = client.streaming_recognize_raw(audio_params, uuid="")
         else:
-            print('streaming with headers')
             audio = (RecognitionAudio(content=chunk) for chunk in audio_chunks)
             config = RecognitionConfig(
                 sample_rate_hertz=SR,
@@ -97,6 +95,38 @@ def transcribe_chunks(client, audio_chunks, model: str, language_code: str, raw:
 
     pprint(parse_response(response))
 
+def transcribe_chunks_bidi_streaming(client, audio_chunks, model: str, language_code: str, word_level: bool=False):
+    """
+    Transcribe the given audio chunks
+    """
+
+    response = {}
+    encoding = RecognitionConfig.AudioEncoding.LINEAR16
+
+    try:
+        config = lambda chunk_len: RecognitionConfig(
+            sample_rate_hertz=SR,
+            encoding=encoding,
+            language_code=language_code,
+            max_alternatives=10,
+            model=model,
+            raw=True,
+            word_level=word_level,
+            data_bytes=chunk_len
+        )
+
+        def audio_params_gen(audio_chunks_gen):
+            for chunk in audio_chunks_gen:
+                yield config(len(chunk)), RecognitionAudio(content=chunk)
+
+        response_gen = client.bidi_streaming_recognize_raw(audio_params_gen(audio_chunks), uuid="")
+    except Exception as e:
+        traceback.print_exc()
+        print(f'error: {str(e)}')
+
+    for response in response_gen:
+        pprint(parse_response(response))
+
 
 def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False, pcm: bool=False, word_level: bool=False):
     """
@@ -105,7 +135,7 @@ def decode_files(client, audio_paths: List[str], model: str, language_code: str,
     chunked_audios = [chunks_from_file(x, chunk_size=random.randint(1, 3), raw=raw, pcm=pcm) for x in audio_paths]
 
     threads = [
-        threading.Thread(target=transcribe_chunks, args=(client, chunks, model, language_code, raw, word_level))
+        threading.Thread(target=transcribe_chunks_streaming, args=(client, chunks, model, language_code, raw, word_level))
         for chunks in chunked_audios
     ]
 
@@ -126,6 +156,6 @@ if __name__ == "__main__":
     word_level = args["--word-level"]
 
     if args["mic"]:
-        transcribe_chunks(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, raw, word_level)
+        transcribe_chunks_bidi_streaming(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, word_level)
     else:
         decode_files(client, args["<file>"], model, language_code, raw, pcm, word_level)

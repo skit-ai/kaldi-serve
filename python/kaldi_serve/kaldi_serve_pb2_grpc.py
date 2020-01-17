@@ -24,6 +24,11 @@ class KaldiServeStub(object):
         request_serializer=kaldi__serve__pb2.RecognizeRequest.SerializeToString,
         response_deserializer=kaldi__serve__pb2.RecognizeResponse.FromString,
         )
+    self.BidiStreamingRecognize = channel.stream_stream(
+        '/kaldi_serve.KaldiServe/BidiStreamingRecognize',
+        request_serializer=kaldi__serve__pb2.RecognizeRequest.SerializeToString,
+        response_deserializer=kaldi__serve__pb2.RecognizeResponse.FromString,
+        )
 
 
 class KaldiServeServicer(object):
@@ -31,7 +36,7 @@ class KaldiServeServicer(object):
   pass
 
   def Recognize(self, request, context):
-    """Performs synchronous non-streaming speech recognition;
+    """Performs synchronous non-streaming speech recognition.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -40,6 +45,14 @@ class KaldiServeServicer(object):
   def StreamingRecognize(self, request_iterator, context):
     """Performs synchronous client-to-server streaming speech recognition: 
     receive results after all audio has been streamed and processed.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def BidiStreamingRecognize(self, request_iterator, context):
+    """Performs synchronous bidirectional streaming speech recognition: 
+    receive results as the audio is being streamed and processed.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -55,6 +68,11 @@ def add_KaldiServeServicer_to_server(servicer, server):
       ),
       'StreamingRecognize': grpc.stream_unary_rpc_method_handler(
           servicer.StreamingRecognize,
+          request_deserializer=kaldi__serve__pb2.RecognizeRequest.FromString,
+          response_serializer=kaldi__serve__pb2.RecognizeResponse.SerializeToString,
+      ),
+      'BidiStreamingRecognize': grpc.stream_stream_rpc_method_handler(
+          servicer.BidiStreamingRecognize,
           request_deserializer=kaldi__serve__pb2.RecognizeRequest.FromString,
           response_serializer=kaldi__serve__pb2.RecognizeResponse.SerializeToString,
       ),

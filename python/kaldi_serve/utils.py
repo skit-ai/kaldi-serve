@@ -34,8 +34,8 @@ def chunks_from_mic(secs: int, frame_rate: int, channels: int):
     p = pyaudio.PyAudio()
     sample_format = pyaudio.paInt16
 
-    # This is in samples not seconds
-    chunk_size = 4000
+    # 8k samples ~ 1sec of audio
+    chunk_size = 8000
 
     stream = p.open(format=sample_format,
                     channels=channels,
@@ -45,6 +45,7 @@ def chunks_from_mic(secs: int, frame_rate: int, channels: int):
 
     sample_width = p.get_sample_size(sample_format)
 
+    print('recording...')
     for _ in range(0, int(frame_rate / chunk_size * secs)):
         # The right way probably is to not send headers at all and let the
         # server side's chunk handler maintain state, taking data from

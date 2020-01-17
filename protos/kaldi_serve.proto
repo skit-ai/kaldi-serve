@@ -2,12 +2,16 @@ syntax = "proto3";
 package kaldi_serve;
 
 service KaldiServe {
-  // Performs synchronous non-streaming speech recognition;
+  // Performs synchronous non-streaming speech recognition.
   rpc Recognize(RecognizeRequest) returns (RecognizeResponse) {}
 
   // Performs synchronous client-to-server streaming speech recognition: 
   //    receive results after all audio has been streamed and processed.
   rpc StreamingRecognize(stream RecognizeRequest) returns (RecognizeResponse) {}
+
+  // Performs synchronous bidirectional streaming speech recognition: 
+  //    receive results as the audio is being streamed and processed.
+  rpc BidiStreamingRecognize(stream RecognizeRequest) returns (stream RecognizeResponse) {}
 }
 
 message RecognizeRequest {

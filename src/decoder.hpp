@@ -177,7 +177,8 @@ class Decoder final {
                              kaldi::SingleUtteranceNnet3Decoder &,
                              const std::size_t &,
                              utterance_results_t &,
-                             const bool &) const;
+                             const bool &,
+                             const bool & = false) const;
 };
 
 Decoder::Decoder(const kaldi::BaseFloat &beam,
@@ -532,9 +533,13 @@ void Decoder::decode_stream_final(kaldi::OnlineNnet2FeaturePipeline &feature_pip
                                   kaldi::SingleUtteranceNnet3Decoder &decoder,
                                   const std::size_t &n_best,
                                   utterance_results_t &results,
-                                  const bool &word_level) const {
-    feature_pipeline.InputFinished();
-    decoder.FinalizeDecoding();
+                                  const bool &word_level,
+                                  const bool &bidi_streaming) const {
+
+    if (!bidi_streaming) {
+        feature_pipeline.InputFinished();
+        decoder.FinalizeDecoding();
+    }
 
     if (decoder.NumFramesDecoded() == 0) {
         KALDI_WARN << "audio may be empty :: decoded no frames";
