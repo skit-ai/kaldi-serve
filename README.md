@@ -8,7 +8,7 @@ based ASR.
 **Key Features**:
 
 - Multithreaded gRPC server.
-- Supports streaming recognition.
+- Supports bi-directional streaming recognition.
 - Thread-safe concurrent queue to process each audio stream separately.
 - N-best alternatives with LM and AM costs.
 - Word level timing and confidence scores.
