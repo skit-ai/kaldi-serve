@@ -25,6 +25,33 @@
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
+void add_alternatives_to_response(const utterance_results_t &results, kaldi_serve::RecognizeResponse *response, const kaldi_serve::RecognitionConfig &config) noexcept {
+
+    kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
+    kaldi_serve::SpeechRecognitionAlternative *alternative;
+    kaldi_serve::Word *word;
+
+    // find alternatives on final `lattice` after all chunks have been processed
+    for (auto const &res : results) {
+        if (!res.transcript.empty()) {
+            alternative = sr_result->add_alternatives();
+            alternative->set_transcript(res.transcript);
+            alternative->set_confidence(res.confidence);
+            alternative->set_am_score(res.am_score);
+            alternative->set_lm_score(res.lm_score);
+            if (config.word_level()) {
+                for (auto const &w: res.words) {
+                    word = alternative->add_words();
+                    word->set_start_time(w.start_time);
+                    word->set_end_time(w.end_time);
+                    word->set_word(w.word);
+                    word->set_confidence(w.confidence);
+                }
+            }
+        }
+    }
+}
+
 // KaldiServeImpl ::
 // Defines the core server logic and request/response handlers.
 // Keeps `Decoder` instances cached in a thread-safe
@@ -119,29 +146,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
     }
 
-    kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
-    kaldi_serve::SpeechRecognitionAlternative *alternative;
-    kaldi_serve::Word *word;
-
-    // find alternatives on final `lattice` after all chunks have been processed
-    for (auto const &res : k_results_) {
-        if (!res.transcript.empty()) {
-            alternative = sr_result->add_alternatives();
-            alternative->set_transcript(res.transcript);
-            alternative->set_confidence(res.confidence);
-            alternative->set_am_score(res.am_score);
-            alternative->set_lm_score(res.lm_score);
-            if (config.word_level()) {
-                for (auto const &w: res.words) {
-                    word = alternative->add_words();
-                    word->set_start_time(w.start_time);
-                    word->set_end_time(w.end_time);
-                    word->set_word(w.word);
-                    word->set_confidence(w.confidence);
-                }
-            }
-        }
-    }
+    add_alternatives_to_response(k_results_, response, config);
 
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
@@ -223,32 +228,10 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         }
     } while (reader->Read(&request_));
 
-    kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
-    kaldi_serve::SpeechRecognitionAlternative *alternative;
-    kaldi_serve::Word *word;
-
     utterance_results_t k_results_;
     decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level());
 
-    // find alternatives on final `lattice` after all chunks have been processed
-    for (auto const &res : k_results_) {
-        if (!res.transcript.empty()) {
-            alternative = sr_result->add_alternatives();
-            alternative->set_transcript(res.transcript);
-            alternative->set_confidence(res.confidence);
-            alternative->set_am_score(res.am_score);
-            alternative->set_lm_score(res.lm_score);
-            if (config.word_level()) {
-                for (auto const &w: res.words) {
-                    word = alternative->add_words();
-                    word->set_start_time(w.start_time);
-                    word->set_end_time(w.end_time);
-                    word->set_word(w.word);
-                    word->set_confidence(w.confidence);
-                }
-            }
-        }
-    }
+    add_alternatives_to_response(k_results_, response, config);
 
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
@@ -320,33 +303,11 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
                 decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
             }
 
-            kaldi_serve::RecognizeResponse response_;
-            kaldi_serve::SpeechRecognitionResult *sr_result = response_.add_results();
-            kaldi_serve::SpeechRecognitionAlternative *alternative;
-            kaldi_serve::Word *word;
-
             utterance_results_t k_results_;
             decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level(), true);
 
-            // find alternatives on final `lattice` after all chunks have been processed
-            for (auto const &res : k_results_) {
-                if (!res.transcript.empty()) {
-                    alternative = sr_result->add_alternatives();
-                    alternative->set_transcript(res.transcript);
-                    alternative->set_confidence(res.confidence);
-                    alternative->set_am_score(res.am_score);
-                    alternative->set_lm_score(res.lm_score);
-                    if (config.word_level()) {
-                        for (auto const &w: res.words) {
-                            word = alternative->add_words();
-                            word->set_start_time(w.start_time);
-                            word->set_end_time(w.end_time);
-                            word->set_word(w.word);
-                            word->set_confidence(w.confidence);
-                        }
-                    }
-                }
-            }
+            kaldi_serve::RecognizeResponse response_;
+            add_alternatives_to_response(k_results_, &response_, config);
 
             stream->Write(response_);
 
@@ -360,33 +321,11 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
         }
     } while (stream->Read(&request_));
 
-    kaldi_serve::RecognizeResponse response_;
-    kaldi_serve::SpeechRecognitionResult *sr_result = response_.add_results();
-    kaldi_serve::SpeechRecognitionAlternative *alternative;
-    kaldi_serve::Word *word;
-
     utterance_results_t k_results_;
     decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level());
 
-    // find alternatives on final `lattice` after all chunks have been processed
-    for (auto const &res : k_results_) {
-        if (!res.transcript.empty()) {
-            alternative = sr_result->add_alternatives();
-            alternative->set_transcript(res.transcript);
-            alternative->set_confidence(res.confidence);
-            alternative->set_am_score(res.am_score);
-            alternative->set_lm_score(res.lm_score);
-            if (config.word_level()) {
-                for (auto const &w: res.words) {
-                    word = alternative->add_words();
-                    word->set_start_time(w.start_time);
-                    word->set_end_time(w.end_time);
-                    word->set_word(w.word);
-                    word->set_confidence(w.confidence);
-                }
-            }
-        }
-    }
+    kaldi_serve::RecognizeResponse response_;
+    add_alternatives_to_response(k_results_, &response_, config);
 
     stream->Write(response_);
     // writer->
