@@ -90,37 +90,12 @@ def chunks_from_audio_segment(audio: str, chunk_size=1, raw=False):
 
     return chunks
 
-def non_silent_segments_from_file(filename: str, segment_length=10):
-    """
-    Return wav chunks of given size (in seconds) from the file.
-    """
-
-    # TODO: Should remove assumptions about audio properties from here
-    audio = AudioSegment.from_file(filename, format="wav", frame_rate=8000, channels=1, sample_width=2)
-
-    # Normalize the audio
-    audio = audio.apply_gain(-audio.max_dBFS)
-
-    # Setting the silence threshold. Right now I am just subtracting 5dB from the average dB of the audio. Need to tinker with this
-    avg_db = audio.dBFS
-    min_silence_len = 250
-    silence_thresh = avg_db - 30
-    seek_step = 1
-
-    # Get ranges which are "non silent" according to pydub
-    not_silence_ranges = detect_nonsilent(audio, min_silence_len, silence_thresh, seek_step)
-
-    segments = []
-
-    # If empty, it is fully silent. Dont trust pydub. Send it to ASR anyway
-    if not not_silence_ranges:
-        for i in range(0, len(audio), segment_length * 1000):
-            segments.append(audio[i: i + 1000])
-    else:
-        segment = AudioSegment.silent(duration=500, frame_rate=8000)
-        for x in not_silence_ranges:
-            segment += audio[x[0]: x[1]] + AudioSegment.silent(duration=500, frame_rate=8000)
-        for i in range(0, len(segment), segment_length * 1000):
-            segments.append(segment[i: i + (segment_length * 1000)])
-
-    return segments
+def byte_stream_from_file(filename: str):
+    audio = AudioSegment.from_file(filename, format="wav",
+                                   frame_rate=8000, channels=1,
+                                   sample_width=2)
+    
+    byte_stream = io.BytesIO()
+    audio.export(byte_stream, format="wav")
+    
+    return byte_stream.getvalue()
