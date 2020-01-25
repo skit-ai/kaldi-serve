@@ -106,6 +106,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
                                        kaldi_serve::RecognizeResponse *const response) {
     const kaldi_serve::RecognitionConfig config = request->config();
     const int32 n_best = config.max_alternatives();
+    const int32 sample_rate_hertz = config.sample_rate_hertz();
     const std::string model_name = config.model();
     const std::string language_code = config.language_code();
     const model_id_t model_id = std::make_pair(model_name, language_code);
@@ -133,7 +134,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // decode speech signals in chunks
     try {
         if (config.raw()) {
-            decoder_->decode_raw_wav_audio(input_stream, config.data_bytes(), n_best, k_results_, config.word_level());
+            decoder_->decode_raw_wav_audio(input_stream, sample_rate_hertz, config.data_bytes(), n_best, k_results_, config.word_level());
         } else {
             decoder_->decode_wav_audio(input_stream, n_best, k_results_, config.word_level());
         }
@@ -173,6 +174,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     // Assuming: config may change mid-way (only `raw` and `data_bytes` fields)
     kaldi_serve::RecognitionConfig config = request_.config();
     const int32 n_best = config.max_alternatives();
+    const int32 sample_rate_hertz = config.sample_rate_hertz();
     const std::string model_name = config.model();
     const std::string language_code = config.language_code();
     const model_id_t model_id = std::make_pair(model_name, language_code);
@@ -214,7 +216,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         // Assuming: audio stream has already been chunked into desired length
         try {
             if (config.raw()) {
-                decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, config.data_bytes());
+                decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, sample_rate_hertz, config.data_bytes());
             } else {
                 decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
             }
@@ -257,6 +259,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
     // Assuming: config may change mid-way (only `raw` and `data_bytes` fields)
     kaldi_serve::RecognitionConfig config = request_.config();
     const int32 n_best = config.max_alternatives();
+    const int32 sample_rate_hertz = config.sample_rate_hertz();
     const std::string model_name = config.model();
     const std::string language_code = config.language_code();
     const model_id_t model_id = std::make_pair(model_name, language_code);
@@ -298,7 +301,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
         // Assuming: audio stream has already been chunked into desired length
         try {
             if (config.raw()) {
-                decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, config.data_bytes());
+                decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, sample_rate_hertz, config.data_bytes());
             } else {
                 decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
             }

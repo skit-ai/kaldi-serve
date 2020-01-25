@@ -2,16 +2,18 @@
 Script for testing out ASR server.
 
 Usage:
-  example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>] [--raw] [--pcm] [--word-level]
-  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--raw] [--pcm] [--word-level]
+  example_client.py mic [--n-secs=<n-secs>] [--model=<model>] [--lang=<lang>] [--sample-rate=<sample-rate>] [--max-alternatives=<max-alternatives>] [--stream] [--raw] [--pcm] [--word-level]
+  example_client.py <file>... [--model=<model>] [--lang=<lang>] [--sample-rate=<sample-rate>] [--max-alternatives=<max-alternatives>] [--stream] [--raw] [--pcm] [--word-level]
 
 Options:
-  --n-secs=<n-secs>     Number of seconds to records, ideally there should be a VAD here. [default: 3]
-  --model=<model>       Name of the model to hit [default: general]
-  --lang=<lang>         Language code of the model [default: hi]
-  --raw                 Flag that specifies whether to stream raw audio bytes to server.
-  --pcm                 Flag for sending raw pcm bytes
-  --word-level          Whether to get word level features from server.
+  --n-secs=<n-secs>                         Number of seconds to record the audio for before making a request. [default: 5]
+  --model=<model>                           Name of the model to hit. [default: general]
+  --lang=<lang>                             Language code of the model. [default: en]
+  --sample-rate=<sample-rate>               Sampling rate to use for the audio. [default: 8000]
+  --max-alternatives=<max-alternatives>     Number of maximum alternatives to query from the server. [default: 10]
+  --raw                                     Flag that specifies whether to stream raw audio bytes to server.
+  --pcm                                     Flag that specifies whether to send raw pcm bytes.
+  --word-level                              Flag to enable word level features from server.
 """
 
 import random
@@ -24,11 +26,13 @@ from docopt import docopt
 from pydub import AudioSegment
 
 from kaldi_serve import KaldiServeClient, RecognitionAudio, RecognitionConfig
-from kaldi_serve.utils import (chunks_from_file, chunks_from_mic,
-                               raw_bytes_to_wav)
+from kaldi_serve.utils import (
+    chunks_from_file,
+    chunks_from_mic,
+    raw_bytes_to_wav
+)
 
-SR = 8000
-CHANNELS = 1
+ENCODING = RecognitionConfig.AudioEncoding.LINEAR16
 
 
 def parse_response(response):
@@ -56,21 +60,22 @@ def parse_response(response):
     return output
 
 
-def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code: str, raw: bool=False, word_level: bool=False):
+def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code: str,
+                                sample_rate=8000, max_alternatives=10, raw: bool=False,
+                                word_level: bool=False):
     """
     Transcribe the given audio chunks
     """
 
     response = {}
-    encoding = RecognitionConfig.AudioEncoding.LINEAR16
 
     try:
         if raw:
             config = lambda chunk_len: RecognitionConfig(
-                sample_rate_hertz=SR,
-                encoding=encoding,
+                sample_rate_hertz=sample_rate,
+                encoding=ENCODING,
                 language_code=language_code,
-                max_alternatives=10,
+                max_alternatives=max_alternatives,
                 model=model,
                 raw=True,
                 word_level=word_level,
@@ -81,10 +86,10 @@ def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code:
         else:
             audio = (RecognitionAudio(content=chunk) for chunk in audio_chunks)
             config = RecognitionConfig(
-                sample_rate_hertz=SR,
-                encoding=encoding,
+                sample_rate_hertz=sample_rate,
+                encoding=ENCODING,
                 language_code=language_code,
-                max_alternatives=10,
+                max_alternatives=max_alternatives,
                 model=model,
                 word_level=word_level
             )
@@ -95,31 +100,47 @@ def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code:
 
     pprint(parse_response(response))
 
-def transcribe_chunks_bidi_streaming(client, audio_chunks, model: str, language_code: str, word_level: bool=False):
+def transcribe_chunks_bidi_streaming(client, audio_chunks, model: str, language_code: str,
+                                     sample_rate=8000, max_alternatives=10, raw: bool=False,
+                                     word_level: bool=False):
     """
     Transcribe the given audio chunks
     """
-
     response = {}
-    encoding = RecognitionConfig.AudioEncoding.LINEAR16
 
     try:
-        config = lambda chunk_len: RecognitionConfig(
-            sample_rate_hertz=SR,
-            encoding=encoding,
-            language_code=language_code,
-            max_alternatives=10,
-            model=model,
-            raw=True,
-            word_level=word_level,
-            data_bytes=chunk_len
-        )
+        if raw:
+            config = lambda chunk_len: RecognitionConfig(
+                sample_rate_hertz=sample_rate,
+                encoding=ENCODING,
+                language_code=language_code,
+                max_alternatives=max_alternatives,
+                model=model,
+                raw=True,
+                data_bytes=chunk_len,
+                word_level=word_level,
+            )
 
-        def audio_params_gen(audio_chunks_gen):
-            for chunk in audio_chunks_gen:
-                yield config(len(chunk)), RecognitionAudio(content=chunk)
+            def audio_params_gen(audio_chunks):
+                for chunk in audio_chunks:
+                    yield config(len(chunk)), RecognitionAudio(content=chunk)
 
-        response_gen = client.bidi_streaming_recognize_raw(audio_params_gen(audio_chunks), uuid="")
+            response_gen = client.bidi_streaming_recognize_raw(audio_params_gen(audio_chunks), uuid="")
+        else:
+            config = RecognitionConfig(
+                sample_rate_hertz=sample_rate,
+                encoding=ENCODING,
+                language_code=language_code,
+                max_alternatives=max_alternatives,
+                model=model,
+                word_level=word_level
+            )
+
+            def audio_chunks_gen(audio_chunks):
+                for chunk in audio_chunks:
+                    yield RecognitionAudio(content=chunk)
+
+            response_gen = client.bidi_streaming_recognize(config, audio_chunks_gen(audio_chunks), uuid="")
     except Exception as e:
         traceback.print_exc()
         print(f'error: {str(e)}')
@@ -128,14 +149,20 @@ def transcribe_chunks_bidi_streaming(client, audio_chunks, model: str, language_
         pprint(parse_response(response))
 
 
-def decode_files(client, audio_paths: List[str], model: str, language_code: str, raw: bool=False, pcm: bool=False, word_level: bool=False):
+def decode_files(client, audio_paths: List[str], model: str, language_code: str,
+                 sample_rate=8000, max_alternatives=10, raw: bool=False,
+                 pcm: bool=False, word_level: bool=False):
     """
     Decode files using threaded requests
     """
-    chunked_audios = [chunks_from_file(x, chunk_size=random.randint(1, 3), raw=raw, pcm=pcm) for x in audio_paths]
+    chunked_audios = [chunks_from_file(x, sample_rate=sample_rate, chunk_size=1, raw=raw, pcm=pcm) for x in audio_paths]
 
     threads = [
-        threading.Thread(target=transcribe_chunks_streaming, args=(client, chunks, model, language_code, raw, word_level))
+        threading.Thread(
+            target=transcribe_chunks_streaming,
+            args=(client, chunks, model, language_code,
+                  sample_rate, max_alternatives, raw, word_level)
+        )
         for chunks in chunked_audios
     ]
 
@@ -149,13 +176,22 @@ def decode_files(client, audio_paths: List[str], model: str, language_code: str,
 if __name__ == "__main__":
     args = docopt(__doc__)
     client = KaldiServeClient()
+
+    # args
     model = args["--model"]
     language_code = args["--lang"]
+    sample_rate = int(args["--sample-rate"])
+    max_alternatives = int(args["--max-alternatives"])
+
+    # flags
     raw = args['--raw']
     pcm = args['--pcm']
     word_level = args["--word-level"]
 
     if args["mic"]:
-        transcribe_chunks_bidi_streaming(client, chunks_from_mic(int(args["--n-secs"]), SR, 1), model, language_code, word_level)
+        transcribe_chunks_bidi_streaming(client, chunks_from_mic(int(args["--n-secs"]), sample_rate, 1),
+                                         model, language_code, sample_rate, max_alternatives,
+                                         raw or pcm, word_level)
     else:
-        decode_files(client, args["<file>"], model, language_code, raw, pcm, word_level)
+        decode_files(client, args["<file>"], model, language_code,
+                     sample_rate, max_alternatives, raw, pcm, word_level)

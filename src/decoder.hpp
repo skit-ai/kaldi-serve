@@ -153,6 +153,7 @@ class Decoder final {
                                      kaldi::OnlineSilenceWeighting &,
                                      kaldi::SingleUtteranceNnet3Decoder &,
                                      std::istream &,
+                                     const kaldi::BaseFloat &,
                                      const size_t &) const;
 
     // decodes an (independent) wav audio stream
@@ -166,6 +167,7 @@ class Decoder final {
     // decodes an (independent) raw headerless wav audio stream
     // internally chunks a wav audio stream and decodes them
     void decode_raw_wav_audio(std::istream &,
+                              const kaldi::BaseFloat &,
                               const size_t &,
                               const size_t &,
                               utterance_results_t &,
@@ -417,12 +419,11 @@ void Decoder::decode_stream_raw_wav_chunk(kaldi::OnlineNnet2FeaturePipeline &fea
                                           kaldi::OnlineSilenceWeighting &silence_weighting,
                                           kaldi::SingleUtteranceNnet3Decoder &decoder,
                                           std::istream &wav_stream,
+                                          const kaldi::BaseFloat& samp_freq,
                                           const size_t &data_bytes) const {
 
     kaldi::Matrix<kaldi::BaseFloat> wave_matrix;
     read_raw_wav_stream(wav_stream, data_bytes, wave_matrix);
-
-    constexpr kaldi::BaseFloat samp_freq = 8000;
 
     // get the data for channel zero (if the signal is not mono, we only
     // take the first channel).
@@ -481,6 +482,7 @@ void Decoder::decode_wav_audio(std::istream &wav_stream,
 }
 
 void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
+                                   const kaldi::BaseFloat &samp_freq,
                                    const size_t &data_bytes,
                                    const size_t &n_best,
                                    utterance_results_t &results,
@@ -503,7 +505,6 @@ void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
     // get the data for channel zero (if the signal is not mono, we only
     // take the first channel).
     kaldi::SubVector<kaldi::BaseFloat> data(wave_matrix, 0);
-    constexpr kaldi::BaseFloat samp_freq = 8000;
 
     int32 chunk_length;
     if (chunk_size > 0) {

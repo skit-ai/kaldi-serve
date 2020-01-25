@@ -34,8 +34,8 @@ def chunks_from_mic(secs: int, frame_rate: int, channels: int):
     p = pyaudio.PyAudio()
     sample_format = pyaudio.paInt16
 
-    # 8k samples ~ 1sec of audio
-    chunk_size = 8000
+    # ~ 1sec of audio
+    chunk_size = frame_rate
 
     stream = p.open(format=sample_format,
                     channels=channels,
@@ -57,14 +57,17 @@ def chunks_from_mic(secs: int, frame_rate: int, channels: int):
     p.terminate()
 
 
-def chunks_from_file(filename: str, chunk_size=1, raw=False, pcm=False):
+def chunks_from_file(filename: str, sample_rate=8000, chunk_size=1, raw=False, pcm=False):
     """
     Return wav chunks of given size (in seconds) from the file.
     """
 
     # TODO: Should remove assumptions about audio properties from here
-    audio = AudioSegment.from_file(filename, format="s16le" if pcm else "wav", frame_rate=8000, channels=1, sample_width=2)
-    return chunks_from_audio_segment(audio, chunk_size=chunk_size, raw=True if pcm else raw)
+    audio = AudioSegment.from_file(filename,
+                                   format="s16le" if pcm else "wav",
+                                   frame_rate=sample_rate, channels=1,
+                                   sample_width=2)
+    return chunks_from_audio_segment(audio, chunk_size=chunk_size, raw=pcm or raw)
 
 def chunks_from_audio_segment(audio: str, chunk_size=1, raw=False):
     """
@@ -90,12 +93,14 @@ def chunks_from_audio_segment(audio: str, chunk_size=1, raw=False):
 
     return chunks
 
-def byte_stream_from_file(filename: str):
+def byte_stream_from_file(filename: str, sample_rate=8000, raw: bool=False):
     audio = AudioSegment.from_file(filename, format="wav",
-                                   frame_rate=8000, channels=1,
-                                   sample_width=2)
+                                   frame_rate=sample_rate,
+                                   channels=1, sample_width=2)
     
+    if raw:
+        return audio.raw_data
+
     byte_stream = io.BytesIO()
     audio.export(byte_stream, format="wav")
-    
     return byte_stream.getvalue()
