@@ -25,6 +25,7 @@
 #include "decoder.hpp"
 #include "kaldi_serve.grpc.pb.h"
 
+
 void add_alternatives_to_response(const utterance_results_t &results, kaldi_serve::RecognizeResponse *response, const kaldi_serve::RecognitionConfig &config) noexcept {
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
@@ -158,7 +159,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
         // LOG REQUEST RESOLVE TIME --> END
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " request resolved in: " << ms.count() << "ms" << ENDL;
     }
 
     return grpc::Status::OK;
@@ -173,6 +174,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     // We first read the request to see if we have the correct model and language to load
     // Assuming: config may change mid-way (only `raw` and `data_bytes` fields)
     kaldi_serve::RecognitionConfig config = request_.config();
+    std::string uuid = request_.uuid();
     const int32 n_best = config.max_alternatives();
     const int32 sample_rate_hertz = config.sample_rate_hertz();
     const std::string model_name = config.model();
@@ -200,13 +202,36 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
                                                decoder_->trans_model_, *decoder_->decodable_info_.get(), *decoder_->decode_fst_,
                                                &feature_pipeline);
 
-    std::chrono::system_clock::time_point start_time;
+    std::chrono::system_clock::time_point start_time, start_time_req;
+    if (DEBUG) {
+        start_time_req = std::chrono::system_clock::now();
+    }
+
+    int i = 0;
+    int bytes = 0;
 
     // read chunks until end of stream
     do {
         if (DEBUG) {
             // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actual latency)
             start_time = std::chrono::system_clock::now();
+
+            i++;
+            bytes += config.data_bytes();
+
+            std::stringstream debug_msg;
+            debug_msg << "[" 
+                      << timestamp_now() 
+                      << "] uuid: " << uuid 
+                      << " chunk #" << i
+                      << " received";
+            if (config.raw()) {
+                debug_msg << " - " << config.data_bytes() 
+                          << " bytes (total " << bytes 
+                          << ")";
+            }
+                      
+            std::cout << debug_msg.str() << ENDL;
         }
         config = request_.config();
         kaldi_serve::RecognitionAudio audio = request_.audio();
@@ -228,7 +253,26 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
             decoder_queue_map_[model_id]->release(decoder_);
             return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
         }
+
+        if (DEBUG) {
+            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+            std::stringstream debug_msg;
+            debug_msg << "[" 
+                      << timestamp_now() 
+                      << "] uuid: " << uuid 
+                      << " chunk #" << i
+                      << " computed in "
+                      << ms.count() << "ms";
+
+            std::cout << debug_msg.str() << ENDL;
+        }
     } while (reader->Read(&request_));
+
+    if (DEBUG) {
+        start_time = std::chrono::system_clock::now();
+    }
 
     utterance_results_t k_results_;
     decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level());
@@ -241,10 +285,13 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     decoder_queue_map_[model_id]->release(decoder_);
 
     if (DEBUG) {
-        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        std::chrono::system_clock::time_point end_time_req = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time_req - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " found best paths in " << ms.count() << "ms" << ENDL;
+
         // LOG REQUEST RESOLVE TIME --> END
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
+        auto ms_req = std::chrono::duration_cast<std::chrono::milliseconds>(end_time_req - start_time_req);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " request resolved in: " << ms_req.count() << "ms" << ENDL;
     }
 
     return grpc::Status::OK;
@@ -258,6 +305,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
     // We first read the request to see if we have the correct model and language to load
     // Assuming: config may change mid-way (only `raw` and `data_bytes` fields)
     kaldi_serve::RecognitionConfig config = request_.config();
+    std::string uuid = request_.uuid();
     const int32 n_best = config.max_alternatives();
     const int32 sample_rate_hertz = config.sample_rate_hertz();
     const std::string model_name = config.model();
@@ -285,13 +333,35 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
                                                decoder_->trans_model_, *decoder_->decodable_info_.get(), *decoder_->decode_fst_,
                                                &feature_pipeline);
 
-    std::chrono::system_clock::time_point start_time;
+    std::chrono::system_clock::time_point start_time, start_time_req;
+    if (DEBUG) {
+        start_time_req = std::chrono::system_clock::now();
+    }
+
+    int i = 0;
+    int bytes = 0;
 
     // read chunks until end of stream
     do {
         if (DEBUG) {
-            // LOG REQUEST RESOLVE TIME --> START (at the last request since that would be the actual latency)
             start_time = std::chrono::system_clock::now();
+
+            i++;
+            bytes += config.data_bytes();
+
+            std::stringstream debug_msg;
+            debug_msg << "[" 
+                      << timestamp_now() 
+                      << "] uuid: " << uuid 
+                      << " chunk #" << i
+                      << " received";
+            if (config.raw()) {
+                debug_msg << " - " << config.data_bytes() 
+                          << " bytes (total " << bytes 
+                          << ")";
+            }
+                      
+            std::cout << debug_msg.str() << ENDL;
         }
         config = request_.config();
         kaldi_serve::RecognitionAudio audio = request_.audio();
@@ -322,7 +392,26 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
             decoder_queue_map_[model_id]->release(decoder_);
             return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
         }
+
+        if (DEBUG) {
+            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+            std::stringstream debug_msg;
+            debug_msg << "[" 
+                      << timestamp_now() 
+                      << "] uuid: " << uuid 
+                      << " chunk #" << i
+                      << " computed in "
+                      << ms.count() << "ms";
+
+            std::cout << debug_msg.str() << ENDL;
+        }
     } while (stream->Read(&request_));
+
+    if (DEBUG) {
+        start_time = std::chrono::system_clock::now();
+    }
 
     utterance_results_t k_results_;
     decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level());
@@ -339,10 +428,13 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
     decoder_queue_map_[model_id]->release(decoder_);
 
     if (DEBUG) {
-        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        std::chrono::system_clock::time_point end_time_req = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time_req - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " found best paths in " << ms.count() << "ms" << ENDL;
+
         // LOG REQUEST RESOLVE TIME --> END
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << "request resolved in: " << ms.count() << "ms" << ENDL;
+        auto ms_req = std::chrono::duration_cast<std::chrono::milliseconds>(end_time_req - start_time_req);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " request resolved in: " << ms_req.count() << "ms" << ENDL;
     }
 
     return grpc::Status::OK;
