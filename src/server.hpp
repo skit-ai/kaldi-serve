@@ -106,6 +106,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
                                        const kaldi_serve::RecognizeRequest *const request,
                                        kaldi_serve::RecognizeResponse *const response) {
     const kaldi_serve::RecognitionConfig config = request->config();
+    std::string uuid = request->uuid();
     const int32 n_best = config.max_alternatives();
     const int32 sample_rate_hertz = config.sample_rate_hertz();
     const std::string model_name = config.model();
