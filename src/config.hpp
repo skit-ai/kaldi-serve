@@ -24,7 +24,7 @@ struct ModelSpec {
   std::size_t n_decoders = 1;
 
   // decoding parameters
-  kaldi::BaseFloat beam = 13.0;
+  kaldi::BaseFloat beam = 16.0;
   std::size_t min_active = 200;
   std::size_t max_active = 7000;
   kaldi::BaseFloat lattice_beam = 6.0;
