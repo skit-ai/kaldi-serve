@@ -26,7 +26,9 @@
 #include "kaldi_serve.grpc.pb.h"
 
 
-void add_alternatives_to_response(const utterance_results_t &results, kaldi_serve::RecognizeResponse *response, const kaldi_serve::RecognitionConfig &config) noexcept {
+void add_alternatives_to_response(const utterance_results_t &results,
+                                  kaldi_serve::RecognizeResponse *response,
+                                  const kaldi_serve::RecognitionConfig &config) noexcept {
 
     kaldi_serve::SpeechRecognitionResult *sr_result = response->add_results();
     kaldi_serve::SpeechRecognitionAlternative *alternative;
@@ -52,6 +54,7 @@ void add_alternatives_to_response(const utterance_results_t &results, kaldi_serv
         }
     }
 }
+
 
 // KaldiServeImpl ::
 // Defines the core server logic and request/response handlers.
@@ -122,6 +125,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     // - Waits here until lock on queue is attained.
     // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
+    decoder_->start_decoding();
 
     std::chrono::system_clock::time_point start_time;
     if (DEBUG) {
@@ -131,14 +135,12 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     kaldi_serve::RecognitionAudio audio = request->audio();
     std::stringstream input_stream(audio.content());
 
-    utterance_results_t k_results_;
-
     // decode speech signals in chunks
     try {
         if (config.raw()) {
-            decoder_->decode_raw_wav_audio(input_stream, sample_rate_hertz, config.data_bytes(), n_best, k_results_, config.word_level());
+            decoder_->decode_raw_wav_audio(input_stream, sample_rate_hertz, config.data_bytes());
         } else {
-            decoder_->decode_wav_audio(input_stream, n_best, k_results_, config.word_level());
+            decoder_->decode_wav_audio(input_stream);
         }
     } catch (kaldi::KaldiFatalError &e) {
         decoder_queue_map_[model_id]->release(decoder_);
@@ -149,11 +151,15 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         return grpc::Status(grpc::StatusCode::INTERNAL, e.what());
     }
 
+    utterance_results_t k_results_;
+    decoder_->get_decoded_results(n_best, k_results_, config.word_level());
+
     add_alternatives_to_response(k_results_, response, config);
 
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
     // - Notifies another request handler thread of availability.
+    decoder_->free_decoder();
     decoder_queue_map_[model_id]->release(decoder_);
 
     if (DEBUG) {
@@ -191,17 +197,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     // - Waits here until lock on queue is attained.
     // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
-
-    // decoder state variables need to be statically initialized
-    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
-    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*decoder_->feature_info_);
-    feature_pipeline.SetAdaptationState(adaptation_state);
-
-    kaldi::OnlineSilenceWeighting silence_weighting(decoder_->trans_model_, decoder_->feature_info_->silence_weighting_config,
-                                                    decoder_->decodable_opts_.frame_subsampling_factor);
-    kaldi::SingleUtteranceNnet3Decoder decoder(decoder_->lattice_faster_decoder_config_,
-                                               decoder_->trans_model_, *decoder_->decodable_info_.get(), *decoder_->decode_fst_,
-                                               &feature_pipeline);
+    decoder_->start_decoding();
 
     std::chrono::system_clock::time_point start_time, start_time_req;
     if (DEBUG) {
@@ -242,9 +238,9 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         // Assuming: audio stream has already been chunked into desired length
         try {
             if (config.raw()) {
-                decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, sample_rate_hertz, config.data_bytes());
+                decoder_->decode_stream_raw_wav_chunk(input_stream_chunk, sample_rate_hertz, config.data_bytes());
             } else {
-                decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
+                decoder_->decode_stream_wav_chunk(input_stream_chunk);
             }
         } catch (kaldi::KaldiFatalError &e) {
             decoder_queue_map_[model_id]->release(decoder_);
@@ -276,13 +272,14 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     }
 
     utterance_results_t k_results_;
-    decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level());
+    decoder_->get_decoded_results(n_best, k_results_, config.word_level());
 
     add_alternatives_to_response(k_results_, response, config);
 
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
     // - Notifies another request handler thread of availability.
+    decoder_->free_decoder();
     decoder_queue_map_[model_id]->release(decoder_);
 
     if (DEBUG) {
@@ -322,17 +319,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
     // - Waits here until lock on queue is attained.
     // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
-
-    // decoder state variables need to be statically initialized
-    kaldi::OnlineIvectorExtractorAdaptationState adaptation_state(decoder_->feature_info_->ivector_extractor_info);
-    kaldi::OnlineNnet2FeaturePipeline feature_pipeline(*decoder_->feature_info_);
-    feature_pipeline.SetAdaptationState(adaptation_state);
-
-    kaldi::OnlineSilenceWeighting silence_weighting(decoder_->trans_model_, decoder_->feature_info_->silence_weighting_config,
-                                                    decoder_->decodable_opts_.frame_subsampling_factor);
-    kaldi::SingleUtteranceNnet3Decoder decoder(decoder_->lattice_faster_decoder_config_,
-                                               decoder_->trans_model_, *decoder_->decodable_info_.get(), *decoder_->decode_fst_,
-                                               &feature_pipeline);
+    decoder_->start_decoding();
 
     std::chrono::system_clock::time_point start_time, start_time_req;
     if (DEBUG) {
@@ -372,13 +359,13 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
         // Assuming: audio stream has already been chunked into desired length
         try {
             if (config.raw()) {
-                decoder_->decode_stream_raw_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk, sample_rate_hertz, config.data_bytes());
+                decoder_->decode_stream_raw_wav_chunk(input_stream_chunk, sample_rate_hertz, config.data_bytes());
             } else {
-                decoder_->decode_stream_wav_chunk(feature_pipeline, silence_weighting, decoder, input_stream_chunk);
+                decoder_->decode_stream_wav_chunk(input_stream_chunk);
             }
 
             utterance_results_t k_results_;
-            decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level(), true);
+            decoder_->get_decoded_results(n_best, k_results_, config.word_level(), true);
 
             kaldi_serve::RecognizeResponse response_;
             add_alternatives_to_response(k_results_, &response_, config);
@@ -415,7 +402,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
     }
 
     utterance_results_t k_results_;
-    decoder_->decode_stream_final(feature_pipeline, decoder, n_best, k_results_, config.word_level());
+    decoder_->get_decoded_results(n_best, k_results_, config.word_level());
 
     kaldi_serve::RecognizeResponse response_;
     add_alternatives_to_response(k_results_, &response_, config);
@@ -426,6 +413,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
     // Decoder Release ::
     // - Releases the lock on the decoder and pushes back into queue.
     // - Notifies another request handler thread of availability.
+    decoder_->free_decoder();
     decoder_queue_map_[model_id]->release(decoder_);
 
     if (DEBUG) {
@@ -440,6 +428,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
 
     return grpc::Status::OK;
 }
+
 
 // Runs the Server with the Kaldi Service
 void run_server(const std::vector<ModelSpec> &model_specs) {
@@ -456,6 +445,7 @@ void run_server(const std::vector<ModelSpec> &model_specs) {
     std::cout << "kaldi-serve gRPC Streaming Server listening on " << server_address << ENDL;
     server->Wait();
 }
+
 
 /**
 NOTES:
