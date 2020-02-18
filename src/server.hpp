@@ -120,20 +120,26 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
+    std::chrono::system_clock::time_point start_time;
+    if (DEBUG) start_time = std::chrono::system_clock::now();
+
     // Decoder Acquisition ::
     // - Tries to attain lock and obtain decoder from the queue.
     // - Waits here until lock on queue is attained.
     // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
-    decoder_->start_decoding();
 
-    std::chrono::system_clock::time_point start_time;
     if (DEBUG) {
-        // LOG REQUEST RESOLVE TIME --> START
-        start_time = std::chrono::system_clock::now();
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " decoder acquired in: " << ms.count() << "ms" << ENDL;
     }
+
     kaldi_serve::RecognitionAudio audio = request->audio();
     std::stringstream input_stream(audio.content());
+
+    if (DEBUG) start_time = std::chrono::system_clock::now();
+    decoder_->start_decoding();
 
     // decode speech signals in chunks
     try {
@@ -192,20 +198,26 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
+    std::chrono::system_clock::time_point start_time, start_time_req;
+    if (DEBUG) start_time = std::chrono::system_clock::now();
+    
     // Decoder Acquisition ::
     // - Tries to attain lock and obtain decoder from the queue.
     // - Waits here until lock on queue is attained.
     // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
-    decoder_->start_decoding();
 
-    std::chrono::system_clock::time_point start_time, start_time_req;
     if (DEBUG) {
-        start_time_req = std::chrono::system_clock::now();
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " decoder acquired in: " << ms.count() << "ms" << ENDL;
     }
 
     int i = 0;
     int bytes = 0;
+
+    if (DEBUG) start_time_req = std::chrono::system_clock::now();
+    decoder_->start_decoding();
 
     // read chunks until end of stream
     do {
@@ -267,9 +279,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
         }
     } while (reader->Read(&request_));
 
-    if (DEBUG) {
-        start_time = std::chrono::system_clock::now();
-    }
+    if (DEBUG) start_time = std::chrono::system_clock::now();
 
     utterance_results_t k_results_;
     decoder_->get_decoded_results(n_best, k_results_, config.word_level());
@@ -314,20 +324,26 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Model " + model_name + " (" + language_code + ") not found");
     }
 
+    std::chrono::system_clock::time_point start_time, start_time_req;
+    if (DEBUG) start_time = std::chrono::system_clock::now();
+    
     // Decoder Acquisition ::
     // - Tries to attain lock and obtain decoder from the queue.
     // - Waits here until lock on queue is attained.
     // - Each new audio stream gets separate decoder object.
     Decoder *decoder_ = decoder_queue_map_[model_id]->acquire();
-    decoder_->start_decoding();
 
-    std::chrono::system_clock::time_point start_time, start_time_req;
     if (DEBUG) {
-        start_time_req = std::chrono::system_clock::now();
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid << " decoder acquired in: " << ms.count() << "ms" << ENDL;
     }
 
     int i = 0;
     int bytes = 0;
+
+    if (DEBUG) start_time_req = std::chrono::system_clock::now();
+    decoder_->start_decoding();
 
     // read chunks until end of stream
     do {
@@ -397,9 +413,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
         }
     } while (stream->Read(&request_));
 
-    if (DEBUG) {
-        start_time = std::chrono::system_clock::now();
-    }
+    if (DEBUG) start_time = std::chrono::system_clock::now();
 
     utterance_results_t k_results_;
     decoder_->get_decoded_results(n_best, k_results_, config.word_level());
