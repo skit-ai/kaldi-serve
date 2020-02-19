@@ -55,7 +55,7 @@ using utterance_results_t = std::vector<Alternative>;
 
 
 // Find confidence by merging lm and am scores. Taken from
-// https://github.com/dialogflow/asr-server/blob/master/src/Onlinedecoder_->cc#L90
+// https://github.com/dialogflow/asr-server/blob/master/src/OnlineDecoder.cc#L90
 // NOTE: This might not be very useful for us right now. Depending on the
 //       situation, we might actually want to weigh components differently.
 inline double calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words) noexcept {
@@ -118,7 +118,8 @@ class Decoder final {
                      const kaldi::BaseFloat &lattice_beam,
                      const kaldi::BaseFloat &acoustic_scale,
                      const std::size_t &frame_subsampling_factor,
-                     const std::string &model_dir) noexcept;
+                     const std::string &model_dir,
+                     fst::Fst<fst::StdArc> *const decode_fst) noexcept;
 
     ~Decoder() noexcept;
 
@@ -174,7 +175,7 @@ class Decoder final {
                             const bool &word_level) const;
 
     // model vars
-    std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
+    fst::Fst<fst::StdArc> *decode_fst_;
     kaldi::nnet3::AmNnetSimple am_nnet_;
     kaldi::TransitionModel trans_model_;
 
@@ -202,7 +203,8 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
                  const kaldi::BaseFloat &lattice_beam,
                  const kaldi::BaseFloat &acoustic_scale,
                  const std::size_t &frame_subsampling_factor,
-                 const std::string &model_dir) noexcept {
+                 const std::string &model_dir,
+                 fst::Fst<fst::StdArc> *const decode_fst) noexcept {
     try {
         lattice_faster_decoder_config_.min_active = min_active;
         lattice_faster_decoder_config_.max_active = max_active;
@@ -211,7 +213,6 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         decodable_opts_.acoustic_scale = acoustic_scale;
         decodable_opts_.frame_subsampling_factor = frame_subsampling_factor;
 
-        std::string hclg_filepath = join_path(model_dir, "HCLG.fst");
         std::string model_filepath = join_path(model_dir, "final.mdl");
         std::string word_syms_filepath = join_path(model_dir, "words.txt");
         std::string word_boundary_filepath = join_path(model_dir, "word_boundary.int");
@@ -220,7 +221,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         std::string mfcc_conf_filepath = join_path(conf_dir, "mfcc.conf");
         std::string ivector_conf_filepath = join_path(conf_dir, "ivector_extractor.conf");
 
-        decode_fst_ = std::unique_ptr<fst::Fst<fst::StdArc>>(fst::ReadFstKaldiGeneric(hclg_filepath));
+        decode_fst_ = decode_fst;
 
         {
             bool binary;
@@ -554,6 +555,9 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
 // Factory for creating decoders with shared decoding graph and model parameters
 // Caches the graph and params to be able to produce decoders on demand.
 class DecoderFactory final {
+  private:
+    const std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
+
   public:
     ModelSpec model_spec;
 
@@ -565,7 +569,9 @@ class DecoderFactory final {
     inline Decoder *operator()() const;
 };
 
-DecoderFactory::DecoderFactory(const ModelSpec &model_spec) : model_spec(model_spec) {
+DecoderFactory::DecoderFactory(const ModelSpec &model_spec) :
+    model_spec(model_spec),
+    decode_fst_(fst::ReadFstKaldiGeneric(join_path(model_spec.path, "HCLG.fst"))) {
 }
 
 inline Decoder *DecoderFactory::produce() const {
@@ -575,7 +581,8 @@ inline Decoder *DecoderFactory::produce() const {
                        model_spec.lattice_beam,
                        model_spec.acoustic_scale,
                        model_spec.frame_subsampling_factor,
-                       model_spec.path);
+                       model_spec.path,
+                       decode_fst_.get());
 }
 
 inline Decoder *DecoderFactory::operator()() const {
