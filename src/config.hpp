@@ -30,6 +30,7 @@ struct ModelSpec {
   kaldi::BaseFloat lattice_beam = 6.0;
   kaldi::BaseFloat acoustic_scale = 1.0;
   std::size_t frame_subsampling_factor = 3;
+  kaldi::BaseFloat silence_weight = 1.0;
 };
 
 // a pair of model_name and language_code

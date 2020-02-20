@@ -118,6 +118,7 @@ class Decoder final {
                      const kaldi::BaseFloat &lattice_beam,
                      const kaldi::BaseFloat &acoustic_scale,
                      const std::size_t &frame_subsampling_factor,
+                     const kaldi::BaseFloat &silence_weight,
                      const std::string &model_dir,
                      fst::Fst<fst::StdArc> *const decode_fst) noexcept;
 
@@ -203,6 +204,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
                  const kaldi::BaseFloat &lattice_beam,
                  const kaldi::BaseFloat &acoustic_scale,
                  const std::size_t &frame_subsampling_factor,
+                 const kaldi::BaseFloat &silence_weight,
                  const std::string &model_dir,
                  fst::Fst<fst::StdArc> *const decode_fst) noexcept {
     try {
@@ -267,6 +269,7 @@ Decoder::Decoder(const kaldi::BaseFloat &beam,
         ivector_extraction_opts.splice_config_rxfilename = expand_relative_path(ivector_extraction_opts.splice_config_rxfilename, model_dir);
 
         feature_info_->ivector_extractor_info.Init(ivector_extraction_opts);
+        feature_info_->silence_weighting_config.silence_weight = silence_weight;
 
         // decoder vars initialization
         decoder_ = NULL;
@@ -581,6 +584,7 @@ inline Decoder *DecoderFactory::produce() const {
                        model_spec.lattice_beam,
                        model_spec.acoustic_scale,
                        model_spec.frame_subsampling_factor,
+                       model_spec.silence_weight,
                        model_spec.path,
                        decode_fst_.get());
 }

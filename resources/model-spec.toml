@@ -23,6 +23,7 @@ max_active = 3000 # 7000
 lattice_beam = 3.0 # 6.0
 acoustic_scale = 1.0 # 1.0
 frame_subsampling_factor = 3 # 3
+silence_weight = 1.0
 
 # A model `path` looks something like the following (for minimal transcription
 # only use case):
