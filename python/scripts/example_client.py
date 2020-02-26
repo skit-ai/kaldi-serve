@@ -82,7 +82,7 @@ def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code:
                 data_bytes=chunk_len
             )
             audio_params = [(config(len(chunk)), RecognitionAudio(content=chunk)) for chunk in audio_chunks]
-            response = client.streaming_recognize_raw(audio_params, uuid="")
+            response = client.streaming_recognize_raw(audio_params, uuid=str(random.randint(1000, 100000)))
         else:
             audio = (RecognitionAudio(content=chunk) for chunk in audio_chunks)
             config = RecognitionConfig(
@@ -93,7 +93,7 @@ def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code:
                 model=model,
                 word_level=word_level
             )
-            response = client.streaming_recognize(config, audio, uuid="")
+            response = client.streaming_recognize(config, audio, uuid=str(random.randint(1000, 100000)))
     except Exception as e:
         traceback.print_exc()
         print(f'error: {str(e)}')
@@ -125,7 +125,7 @@ def transcribe_chunks_bidi_streaming(client, audio_chunks, model: str, language_
                 for chunk in audio_chunks:
                     yield config(len(chunk)), RecognitionAudio(content=chunk)
 
-            response_gen = client.bidi_streaming_recognize_raw(audio_params_gen(audio_chunks), uuid="")
+            response_gen = client.bidi_streaming_recognize_raw(audio_params_gen(audio_chunks), uuid=str(random.randint(1000, 100000)))
         else:
             config = RecognitionConfig(
                 sample_rate_hertz=sample_rate,
@@ -140,7 +140,7 @@ def transcribe_chunks_bidi_streaming(client, audio_chunks, model: str, language_
                 for chunk in audio_chunks:
                     yield RecognitionAudio(content=chunk)
 
-            response_gen = client.bidi_streaming_recognize(config, audio_chunks_gen(audio_chunks), uuid="")
+            response_gen = client.bidi_streaming_recognize(config, audio_chunks_gen(audio_chunks), uuid=str(random.randint(1000, 100000)))
     except Exception as e:
         traceback.print_exc()
         print(f'error: {str(e)}')

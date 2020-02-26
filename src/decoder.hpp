@@ -125,7 +125,7 @@ class Decoder final {
     ~Decoder() noexcept;
 
     // SETUP METHODS
-    void start_decoding() noexcept;
+    void start_decoding(const std::string &uuid) noexcept;
 
     void free_decoder() noexcept;
 
@@ -196,6 +196,9 @@ class Decoder final {
     std::unique_ptr<kaldi::OnlineIvectorExtractorAdaptationState> adaptation_state_;
     std::unique_ptr<kaldi::OnlineSilenceWeighting> silence_weighting_;
     std::unique_ptr<kaldi::nnet3::DecodableNnetSimpleLoopedInfo> decodable_info_;
+
+    // req-specific vars
+    std::string uuid_;
 };
 
 Decoder::Decoder(const kaldi::BaseFloat &beam,
@@ -289,7 +292,7 @@ Decoder::~Decoder() noexcept {
     free_decoder();
 }
 
-void Decoder::start_decoding() noexcept {
+void Decoder::start_decoding(const std::string &uuid) noexcept {
     free_decoder();
 
     feature_pipeline_ = new kaldi::OnlineNnet2FeaturePipeline(*feature_info_);
@@ -298,6 +301,8 @@ void Decoder::start_decoding() noexcept {
     decoder_ = new kaldi::SingleUtteranceNnet3Decoder(lattice_faster_decoder_config_,
                                                       trans_model_, *decodable_info_,
                                                       *decode_fst_, feature_pipeline_);
+
+    uuid_ = uuid;
 }
 
 void Decoder::free_decoder() noexcept {
@@ -309,6 +314,7 @@ void Decoder::free_decoder() noexcept {
         delete feature_pipeline_; 
         feature_pipeline_ = NULL;
     }
+    uuid_ = "";
 }
 
 void Decoder::decode_stream_wav_chunk(std::istream &wav_stream) {
@@ -328,13 +334,32 @@ void Decoder::decode_stream_raw_wav_chunk(std::istream &wav_stream,
                                           const kaldi::BaseFloat& samp_freq,
                                           const size_t &data_bytes) {
     kaldi::Matrix<kaldi::BaseFloat> wave_matrix;
+
+    std::chrono::system_clock::time_point start_time;
+    if (DEBUG) start_time = std::chrono::system_clock::now();
+
     read_raw_wav_stream(wav_stream, data_bytes, wave_matrix);
+
+    if (DEBUG) {
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " wav data read in: " << ms.count() << "ms" << ENDL;
+    }
 
     // get the data for channel zero (if the signal is not mono, we only
     // take the first channel).
     kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_matrix, 0);
     std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
+
+    if (DEBUG) start_time = std::chrono::system_clock::now();
+
     _decode_wave(wave_part, delta_weights, samp_freq);
+
+    if (DEBUG) {
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " _decode_wave executed in: " << ms.count() << "ms" << ENDL;
+    }
 }
 
 void Decoder::decode_wav_audio(std::istream &wav_stream,
@@ -431,15 +456,50 @@ void Decoder::_decode_wave(kaldi::SubVector<kaldi::BaseFloat> &wave_part,
                            std::vector<std::pair<int32, kaldi::BaseFloat>> &delta_weights,
                            const kaldi::BaseFloat &samp_freq) {
 
+    std::chrono::system_clock::time_point start_time;
+    if (DEBUG) start_time = std::chrono::system_clock::now();
+
     feature_pipeline_->AcceptWaveform(samp_freq, wave_part);
+
+    if (DEBUG) {
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " waveform accepted in: " << ms.count() << "ms" << ENDL;
+    }
+
+    if (DEBUG) start_time = std::chrono::system_clock::now();
 
     if (silence_weighting_->Active() && feature_pipeline_->IvectorFeature() != NULL) {
         silence_weighting_->ComputeCurrentTraceback(decoder_->Decoder());
         silence_weighting_->GetDeltaWeights(feature_pipeline_->NumFramesReady(),
-                                          &delta_weights);
+                                            &delta_weights);
+
+        if (DEBUG) {
+            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+            std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " silence weighting done in: " << ms.count() << "ms" << ENDL;
+        }
+
+        if (DEBUG) start_time = std::chrono::system_clock::now();
+
         feature_pipeline_->IvectorFeature()->UpdateFrameWeights(delta_weights);
+
+        if (DEBUG) {
+            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+            std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " ivector frame weights updated in: " << ms.count() << "ms" << ENDL;
+        }
+
+        if (DEBUG) start_time = std::chrono::system_clock::now();
     }
+
     decoder_->AdvanceDecoding();
+
+    if (DEBUG) {
+        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " decoder advance done in: " << ms.count() << "ms" << ENDL;
+    }
 }
 
 void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
