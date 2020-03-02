@@ -16,6 +16,7 @@ Options:
 """
 
 import json
+import random
 import traceback
 
 from typing import List
@@ -67,7 +68,7 @@ def transcribe_audio(audio_stream, model: str, language_code: str, sample_rate=8
             data_bytes=len(audio_stream)
         )
 
-        response = client.recognize(config, audio, uuid="", timeout=1000)
+        response = client.recognize(config, audio, uuid=str(random.randint(1000, 100000)), timeout=1000)
     except Exception as e:
         print(f"error: {str(e)}")
         return []

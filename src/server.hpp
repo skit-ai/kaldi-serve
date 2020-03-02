@@ -139,7 +139,7 @@ grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,
     std::stringstream input_stream(audio.content());
 
     if (DEBUG) start_time = std::chrono::system_clock::now();
-    decoder_->start_decoding();
+    decoder_->start_decoding(uuid);
 
     // decode speech signals in chunks
     try {
@@ -217,7 +217,7 @@ grpc::Status KaldiServeImpl::StreamingRecognize(grpc::ServerContext *const conte
     int bytes = 0;
 
     if (DEBUG) start_time_req = std::chrono::system_clock::now();
-    decoder_->start_decoding();
+    decoder_->start_decoding(uuid);
 
     // read chunks until end of stream
     do {
@@ -343,7 +343,7 @@ grpc::Status KaldiServeImpl::BidiStreamingRecognize(grpc::ServerContext *const c
     int bytes = 0;
 
     if (DEBUG) start_time_req = std::chrono::system_clock::now();
-    decoder_->start_decoding();
+    decoder_->start_decoding(uuid);
 
     // read chunks until end of stream
     do {
