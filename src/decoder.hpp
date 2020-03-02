@@ -28,6 +28,7 @@
 #include "util/kaldi-thread.h"
 
 // local includes
+#include "model.hpp"
 #include "utils.hpp"
 
 
@@ -111,16 +112,8 @@ void read_raw_wav_stream(std::istream &wav_stream,
 
 class Decoder final {
 
-  public:    
-    explicit Decoder(const kaldi::BaseFloat &beam,
-                     const std::size_t &min_active,
-                     const std::size_t &max_active,
-                     const kaldi::BaseFloat &lattice_beam,
-                     const kaldi::BaseFloat &acoustic_scale,
-                     const std::size_t &frame_subsampling_factor,
-                     const kaldi::BaseFloat &silence_weight,
-                     const std::string &model_dir,
-                     fst::Fst<fst::StdArc> *const decode_fst) noexcept;
+  public:
+    explicit Decoder(Model *const model);
 
     ~Decoder() noexcept;
 
@@ -176,116 +169,30 @@ class Decoder final {
                             const bool &word_level) const;
 
     // model vars
-    fst::Fst<fst::StdArc> *decode_fst_;
-    kaldi::nnet3::AmNnetSimple am_nnet_;
-    kaldi::TransitionModel trans_model_;
-
-    std::unique_ptr<fst::SymbolTable> word_syms_;
-
-    std::unique_ptr<kaldi::WordBoundaryInfo> wb_info_;
-    std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
-    
-    kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config_;
-    kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts_;
+    Model *model_;
 
     // decoder vars (per utterance)
     kaldi::SingleUtteranceNnet3Decoder *decoder_;
     kaldi::OnlineNnet2FeaturePipeline *feature_pipeline_;
-
-    // decoder vars (per decoder)
-    std::unique_ptr<kaldi::OnlineIvectorExtractorAdaptationState> adaptation_state_;
-    std::unique_ptr<kaldi::OnlineSilenceWeighting> silence_weighting_;
-    std::unique_ptr<kaldi::nnet3::DecodableNnetSimpleLoopedInfo> decodable_info_;
+    kaldi::OnlineSilenceWeighting *silence_weighting_;
+    kaldi::OnlineIvectorExtractorAdaptationState *adaptation_state_;
 
     // req-specific vars
     std::string uuid_;
 };
 
-Decoder::Decoder(const kaldi::BaseFloat &beam,
-                 const std::size_t &min_active,
-                 const std::size_t &max_active,
-                 const kaldi::BaseFloat &lattice_beam,
-                 const kaldi::BaseFloat &acoustic_scale,
-                 const std::size_t &frame_subsampling_factor,
-                 const kaldi::BaseFloat &silence_weight,
-                 const std::string &model_dir,
-                 fst::Fst<fst::StdArc> *const decode_fst) noexcept {
-    try {
-        lattice_faster_decoder_config_.min_active = min_active;
-        lattice_faster_decoder_config_.max_active = max_active;
-        lattice_faster_decoder_config_.beam = beam;
-        lattice_faster_decoder_config_.lattice_beam = lattice_beam;
-        decodable_opts_.acoustic_scale = acoustic_scale;
-        decodable_opts_.frame_subsampling_factor = frame_subsampling_factor;
+Decoder::Decoder(Model *const model) : model_(model) {
 
-        std::string model_filepath = join_path(model_dir, "final.mdl");
-        std::string word_syms_filepath = join_path(model_dir, "words.txt");
-        std::string word_boundary_filepath = join_path(model_dir, "word_boundary.int");
+    if (model_->wb_info_)
+        options.enable_word_level = true;
+    else
+        options.enable_word_level = false;
 
-        std::string conf_dir = join_path(model_dir, "conf");
-        std::string mfcc_conf_filepath = join_path(conf_dir, "mfcc.conf");
-        std::string ivector_conf_filepath = join_path(conf_dir, "ivector_extractor.conf");
-
-        decode_fst_ = decode_fst;
-
-        {
-            bool binary;
-            kaldi::Input ki(model_filepath, &binary);
-
-            trans_model_.Read(ki.Stream(), binary);
-            am_nnet_.Read(ki.Stream(), binary);
-
-            kaldi::nnet3::SetBatchnormTestMode(true, &(am_nnet_.GetNnet()));
-            kaldi::nnet3::SetDropoutTestMode(true, &(am_nnet_.GetNnet()));
-            kaldi::nnet3::CollapseModel(kaldi::nnet3::CollapseModelConfig(), &(am_nnet_.GetNnet()));
-        }
-
-        if (word_syms_filepath != "" && !(word_syms_ = std::unique_ptr<fst::SymbolTable>(fst::SymbolTable::ReadText(word_syms_filepath)))) {
-            KALDI_ERR << "Could not read symbol table from file " << word_syms_filepath;
-        }
-
-        if (exists(word_boundary_filepath)) {
-            kaldi::WordBoundaryInfoNewOpts word_boundary_opts;
-            wb_info_ = std::make_unique<kaldi::WordBoundaryInfo>(word_boundary_opts, word_boundary_filepath);
-            options.enable_word_level = true;
-        } else {
-            KALDI_WARN << "Word boundary file" << word_boundary_filepath
-                       << " not found. Disabling word level features.";
-            options.enable_word_level = false;
-        }
-
-        feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>();
-        feature_info_->feature_type = "mfcc";
-        kaldi::ReadConfigFromFile(mfcc_conf_filepath, &(feature_info_->mfcc_opts));
-
-        feature_info_->use_ivectors = true;
-        kaldi::OnlineIvectorExtractionConfig ivector_extraction_opts;
-        kaldi::ReadConfigFromFile(ivector_conf_filepath, &ivector_extraction_opts);
-
-        // Expand paths if relative provided. We use model_dir as the base in
-        // such cases.
-        ivector_extraction_opts.lda_mat_rxfilename = expand_relative_path(ivector_extraction_opts.lda_mat_rxfilename, model_dir);
-        ivector_extraction_opts.global_cmvn_stats_rxfilename = expand_relative_path(ivector_extraction_opts.global_cmvn_stats_rxfilename, model_dir);
-        ivector_extraction_opts.diag_ubm_rxfilename = expand_relative_path(ivector_extraction_opts.diag_ubm_rxfilename, model_dir);
-        ivector_extraction_opts.ivector_extractor_rxfilename = expand_relative_path(ivector_extraction_opts.ivector_extractor_rxfilename, model_dir);
-        ivector_extraction_opts.cmvn_config_rxfilename = expand_relative_path(ivector_extraction_opts.cmvn_config_rxfilename, model_dir);
-        ivector_extraction_opts.splice_config_rxfilename = expand_relative_path(ivector_extraction_opts.splice_config_rxfilename, model_dir);
-
-        feature_info_->ivector_extractor_info.Init(ivector_extraction_opts);
-        feature_info_->silence_weighting_config.silence_weight = silence_weight;
-
-        // decoder vars initialization
-        decoder_ = NULL;
-        feature_pipeline_ = NULL;
-        adaptation_state_  = std::make_unique<kaldi::OnlineIvectorExtractorAdaptationState>(feature_info_->ivector_extractor_info);
-        silence_weighting_ = std::make_unique<kaldi::OnlineSilenceWeighting>(trans_model_,
-                                                                             feature_info_->silence_weighting_config,
-                                                                             decodable_opts_.frame_subsampling_factor);
-        decodable_info_ = std::make_unique<kaldi::nnet3::DecodableNnetSimpleLoopedInfo>(decodable_opts_, &am_nnet_);
-
-    } catch (const std::exception &e) {
-        KALDI_ERR << e.what();
-    }
+    // decoder vars initialization
+    decoder_ = NULL;
+    feature_pipeline_ = NULL;
+    silence_weighting_ = NULL;
+    adaptation_state_ = NULL;
 }
 
 Decoder::~Decoder() noexcept {
@@ -295,12 +202,19 @@ Decoder::~Decoder() noexcept {
 void Decoder::start_decoding(const std::string &uuid) noexcept {
     free_decoder();
 
-    feature_pipeline_ = new kaldi::OnlineNnet2FeaturePipeline(*feature_info_);
+    adaptation_state_ = new kaldi::OnlineIvectorExtractorAdaptationState(model_->feature_info_->ivector_extractor_info);
+
+    feature_pipeline_ = new kaldi::OnlineNnet2FeaturePipeline(*model_->feature_info_);
     feature_pipeline_->SetAdaptationState(*adaptation_state_);
 
-    decoder_ = new kaldi::SingleUtteranceNnet3Decoder(lattice_faster_decoder_config_,
-                                                      trans_model_, *decodable_info_,
-                                                      *decode_fst_, feature_pipeline_);
+    decoder_ = new kaldi::SingleUtteranceNnet3Decoder(model_->lattice_faster_decoder_config_,
+                                                      model_->trans_model_, *model_->decodable_info_,
+                                                      *model_->decode_fst_, feature_pipeline_);
+    decoder_->InitDecoding();
+
+    silence_weighting_ = new kaldi::OnlineSilenceWeighting(model_->trans_model_,
+                                                           model_->feature_info_->silence_weighting_config,
+                                                           model_->decodable_opts_.frame_subsampling_factor);
 
     uuid_ = uuid;
 }
@@ -310,9 +224,17 @@ void Decoder::free_decoder() noexcept {
         delete decoder_;
         decoder_ = NULL;
     }
+    if (adaptation_state_) {
+        delete adaptation_state_;
+        adaptation_state_ = NULL;
+    }
     if (feature_pipeline_) {
         delete feature_pipeline_; 
         feature_pipeline_ = NULL;
+    }
+    if (silence_weighting_) {
+        delete silence_weighting_;
+        silence_weighting_ = NULL;
     }
     uuid_ = "";
 }
@@ -333,24 +255,15 @@ void Decoder::decode_stream_wav_chunk(std::istream &wav_stream) {
 void Decoder::decode_stream_raw_wav_chunk(std::istream &wav_stream,
                                           const kaldi::BaseFloat& samp_freq,
                                           const size_t &data_bytes) {
-    kaldi::Matrix<kaldi::BaseFloat> wave_matrix;
-
-    std::chrono::system_clock::time_point start_time;
-    if (DEBUG) start_time = std::chrono::system_clock::now();
-
+    kaldi::Matrix<kaldi::BaseFloat> wave_matrix;    
     read_raw_wav_stream(wav_stream, data_bytes, wave_matrix);
-
-    if (DEBUG) {
-        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " wav data read in: " << ms.count() << "ms" << ENDL;
-    }
 
     // get the data for channel zero (if the signal is not mono, we only
     // take the first channel).
     kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_matrix, 0);
     std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
 
+    std::chrono::system_clock::time_point start_time;
     if (DEBUG) start_time = std::chrono::system_clock::now();
 
     _decode_wave(wave_part, delta_weights, samp_freq);
@@ -435,6 +348,7 @@ void Decoder::get_decoded_results(const std::size_t &n_best,
                                   const bool &bidi_streaming) {
     if (!bidi_streaming) {
         feature_pipeline_->InputFinished();
+        decoder_->AdvanceDecoding();
         decoder_->FinalizeDecoding();
     }
 
@@ -456,17 +370,9 @@ void Decoder::_decode_wave(kaldi::SubVector<kaldi::BaseFloat> &wave_part,
                            std::vector<std::pair<int32, kaldi::BaseFloat>> &delta_weights,
                            const kaldi::BaseFloat &samp_freq) {
 
-    std::chrono::system_clock::time_point start_time;
-    if (DEBUG) start_time = std::chrono::system_clock::now();
-
     feature_pipeline_->AcceptWaveform(samp_freq, wave_part);
 
-    if (DEBUG) {
-        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " waveform accepted in: " << ms.count() << "ms" << ENDL;
-    }
-
+    std::chrono::system_clock::time_point start_time;
     if (DEBUG) start_time = std::chrono::system_clock::now();
 
     if (silence_weighting_->Active() && feature_pipeline_->IvectorFeature() != NULL) {
@@ -534,7 +440,7 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
 
         for (auto const &wid : word_ids) {
-            word_strings.push_back(word_syms_->Find(wid));
+            word_strings.push_back(model_->word_syms_->Find(wid));
         }
         string_join(word_strings, " ", sentence);
 
@@ -559,7 +465,7 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
     else
         max_states = 0;
 
-    bool ok = kaldi::WordAlignLattice(clat, trans_model_, *wb_info_, max_states, &aligned_clat);
+    bool ok = kaldi::WordAlignLattice(clat, model_->trans_model_, *model_->wb_info_, max_states, &aligned_clat);
 
     if (!ok) {
         if (aligned_clat.Start() != fst::kNoStateId) {
@@ -587,7 +493,7 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         kaldi::MinimumBayesRiskOptions mbr_opts;
         mbr_opts.decode_mbr = false;
 
-        fst::ScaleLattice(fst::LatticeScale(lm_scale, decodable_opts_.acoustic_scale), &aligned_clat);
+        fst::ScaleLattice(fst::LatticeScale(lm_scale, model_->decodable_opts_.acoustic_scale), &aligned_clat);
         auto mbr = std::make_unique<kaldi::MinimumBayesRisk>(aligned_clat, mbr_opts);
 
         const std::vector<kaldi::BaseFloat> &conf = mbr->GetOneBestConfidences();
@@ -600,10 +506,10 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
             KALDI_ASSERT(best_words[i] != 0 || mbr_opts.print_silence); // Should not have epsilons.
 
             Word word;
-            kaldi::BaseFloat time_unit = frame_shift * decodable_opts_.frame_subsampling_factor;
+            kaldi::BaseFloat time_unit = frame_shift * model_->decodable_opts_.frame_subsampling_factor;
             word.start_time = times[i].first * time_unit;
             word.end_time = times[i].second * time_unit;
-            word.word = word_syms_->Find(best_words[i]); // lookup word in SymbolTable
+            word.word = model_->word_syms_->Find(best_words[i]); // lookup word in SymbolTable
             word.confidence = conf[i];
 
             words.push_back(word);
@@ -619,7 +525,7 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
 // Caches the graph and params to be able to produce decoders on demand.
 class DecoderFactory final {
   private:
-    const std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
+    std::unique_ptr<Model> model_;
 
   public:
     ModelSpec model_spec;
@@ -632,21 +538,12 @@ class DecoderFactory final {
     inline Decoder *operator()() const;
 };
 
-DecoderFactory::DecoderFactory(const ModelSpec &model_spec) :
-    model_spec(model_spec),
-    decode_fst_(fst::ReadFstKaldiGeneric(join_path(model_spec.path, "HCLG.fst"))) {
+DecoderFactory::DecoderFactory(const ModelSpec &model_spec) : model_spec(model_spec) {
+    model_ = std::make_unique<Model>(model_spec);
 }
 
 inline Decoder *DecoderFactory::produce() const {
-    return new Decoder(model_spec.beam,
-                       model_spec.min_active,
-                       model_spec.max_active,
-                       model_spec.lattice_beam,
-                       model_spec.acoustic_scale,
-                       model_spec.frame_subsampling_factor,
-                       model_spec.silence_weight,
-                       model_spec.path,
-                       decode_fst_.get());
+    return new Decoder(model_.get());
 }
 
 inline Decoder *DecoderFactory::operator()() const {
