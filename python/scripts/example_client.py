@@ -15,7 +15,7 @@ Options:
   --pcm                                     Flag that specifies whether to send raw pcm bytes.
   --word-level                              Flag to enable word level features from server.
 """
-
+import time
 import random
 import threading
 import traceback
@@ -62,7 +62,7 @@ def parse_response(response):
 
 def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code: str,
                                 sample_rate=8000, max_alternatives=10, raw: bool=False,
-                                word_level: bool=False):
+                                word_level: bool=False, chunk_size: float=0.5):
     """
     Transcribe the given audio chunks
     """
@@ -81,8 +81,18 @@ def transcribe_chunks_streaming(client, audio_chunks, model: str, language_code:
                 word_level=word_level,
                 data_bytes=chunk_len
             )
-            audio_params = [(config(len(chunk)), RecognitionAudio(content=chunk)) for chunk in audio_chunks]
-            response = client.streaming_recognize_raw(audio_params, uuid=str(random.randint(1000, 100000)))
+
+            start = [None]
+            def audio_params_gen(audio_chunks, start):
+                for chunk in audio_chunks[:-1]:
+                    yield config(len(chunk)), RecognitionAudio(content=chunk)
+                    time.sleep(chunk_size)
+                start[0] = time.time()
+                yield config(len(audio_chunks[-1])), RecognitionAudio(content=audio_chunks[-1])
+
+            response = client.streaming_recognize_raw(audio_params_gen(audio_chunks, start), uuid=str(random.randint(1000, 100000)))
+            end = time.time()
+            print(f"{((end - start[0])*1000):.2f}ms")
         else:
             audio = (RecognitionAudio(content=chunk) for chunk in audio_chunks)
             config = RecognitionConfig(
@@ -151,17 +161,18 @@ def transcribe_chunks_bidi_streaming(client, audio_chunks, model: str, language_
 
 def decode_files(client, audio_paths: List[str], model: str, language_code: str,
                  sample_rate=8000, max_alternatives=10, raw: bool=False,
-                 pcm: bool=False, word_level: bool=False):
+                 pcm: bool=False, word_level: bool=False, chunk_size: float=0.5):
     """
     Decode files using threaded requests
     """
-    chunked_audios = [chunks_from_file(x, sample_rate=sample_rate, chunk_size=1, raw=raw, pcm=pcm) for x in audio_paths]
+    chunked_audios = [chunks_from_file(x, sample_rate=sample_rate, chunk_size=chunk_size, raw=raw, pcm=pcm) for x in audio_paths]
 
     threads = [
         threading.Thread(
             target=transcribe_chunks_streaming,
             args=(client, chunks, model, language_code,
-                  sample_rate, max_alternatives, raw, word_level)
+                  sample_rate, max_alternatives, raw,
+                  word_level, chunk_size)
         )
         for chunks in chunked_audios
     ]
