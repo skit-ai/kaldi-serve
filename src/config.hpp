@@ -31,6 +31,11 @@ struct ModelSpec {
   kaldi::BaseFloat acoustic_scale = 1.0;
   std::size_t frame_subsampling_factor = 3;
   kaldi::BaseFloat silence_weight = 1.0;
+  // rnnlm config
+  kaldi::int32 max_ngram_order = 3;
+  kaldi::BaseFloat rnnlm_weight = 0.5;
+  std::string bos_index = "1";
+  std::string eos_index = "2";
 };
 
 // a pair of model_name and language_code

@@ -8,6 +8,9 @@
 #include <string>
 
 // kaldi includes
+#include "base/kaldi-common.h"
+#include "util/common-utils.h"
+#include "rnnlm/rnnlm-lattice-rescoring.h"
 #include "fstext/fstext-lib.h"
 #include "nnet3/nnet-utils.h"
 #include "online2/online-nnet2-feature-pipeline.h"
@@ -39,12 +42,28 @@ class Model final {
 
     std::unique_ptr<fst::SymbolTable> word_syms_;
 
-    std::unique_ptr<kaldi::WordBoundaryInfo> wb_info_;
     std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
     std::unique_ptr<kaldi::nnet3::DecodableNnetSimpleLoopedInfo> decodable_info_;
     
     kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config_;
     kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts_;
+
+    // Optional stuff
+
+    // word-boundary info
+    std::unique_ptr<kaldi::WordBoundaryInfo> wb_info_;
+
+    // RNNLM objects
+    kaldi::nnet3::Nnet rnnlm_;
+    kaldi::CuMatrix<kaldi::BaseFloat> word_embedding_mat_;
+    
+    std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_subtract_det_scale_;
+    std::unique_ptr<kaldi::rnnlm::KaldiRnnlmDeterministicFst> lm_to_add_orig_;
+
+    std::unique_ptr<kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info_;
+
+    kaldi::ComposeLatticePrunedOptions compose_opts_;
+    kaldi::BaseFloat rnnlm_weight_;
 };
 
 Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
@@ -59,6 +78,8 @@ Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
         std::string conf_dir = join_path(model_dir, "conf");
         std::string mfcc_conf_filepath = join_path(conf_dir, "mfcc.conf");
         std::string ivector_conf_filepath = join_path(conf_dir, "ivector_extractor.conf");
+
+        std::string rnnlm_dir = join_path(model_dir, "rnnlm");
 
         decode_fst_ = std::unique_ptr<fst::Fst<fst::StdArc>>(fst::ReadFstKaldiGeneric(hclg_filepath));
 
@@ -84,6 +105,49 @@ Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
         } else {
             KALDI_WARN << "Word boundary file" << word_boundary_filepath
                        << " not found. Disabling word level features.";
+        }
+
+        if (exists(rnnlm_dir) && 
+            exists(join_path(rnnlm_dir, "final.raw")) && 
+            exists(join_path(rnnlm_dir, "word_embedding.mat")) && 
+            exists(join_path(rnnlm_dir, "G.fst"))) {
+            
+            fst::VectorFst<fst::StdArc> *lm_to_subtract_fst = fst::ReadAndPrepareLmFst(join_path(rnnlm_dir, "G.fst"));
+            fst::BackoffDeterministicOnDemandFst<fst::StdArc> *lm_to_subtract_det_backoff = 
+                new fst::BackoffDeterministicOnDemandFst<fst::StdArc>(*lm_to_subtract_fst);
+            rnnlm_weight_ = model_spec.rnnlm_weight;
+            lm_to_subtract_det_scale_ = std::make_unique<fst::ScaleDeterministicOnDemandFst>(-rnnlm_weight_, lm_to_subtract_det_backoff);
+
+            kaldi::ReadKaldiObject(join_path(rnnlm_dir, "final.raw"), &rnnlm_);
+            KALDI_ASSERT(IsSimpleNnet(rnnlm_));
+            kaldi::ReadKaldiObject(join_path(rnnlm_dir, "word_embedding.mat"), &word_embedding_mat_);
+            
+            std::cout << "# Word Embeddings (RNNLM): " << word_embedding_mat_.NumRows() << ENDL;
+
+            // hack: RNNLM compute opts only takes values from parsed options like in cmd-line
+            const char *usage = "Usage: rnnlm [options]";
+            kaldi::ParseOptions po(usage);
+
+            kaldi::rnnlm::RnnlmComputeStateComputationOptions rnnlm_opts;
+            rnnlm_opts.Register(&po);
+
+            std::string bos_opt = "--bos-symbol=" + model_spec.bos_index;
+            std::string eos_opt = "--eos-symbol=" + model_spec.eos_index;
+
+            const char *argv[] = {
+                "rnnlm",
+                bos_opt.c_str(),
+                eos_opt.c_str(),
+                NULL
+            };
+
+            po.Read((sizeof(argv)/sizeof(argv[0])) - 1, argv);
+            rnnlm_info_ = std::make_unique<kaldi::rnnlm::RnnlmComputeStateInfo>(rnnlm_opts, rnnlm_, word_embedding_mat_);
+
+            kaldi::int32 max_ngram_order = model_spec.max_ngram_order;
+            lm_to_add_orig_ = std::make_unique<kaldi::rnnlm::KaldiRnnlmDeterministicFst>(max_ngram_order, *rnnlm_info_);
+        } else {
+            KALDI_WARN << "RNNLM artefacts not found. Disabling RNNLM rescoring feature.";
         }
 
         feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>();

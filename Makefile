@@ -17,7 +17,7 @@ KALDI_INCLUDES = -I${KALDI_ROOT}/src/ -I${KALDI_ROOT}/tools/openfst/include
 KALDI_LIBS = -rdynamic -lm -lpthread -ldl -lkaldi-decoder -lkaldi-lat -lkaldi-fstext \
 	-lkaldi-hmm -lkaldi-feat -lkaldi-transform -lkaldi-gmm -lkaldi-tree -lkaldi-util \
 	-lkaldi-matrix -lkaldi-base -lkaldi-nnet3 -lkaldi-online2 -lkaldi-cudamatrix \
-	-lkaldi-ivector -lfst
+	-lkaldi-ivector -lfst -lkaldi-rnnlm
 
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin

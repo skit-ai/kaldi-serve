@@ -51,6 +51,10 @@ void parse_model_specs(const std::string &toml_path, std::vector<ModelSpec> &mod
         auto maybe_acoustic_scale = model->get_as<double>("acoustic_scale");
         auto maybe_frame_subsampling_factor = model->get_as<std::size_t>("frame_subsampling_factor");
         auto maybe_silence_weight = model->get_as<double>("silence_weight");
+        auto maybe_max_ngram_order = model->get_as<std::size_t>("max_ngram_order");
+        auto maybe_rnnlm_weight = model->get_as<double>("rnnlm_weight");
+        auto maybe_bos_index = model->get_as<std::string>("bos_index");
+        auto maybe_eos_index = model->get_as<std::string>("eos_index");
 
         // TODO: Throw error in case of invalid toml
         spec.path = *maybe_path;
@@ -65,6 +69,10 @@ void parse_model_specs(const std::string &toml_path, std::vector<ModelSpec> &mod
         if (maybe_acoustic_scale) spec.acoustic_scale = *maybe_acoustic_scale;
         if (maybe_frame_subsampling_factor) spec.frame_subsampling_factor = *maybe_frame_subsampling_factor;
         if (maybe_silence_weight) spec.silence_weight = *maybe_silence_weight;
+        if (maybe_max_ngram_order) spec.max_ngram_order = *maybe_max_ngram_order;
+        if (maybe_rnnlm_weight) spec.rnnlm_weight = *maybe_rnnlm_weight;
+        if (maybe_bos_index) spec.bos_index = *maybe_bos_index;
+        if (maybe_eos_index) spec.eos_index = *maybe_eos_index;
 
         model_specs.push_back(spec);
     }

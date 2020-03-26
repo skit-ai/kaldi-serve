@@ -14,6 +14,10 @@
 #include <chrono>
 
 // kaldi includes
+#include "base/kaldi-common.h"
+#include "rnnlm/rnnlm-lattice-rescoring.h"
+#include "util/common-utils.h"
+#include "lat/compose-lattice-pruned.h"
 #include "feat/wave-reader.h"
 #include "fstext/fstext-lib.h"
 #include "lat/kaldi-lattice.h"
@@ -49,6 +53,7 @@ struct Alternative {
 // Options for decoder
 struct DecoderOptions {
   bool enable_word_level;
+  bool enable_rnnlm;
 };
 
 // Result for one continuous utterance
@@ -154,7 +159,7 @@ class Decoder final {
                              const bool &word_level,
                              const bool &bidi_streaming=false);
 
-    DecoderOptions options;
+    DecoderOptions options{false, false};
 
   private:
     // decodes an intermediate wavepart
@@ -163,7 +168,7 @@ class Decoder final {
                       const kaldi::BaseFloat &samp_freq);
 
     // gets the final decoded transcripts from lattice
-    void _find_alternatives(const kaldi::CompactLattice &clat,
+    void _find_alternatives(kaldi::CompactLattice &clat,
                             const std::size_t &n_best,
                             utterance_results_t &results,
                             const bool &word_level) const;
@@ -183,10 +188,8 @@ class Decoder final {
 
 Decoder::Decoder(Model *const model) : model_(model) {
 
-    if (model_->wb_info_)
-        options.enable_word_level = true;
-    else
-        options.enable_word_level = false;
+    if (model_->wb_info_ != nullptr) options.enable_word_level = true;
+    if (model_->rnnlm_info_ != nullptr) options.enable_rnnlm = true;
 
     // decoder vars initialization
     decoder_ = NULL;
@@ -408,7 +411,7 @@ void Decoder::_decode_wave(kaldi::SubVector<kaldi::BaseFloat> &wave_part,
     }
 }
 
-void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
+void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
                                  const std::size_t &n_best,
                                  utterance_results_t &results,
                                  const bool &word_level) const {
@@ -416,11 +419,45 @@ void Decoder::_find_alternatives(const kaldi::CompactLattice &clat,
         KALDI_LOG << "Empty lattice.";
     }
 
+    if (options.enable_rnnlm) {
+        fst::DeterministicOnDemandFst<fst::StdArc> *lm_to_add =
+            new fst::ScaleDeterministicOnDemandFst(model_->rnnlm_weight_, model_->lm_to_add_orig_.get());
+
+        // Before composing with the LM FST, we scale the lattice weights
+        // by the inverse of "lm_scale".  We'll later scale by "lm_scale".
+        // We do it this way so we can determinize and it will give the
+        // right effect (taking the "best path" through the LM) regardless
+        // of the sign of lm_scale.
+        if (model_->decodable_opts_.acoustic_scale != 1.0) {
+            fst::ScaleLattice(fst::AcousticLatticeScale(model_->decodable_opts_.acoustic_scale), &clat);
+        }
+        kaldi::TopSortCompactLatticeIfNeeded(&clat);
+
+        fst::ComposeDeterministicOnDemandFst<fst::StdArc> combined_lms(model_->lm_to_subtract_det_scale_.get(), lm_to_add);
+
+        // Composes lattice with language model.
+        kaldi::CompactLattice composed_clat;
+        kaldi::ComposeCompactLatticePruned(model_->compose_opts_, clat,
+                                           &combined_lms, &composed_clat);
+
+        model_->lm_to_add_orig_->Clear();
+
+        if (composed_clat.NumStates() == 0) {
+            // Something went wrong.  A warning will already have been printed.
+            KALDI_WARN << "Empty lattice after RNNLM rescoring.";
+        } else {
+            clat = composed_clat;
+        }
+        
+        delete lm_to_add;
+    }
+
     auto lat = std::make_unique<kaldi::Lattice>();
     fst::ConvertLattice(clat, lat.get());
 
     kaldi::Lattice nbest_lat;
     std::vector<kaldi::Lattice> nbest_lats;
+
     fst::ShortestPath(*lat, &nbest_lat, n_best);
     fst::ConvertNbestToVector(nbest_lat, &nbest_lats);
 
