@@ -16,7 +16,7 @@
 #include "vendor/CLI11.hpp"
 #include "vendor/cpptoml.h"
 
-#define VERSION "0.3.3"
+#define VERSION "0.4.0"
 
 void print_version() {
   std::cout << VERSION << std::endl;
