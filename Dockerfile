@@ -18,7 +18,7 @@ RUN apt-get update && \
 
 # Install gRPC
 RUN cd /home/ && \
-    git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc && \
+    git clone -b v1.28.1 https://github.com/grpc/grpc && \
     cd /home/grpc/ && \
     git submodule update --init && \
     make && \
@@ -45,10 +45,25 @@ COPY --from=builder /home/app/resources resources
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
 
+# CPP LIBS
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/local/lib/libstdc++.so.6
+
+# INTEL MKL
+COPY --from=builder /so-files /opt/intel/mkl/lib/intel64/
+
+# GRPC LIBS
 COPY --from=builder /usr/local/lib/libgrpc++.so.1 /usr/local/lib/libgrpc++.so.1
 COPY --from=builder /usr/local/lib/libgrpc++_reflection.so.1 /usr/local/lib/libgrpc++_reflection.so.1
+COPY --from=builder /usr/local/lib/libgrpc.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libgpr.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libupb.so* /usr/local/lib/
+
+# BOOST LIBS
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost_system.so.1.62.0 /usr/local/lib/libboost_system.so.1.62.0
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.62.0 /usr/local/lib/libboost_filesystem.so.1.62.0
+
+# KALDI LIBS
+COPY --from=builder /home/kaldi/tools/openfst/lib/libfst.so.10 /home/kaldi/tools/openfst/lib/libfst.so.10
 COPY --from=builder /home/kaldi/src/lib/libkaldi-decoder.so /home/kaldi/src/lib/libkaldi-decoder.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-fstext.so /home/kaldi/src/lib/libkaldi-fstext.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-hmm.so /home/kaldi/src/lib/libkaldi-hmm.so
@@ -60,14 +75,11 @@ COPY --from=builder /home/kaldi/src/lib/libkaldi-nnet3.so /home/kaldi/src/lib/li
 COPY --from=builder /home/kaldi/src/lib/libkaldi-online2.so /home/kaldi/src/lib/libkaldi-online2.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-cudamatrix.so /home/kaldi/src/lib/libkaldi-cudamatrix.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-ivector.so /home/kaldi/src/lib/libkaldi-ivector.so
-COPY --from=builder /home/kaldi/tools/openfst/lib/libfst.so.10 /home/kaldi/tools/openfst/lib/libfst.so.10
-COPY --from=builder /usr/local/lib/libgrpc.so.7 /usr/local/lib/libgrpc.so.7
-COPY --from=builder /usr/local/lib/libgpr.so.7 /usr/local/lib/libgpr.so.7
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/local/lib/libstdc++.so.6
+COPY --from=builder /home/kaldi/src/lib/libkaldi-rnnlm.so /home/kaldi/src/lib/libkaldi-rnnlm.so
+COPY --from=builder /home/kaldi/src/lib/libkaldi-lm.so /home/kaldi/src/lib/libkaldi-lm.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-lat.so /home/kaldi/src/lib/libkaldi-lat.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-tree.so /home/kaldi/src/lib/libkaldi-tree.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-transform.so /home/kaldi/src/lib/libkaldi-transform.so
-COPY --from=builder /so-files /opt/intel/mkl/lib/intel64/
 COPY --from=builder /home/kaldi/src/lib/libkaldi-chain.so /home/kaldi/src/lib/libkaldi-chain.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-nnet2.so /home/kaldi/src/lib/libkaldi-nnet2.so
 COPY --from=builder /home/kaldi/src/lib/libkaldi-gmm.so /home/kaldi/src/lib/libkaldi-gmm.so
