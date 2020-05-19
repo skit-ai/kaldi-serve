@@ -4,7 +4,7 @@ HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 SYSTEM ?= $(HOST_SYSTEM)
 CXX = g++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
-CXXFLAGS += -std=c++17 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare -Wno-unused-local-typedefs \
+CXXFLAGS += -std=c++14 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare -Wno-unused-local-typedefs \
 	-Wno-unused-variable -Winit-self -O3
 
 LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++` \
