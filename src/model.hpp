@@ -137,7 +137,7 @@ Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
             std::string eos_opt = "--eos-symbol=" + model_spec.eos_index;
 
             const char *argv[] = {
-                "rnnlm",
+                "model.hpp",
                 bos_opt.c_str(),
                 eos_opt.c_str(),
                 NULL
