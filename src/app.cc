@@ -1,4 +1,4 @@
-#include "config.hpp"
+// app.cc - Main Application Entry
 
 // stl includes
 #include <iostream>
@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 // local includes
+#include "config.hpp"
 #include "decoder.hpp"
 #include "server.hpp"
 #include "utils.hpp"
