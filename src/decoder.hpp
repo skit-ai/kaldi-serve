@@ -420,6 +420,8 @@ void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
     }
 
     if (options.enable_rnnlm) {
+        std::lock_guard<std::mutex> guard(model_->rnnlm_mutex);
+
         fst::DeterministicOnDemandFst<fst::StdArc> *lm_to_add =
             new fst::ScaleDeterministicOnDemandFst(model_->rnnlm_weight_, model_->lm_to_add_orig_.get());
 

@@ -6,6 +6,7 @@
 // stl includes
 #include <iostream>
 #include <string>
+#include <mutex>
 
 // kaldi includes
 #include "base/kaldi-common.h"
@@ -33,6 +34,7 @@ class Model final {
     explicit Model(const ModelSpec &model_spec);
 
     ModelSpec model_spec;
+    std::mutex rnnlm_mutex;
 
   private:
     std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
