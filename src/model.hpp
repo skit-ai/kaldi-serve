@@ -6,7 +6,6 @@
 // stl includes
 #include <iostream>
 #include <string>
-#include <mutex>
 
 // kaldi includes
 #include "base/kaldi-common.h"
@@ -34,7 +33,6 @@ class Model final {
     explicit Model(const ModelSpec &model_spec);
 
     ModelSpec model_spec;
-    std::mutex rnnlm_mutex;
 
   private:
     std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
@@ -59,10 +57,8 @@ class Model final {
     kaldi::nnet3::Nnet rnnlm_;
     kaldi::CuMatrix<kaldi::BaseFloat> word_embedding_mat_;
     
-    std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_subtract_det_scale_;
-    std::unique_ptr<kaldi::rnnlm::KaldiRnnlmDeterministicFst> lm_to_add_orig_;
-
-    std::unique_ptr<kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info_;
+    std::unique_ptr<fst::BackoffDeterministicOnDemandFst<fst::StdArc>> lm_to_subtract_det_backoff_;
+    std::unique_ptr<const kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info_;
 
     kaldi::ComposeLatticePrunedOptions compose_opts_;
     kaldi::BaseFloat rnnlm_weight_;
@@ -115,10 +111,8 @@ Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
             exists(join_path(rnnlm_dir, "G.fst"))) {
             
             fst::VectorFst<fst::StdArc> *lm_to_subtract_fst = fst::ReadAndPrepareLmFst(join_path(rnnlm_dir, "G.fst"));
-            fst::BackoffDeterministicOnDemandFst<fst::StdArc> *lm_to_subtract_det_backoff = 
-                new fst::BackoffDeterministicOnDemandFst<fst::StdArc>(*lm_to_subtract_fst);
+            lm_to_subtract_det_backoff_ = std::make_unique<fst::BackoffDeterministicOnDemandFst<fst::StdArc>>(*lm_to_subtract_fst);
             rnnlm_weight_ = model_spec.rnnlm_weight;
-            lm_to_subtract_det_scale_ = std::make_unique<fst::ScaleDeterministicOnDemandFst>(-rnnlm_weight_, lm_to_subtract_det_backoff);
 
             kaldi::ReadKaldiObject(join_path(rnnlm_dir, "final.raw"), &rnnlm_);
             KALDI_ASSERT(IsSimpleNnet(rnnlm_));
@@ -127,7 +121,7 @@ Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
             std::cout << "# Word Embeddings (RNNLM): " << word_embedding_mat_.NumRows() << ENDL;
 
             // hack: RNNLM compute opts only takes values from parsed options like in cmd-line
-            const char *usage = "Usage: rnnlm [options]";
+            const char *usage = "Usage: model.hpp [options]";
             kaldi::ParseOptions po(usage);
 
             kaldi::rnnlm::RnnlmComputeStateComputationOptions rnnlm_opts;
@@ -144,10 +138,7 @@ Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
             };
 
             po.Read((sizeof(argv)/sizeof(argv[0])) - 1, argv);
-            rnnlm_info_ = std::make_unique<kaldi::rnnlm::RnnlmComputeStateInfo>(rnnlm_opts, rnnlm_, word_embedding_mat_);
-
-            kaldi::int32 max_ngram_order = model_spec.max_ngram_order;
-            lm_to_add_orig_ = std::make_unique<kaldi::rnnlm::KaldiRnnlmDeterministicFst>(max_ngram_order, *rnnlm_info_);
+            rnnlm_info_ = std::make_unique<const kaldi::rnnlm::RnnlmComputeStateInfo>(rnnlm_opts, rnnlm_, word_embedding_mat_);
         } else {
             KALDI_WARN << "RNNLM artefacts not found. Disabling RNNLM rescoring feature.";
         }

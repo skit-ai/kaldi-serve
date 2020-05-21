@@ -420,10 +420,11 @@ void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
     }
 
     if (options.enable_rnnlm) {
-        std::lock_guard<std::mutex> guard(model_->rnnlm_mutex);
+        std::unique_ptr<kaldi::rnnlm::KaldiRnnlmDeterministicFst> lm_to_add_orig = 
+            std::make_unique<kaldi::rnnlm::KaldiRnnlmDeterministicFst>(model_->model_spec.max_ngram_order, *model_->rnnlm_info_);
 
         fst::DeterministicOnDemandFst<fst::StdArc> *lm_to_add =
-            new fst::ScaleDeterministicOnDemandFst(model_->rnnlm_weight_, model_->lm_to_add_orig_.get());
+            new fst::ScaleDeterministicOnDemandFst(model_->rnnlm_weight_, lm_to_add_orig.get());
 
         // Before composing with the LM FST, we scale the lattice weights
         // by the inverse of "lm_scale".  We'll later scale by "lm_scale".
@@ -435,14 +436,14 @@ void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
         }
         kaldi::TopSortCompactLatticeIfNeeded(&clat);
 
-        fst::ComposeDeterministicOnDemandFst<fst::StdArc> combined_lms(model_->lm_to_subtract_det_scale_.get(), lm_to_add);
+        std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_subtract_det_scale =
+            std::make_unique<fst::ScaleDeterministicOnDemandFst>(-model_->rnnlm_weight_, model_->lm_to_subtract_det_backoff_.get());
+        fst::ComposeDeterministicOnDemandFst<fst::StdArc> combined_lms(lm_to_subtract_det_scale.get(), lm_to_add);
 
         // Composes lattice with language model.
         kaldi::CompactLattice composed_clat;
         kaldi::ComposeCompactLatticePruned(model_->compose_opts_, clat,
                                            &combined_lms, &composed_clat);
-
-        model_->lm_to_add_orig_->Clear();
 
         if (composed_clat.NumStates() == 0) {
             // Something went wrong.  A warning will already have been printed.
