@@ -55,10 +55,8 @@ class Model final {
     kaldi::nnet3::Nnet rnnlm_;
     kaldi::CuMatrix<kaldi::BaseFloat> word_embedding_mat_;
     
-    std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_subtract_det_scale_;
-    std::unique_ptr<kaldi::rnnlm::KaldiRnnlmDeterministicFst> lm_to_add_orig_;
-
-    std::unique_ptr<kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info_;
+    std::unique_ptr<fst::BackoffDeterministicOnDemandFst<fst::StdArc>> lm_to_subtract_det_backoff_;
+    std::unique_ptr<const kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info_;
 
     kaldi::ComposeLatticePrunedOptions compose_opts_;
     kaldi::BaseFloat rnnlm_weight_;
