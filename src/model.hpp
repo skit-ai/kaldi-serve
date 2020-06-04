@@ -147,20 +147,29 @@ Model::Model(const ModelSpec &model_spec) : model_spec(model_spec) {
         feature_info_->feature_type = "mfcc";
         kaldi::ReadConfigFromFile(mfcc_conf_filepath, &(feature_info_->mfcc_opts));
 
-        feature_info_->use_ivectors = true;
-        kaldi::OnlineIvectorExtractionConfig ivector_extraction_opts;
-        kaldi::ReadConfigFromFile(ivector_conf_filepath, &ivector_extraction_opts);
+        if (exists(ivector_conf_filepath))
+        {
+          feature_info_->use_ivectors = true;
+          kaldi::OnlineIvectorExtractionConfig ivector_extraction_opts;
+          kaldi::ReadConfigFromFile(ivector_conf_filepath, &ivector_extraction_opts);
 
-        // Expand paths if relative provided. We use model_dir as the base in
-        // such cases.
-        ivector_extraction_opts.lda_mat_rxfilename = expand_relative_path(ivector_extraction_opts.lda_mat_rxfilename, model_dir);
-        ivector_extraction_opts.global_cmvn_stats_rxfilename = expand_relative_path(ivector_extraction_opts.global_cmvn_stats_rxfilename, model_dir);
-        ivector_extraction_opts.diag_ubm_rxfilename = expand_relative_path(ivector_extraction_opts.diag_ubm_rxfilename, model_dir);
-        ivector_extraction_opts.ivector_extractor_rxfilename = expand_relative_path(ivector_extraction_opts.ivector_extractor_rxfilename, model_dir);
-        ivector_extraction_opts.cmvn_config_rxfilename = expand_relative_path(ivector_extraction_opts.cmvn_config_rxfilename, model_dir);
-        ivector_extraction_opts.splice_config_rxfilename = expand_relative_path(ivector_extraction_opts.splice_config_rxfilename, model_dir);
+          // Expand paths if relative provided. We use model_dir as the base in
+          // such cases.
+          ivector_extraction_opts.lda_mat_rxfilename = expand_relative_path(ivector_extraction_opts.lda_mat_rxfilename, model_dir);
+          ivector_extraction_opts.global_cmvn_stats_rxfilename = expand_relative_path(ivector_extraction_opts.global_cmvn_stats_rxfilename, model_dir);
+          ivector_extraction_opts.diag_ubm_rxfilename = expand_relative_path(ivector_extraction_opts.diag_ubm_rxfilename, model_dir);
+          ivector_extraction_opts.ivector_extractor_rxfilename = expand_relative_path(ivector_extraction_opts.ivector_extractor_rxfilename, model_dir);
+          ivector_extraction_opts.cmvn_config_rxfilename = expand_relative_path(ivector_extraction_opts.cmvn_config_rxfilename, model_dir);
+          ivector_extraction_opts.splice_config_rxfilename = expand_relative_path(ivector_extraction_opts.splice_config_rxfilename, model_dir);
 
-        feature_info_->ivector_extractor_info.Init(ivector_extraction_opts);
+          feature_info_->ivector_extractor_info.Init(ivector_extraction_opts);
+        }
+        else
+        {
+          KALDI_WARN << ivector_conf_filepath << " file not found. Turning off ivectors.";
+          feature_info_->use_ivectors = false;
+        }
+          
         feature_info_->silence_weighting_config.silence_weight = model_spec.silence_weight;
 
         lattice_faster_decoder_config_.min_active = model_spec.min_active;
