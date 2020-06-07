@@ -1,0 +1,22 @@
+# Basic correctness tests for our hindi model (and the server). Note that you
+# will need both the model and the audio files listed here. Since this might not
+# be case in all environments (also models might just not be that stable), we
+# only keep this mechanism in place, suggesting users to test using their own
+# data files and models.
+
+- - file: ./tests/resources/hi/one_two_three_four.wav
+    transcription: "एक दो तीन चार"
+
+- - file: ./tests/resources/hi/five_six_seven_eight.wav
+    transcription: "पांच छह सात आठ"
+
+- - file: ./tests/resources/hi/nine_ten_eleven_twelve.wav
+    transcription: "नौ दस ग्यारह बारह"
+
+# Multiple items are thrown in parallel to the server
+- - file: ./tests/resources/hi/one_two_three_four.wav
+    transcription: "एक दो तीन चार"
+  - file: ./tests/resources/hi/five_six_seven_eight.wav
+    transcription: "पांच छह सात आठ"
+  - file: ./tests/resources/hi/nine_ten_eleven_twelve.wav
+    transcription: "नौ दस ग्यारह बारह"
