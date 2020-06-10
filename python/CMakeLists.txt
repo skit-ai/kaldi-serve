@@ -11,3 +11,6 @@ target_include_directories(kaldiserve_pybind SYSTEM PRIVATE ${PYBIND11_INCLUDE_D
 target_include_directories(kaldiserve_pybind PRIVATE .)
 target_include_directories(kaldiserve_pybind PRIVATE ../include)
 target_include_directories(kaldiserve_pybind PRIVATE ${KALDI_ROOT}/src ${KALDI_ROOT}/tools/openfst/include)
+
+# kaldiserve lib
+target_link_libraries(kaldiserve_pybind PRIVATE kaldiserve)
