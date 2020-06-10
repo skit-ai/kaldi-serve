@@ -2,107 +2,39 @@
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/Vernacular-ai/kaldi-serve?style=flat-square) ![GitHub](https://img.shields.io/github/license/Vernacular-ai/kaldi-serve?style=flat-square)
 
-[gRPC](https://grpc.io/) server component for [Kaldi](https://kaldi-asr.org/)
-based ASR.
+A plug-and-play abstraction over [Kaldi](https://kaldi-asr.org/) ASR toolkit, designed for ease of deployment and optimal runtime performance.
 
 **Key Features**:
 
-- Multithreaded gRPC server.
-- Supports bi-directional streaming recognition.
-- Thread-safe concurrent queue to process each audio stream separately.
+- Supports real-time streaming (uni & bi-directional) and batch audio recognition.
+- Thread-safe concurrent queue to handle multiple audio streams.
+- RNNLM lattice rescoring.
 - N-best alternatives with LM and AM costs.
-- Word level timing and confidence scores.
+- Word level timings and confidence scores.
 
 ## Getting Started
 
 ### Setup
 
-Make sure you have gRPC, protobuf and Boost C++ libraries installed on your
-system. Kaldi also needs to be present and built. Let's build the server:
+Make sure you have C++14 std and Boost C++ libraries installed on your
+system. [Kaldi](https://kaldi-asr.org/) also needs to be present and built. Let's build the shared library:
 
 ```bash
-make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
+cd build/
+cmake .. -DKALDI_ROOT=/path/to/local/repo/for/kaldi/
+make -j${nproc}
 ```
 
-Run `make clean` to clear old build files.
+You will find the headers in `include/` and the built `.so` file in `build/src/` to use for linking against custom applications.
 
-### Running the server
+#### Python binding
 
-For running the server, you need to first specify model config in a toml which
-tells the program which models to load, where to look for etc. Structure of
-`model_spec_toml` file is specified in a sample in
-[resources](./resources/model-spec.toml).
+We also provide a [python binding](./python) of the library, which needs pybind11 to be present and built, or alternately you can pass the `-DBUILD_PYBIND11` flag and cmake will take care of it. You can build the bindings by passing `-DBUILD_PYTHON_MODULE` flag to the cmake command [above](###setup).
 
-```bash
-# Make sure to have kaldi and openfst library available using LD_LIBRARY_PATH or something
-# e.g. env LD_LIBRARY_PATH=../../asr/kaldi/tools/openfst/lib/:../../asr/kaldi/src/lib/ ./build/kaldi_serve_app
+## Usage
 
-# Alternatively, you can also put all the required .so files in the ./lib/ directory since
-# that is added to the binary's rpath.
+There are a few [plugins](./plugins) and [binaries](./bin) using the library that we maintain:
+- gRPC Server
+- Batch decoding binary (CPU & GPU)
 
-./build/kaldi_serve_app --help
-
-Kaldi gRPC server
-Usage: ./build/kaldi_serve_app [OPTIONS] model_spec_toml
-
-Positionals:
-  model_spec_toml TEXT:FILE REQUIRED
-                              Path to toml specifying models to load
-
-Options:
-  -h,--help                   Print this help message and exit
-  -v,--version                Show program version and exit
-```
-
-### Clients
-
-For simple microphone testing, you can do something like the following (needs
-[evans](https://github.com/ktr0731/evans) installed):
-
-```bash
-audio_bytes=$(arecord -f S16_LE -d 5 -r 8000 -c 1 | base64 -w0) # Recording 5 seconds of audio
-echo "{\"audio\": {\"content\": \"$audio_bytes\"}, \"config\": {\"max_alternatives\": 2, \"model\": \"general\", \"language_code\": \"hi\"} }" | evans --package kaldi_serve --service KaldiServe ./protos/kaldi_serve.proto  --call Recognize --port 5016 | jq
-```
-
-The output structure looks like the following:
-```
-{
-  "results": [
-    {
-      "alternatives": [
-        {
-          "transcript": "हेलो दुनिया",
-          "confidence": 0.95897794,
-          "amScore": -374.5963,
-          "lmScore": 131.33058
-        },
-        {
-          "transcript": "हैलो दुनिया",
-          "confidence": 0.95882875,
-          "amScore": -372.76187,
-          "lmScore": 131.84035
-        }
-      ]
-    }
-  ]
-}
-```
-
-A Python client is also present in [python](./python) directory with a few
-example scripts.
-
-### Load testing
-
-We perform load testing using [ghz](https://ghz.sh/) which is a gRPC
-benchmarking and load testing tool. You can use the following command template:
-
-```bash
-ghz \
---insecure \
---proto ./protos/kaldi_serve.proto \
---call kaldi_serve.KaldiServe.StreamingRecognize \
--n [NUM REQUESTS] -c [CONCURRENT REQUESTS] \
---cpus [NUM CORES] \
--d "[{\"audio\": {\"content\": \"$chunk1\"}, \"config\": {\"max_alternatives\": [N_BEST], \"language_code\": \"[LANGUUAGE]\", \"model\": \"[MODEL]\"}}, ...more chunks]" \
-0.0.0.0:5016
-```
+Alternately, you can include our [headers](./include) and link the [library](./src) aginst your application at compile time and start using it.

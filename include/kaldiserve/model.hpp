@@ -17,6 +17,7 @@
 
 // local includes
 #include "config.hpp"
+#include "types.hpp"
 #include "decoder.hpp"
 #include "utils.hpp"
 

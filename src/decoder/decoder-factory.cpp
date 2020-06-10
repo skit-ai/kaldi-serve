@@ -1,8 +1,9 @@
 // decoder-factory.cpp - Decoder Factory Implementation
 
 // local includes
-#include "decoder.hpp"
+#include "types.hpp"
 #include "model.hpp"
+#include "decoder.hpp"
 
 
 namespace kaldiserve {

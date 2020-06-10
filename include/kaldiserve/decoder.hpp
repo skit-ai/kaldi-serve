@@ -31,34 +31,12 @@
 
 // local includes
 #include "config.hpp"
+#include "types.hpp"
 #include "model.hpp"
 #include "utils.hpp"
 
 
 namespace kaldiserve {
-
-struct Word {
-  float start_time, end_time, confidence;
-  std::string word;
-};
-
-// An alternative defines a single hypothesis and certain details about the
-// parse (only scores for now).
-struct Alternative {
-  std::string transcript;
-  double confidence;
-  float am_score, lm_score;
-  std::vector<Word> words;
-};
-
-// Options for decoder
-struct DecoderOptions {
-  bool enable_word_level;
-  bool enable_rnnlm;
-};
-
-// Result for one continuous utterance
-using utterance_results_t = std::vector<Alternative>;
 
 // Forward declare class for friendship (hack for now)
 class ChainModel;
@@ -83,27 +61,27 @@ class Decoder final {
 
     // decode an intermediate frame/chunk of a raw headerless wav audio stream
     void decode_stream_raw_wav_chunk(std::istream &wav_stream,
-                                     const kaldi::BaseFloat& samp_freq,
-                                     const size_t &data_bytes);
+                                     const float &samp_freq,
+                                     const int &data_bytes);
 
     // NON-STREAMING METHODS
 
     // decodes an (independent) wav audio stream
     // internally chunks a wav audio stream and decodes them
     void decode_wav_audio(std::istream &wav_stream,
-                          const kaldi::BaseFloat &chunk_size=1);
+                          const float &chunk_size=1);
 
     // decodes an (independent) raw headerless wav audio stream
     // internally chunks a wav audio stream and decodes them
     void decode_raw_wav_audio(std::istream &wav_stream,
-                              const kaldi::BaseFloat &samp_freq,
-                              const size_t &data_bytes,
-                              const kaldi::BaseFloat &chunk_size=1);
+                              const float &samp_freq,
+                              const int &data_bytes,
+                              const float &chunk_size=1);
 
     // LATTICE DECODING METHODS
 
     // get the final utterances based on the compact lattice
-    void get_decoded_results(const std::size_t &n_best,
+    void get_decoded_results(const int &n_best,
                              utterance_results_t &results,
                              const bool &word_level,
                              const bool &bidi_streaming=false);
@@ -134,6 +112,17 @@ class Decoder final {
     // req-specific vars
     std::string uuid_;
 };
+
+
+#if HAVE_CUDA == 1
+
+class BatchDecoder final {
+
+  public:
+    explicit BatchDecoder(ChainModel *const model);
+};
+
+#endif
 
 
 // Factory for creating decoders with shared decoding graph and model parameters
@@ -192,7 +181,7 @@ class DecoderQueue final {
     Decoder *pop_();
 
     // underlying STL "unsafe" queue for storing decoder objects
-    std::queue<Decoder *> queue_;
+    std::queue<Decoder*> queue_;
     // custom mutex to make queue "thread-safe"
     std::mutex mutex_;
     // helper for holding mutex and notification on waiting threads when concerned resources are available
@@ -206,7 +195,7 @@ class DecoderQueue final {
 // https://github.com/dialogflow/asr-server/blob/master/src/OnlineDecoder.cc#L90
 // NOTE: This might not be very useful for us right now. Depending on the
 //       situation, we might actually want to weigh components differently.
-static inline double calculate_confidence(const float &lm_score, const float &am_score, const std::size_t &n_words) noexcept {
+static inline double calculate_confidence(const float &lm_score, const float &am_score, const int &n_words) noexcept {
     return std::max(0.0, std::min(1.0, -0.0001466488 * (2.388449 * lm_score + am_score) / (n_words + 1) + 0.956));
 }
 
@@ -223,10 +212,10 @@ static inline void print_wav_info(const kaldi::WaveInfo &wave_info) noexcept {
 
 
 static void read_raw_wav_stream(std::istream &wav_stream,
-                         const size_t &data_bytes,
-                         kaldi::Matrix<kaldi::BaseFloat> &wav_data,
-                         const size_t &num_channels = 1,
-                         const size_t &sample_width = 2) {
+                                const size_t &data_bytes,
+                                kaldi::Matrix<kaldi::BaseFloat> &wav_data,
+                                const size_t &num_channels = 1,
+                                const size_t &sample_width = 2) {
     const size_t bits_per_sample = sample_width * 8;
     const size_t block_align = num_channels * sample_width;
 

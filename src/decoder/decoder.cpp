@@ -2,6 +2,7 @@
 
 // local includes
 #include "decoder.hpp"
+#include "types.hpp"
 
 
 namespace kaldiserve {
@@ -76,8 +77,8 @@ void Decoder::decode_stream_wav_chunk(std::istream &wav_stream) {
 }
 
 void Decoder::decode_stream_raw_wav_chunk(std::istream &wav_stream,
-                                          const kaldi::BaseFloat& samp_freq,
-                                          const size_t &data_bytes) {
+                                          const float& samp_freq,
+                                          const int &data_bytes) {
     kaldi::Matrix<kaldi::BaseFloat> wave_matrix;    
     read_raw_wav_stream(wav_stream, data_bytes, wave_matrix);
 
@@ -99,7 +100,7 @@ void Decoder::decode_stream_raw_wav_chunk(std::istream &wav_stream,
 }
 
 void Decoder::decode_wav_audio(std::istream &wav_stream,
-                               const kaldi::BaseFloat &chunk_size) {
+                               const float &chunk_size) {
     kaldi::WaveData wave_data;
     wave_data.Read(wav_stream);
 
@@ -132,9 +133,9 @@ void Decoder::decode_wav_audio(std::istream &wav_stream,
 }
 
 void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
-                                   const kaldi::BaseFloat &samp_freq,
-                                   const size_t &data_bytes,
-                                   const kaldi::BaseFloat &chunk_size) {
+                                   const float &samp_freq,
+                                   const int &data_bytes,
+                                   const float &chunk_size) {
     kaldi::Matrix<kaldi::BaseFloat> wave_matrix;
     read_raw_wav_stream(wav_stream, data_bytes, wave_matrix);
 
@@ -165,7 +166,7 @@ void Decoder::decode_raw_wav_audio(std::istream &wav_stream,
     }
 }
 
-void Decoder::get_decoded_results(const std::size_t &n_best,
+void Decoder::get_decoded_results(const int &n_best,
                                   utterance_results_t &results,
                                   const bool &word_level,
                                   const bool &bidi_streaming) {

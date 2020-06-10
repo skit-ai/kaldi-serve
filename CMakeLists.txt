@@ -8,30 +8,35 @@ project(kaldiserve VERSION 1.0.0 LANGUAGES C CXX)
 # Config options
 option(BUILD_SHARED_LIB          "Build shared library"                     ON)
 option(ENABLE_GPU                "Enable GPU build"                         OFF) # TODO(1)
-option(BUILD_PYTHON_MODULE       "Build the python module"                  OFF) # TODO(2)
+option(BUILD_PYBIND11            "Build the pybind11 module"                ON)
+option(BUILD_PYTHON_MODULE       "Build the python module"                  ON)
 
 # CXX compiler options
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_INSTALL_SO_NO_EXE OFF)
+
+# kaldi config
+set(KALDI_ROOT /opt/kaldi CACHE STRING "Path to Kaldi root directory")
+add_definitions(-DKALDI_DOUBLEPRECISION=0)
 
 # Build shared library
 if(BUILD_SHARED_LIB)
-    set(KALDI_ROOT /opt/kaldi CACHE STRING "Path to Kaldi root directory")
-    add_definitions(-DKALDI_DOUBLEPRECISION=0)
-
     find_package(Boost REQUIRED)
     include_directories(${Boost_INCLUDE_DIRS})
 
     add_subdirectory(src)
-
-    # install(TARGETS kaldiserve DESTINATION /usr/local/lib)
-    # install(DIRECTORY include/kaldiserve DESTINATION /usr/include)
 endif()
 
 # Build python port
 if (BUILD_PYTHON_MODULE)
-    find_package(pybind11 REQUIRED)
+
+    # Pybind11
+    if (BUILD_PYBIND11)
+        set(BUILD_PYBIND11 ON)
+        add_subdirectory(3rdparty/pybind11)
+    else()
+        find_package(pybind11 REQUIRED)
+    endif()
 
     add_subdirectory(python)
 endif()

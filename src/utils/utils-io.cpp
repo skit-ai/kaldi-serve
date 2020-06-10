@@ -8,6 +8,7 @@
 
 // local includes
 #include "utils.hpp"
+#include "types.hpp"
 
 
 namespace kaldiserve {
@@ -42,16 +43,16 @@ void parse_model_specs(const std::string &toml_path, std::vector<ModelSpec> &mod
         auto maybe_path = model->get_as<std::string>("path");
         auto maybe_name = model->get_as<std::string>("name");
         auto maybe_language_code = model->get_as<std::string>("language_code");
-        auto maybe_n_decoders = model->get_as<std::size_t>("n_decoders");
+        auto maybe_n_decoders = model->get_as<int>("n_decoders");
 
+        auto maybe_min_active = model->get_as<int>("min_active");
+        auto maybe_max_active = model->get_as<int>("max_active");
+        auto maybe_frame_subsampling_factor = model->get_as<int>("frame_subsampling_factor");
         auto maybe_beam = model->get_as<double>("beam");
-        auto maybe_min_active = model->get_as<std::size_t>("min_active");
-        auto maybe_max_active = model->get_as<std::size_t>("max_active");
         auto maybe_lattice_beam = model->get_as<double>("lattice_beam");
         auto maybe_acoustic_scale = model->get_as<double>("acoustic_scale");
-        auto maybe_frame_subsampling_factor = model->get_as<std::size_t>("frame_subsampling_factor");
         auto maybe_silence_weight = model->get_as<double>("silence_weight");
-        auto maybe_max_ngram_order = model->get_as<std::size_t>("max_ngram_order");
+        auto maybe_max_ngram_order = model->get_as<int>("max_ngram_order");
         auto maybe_rnnlm_weight = model->get_as<double>("rnnlm_weight");
         auto maybe_bos_index = model->get_as<std::string>("bos_index");
         auto maybe_eos_index = model->get_as<std::string>("eos_index");

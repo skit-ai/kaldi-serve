@@ -7,6 +7,7 @@
 // local includes
 #include "model.hpp"
 #include "utils.hpp"
+#include "types.hpp"
 
 
 namespace kaldiserve {

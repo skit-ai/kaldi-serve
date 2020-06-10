@@ -7,6 +7,7 @@
 
 // local includes
 #include "config.hpp"
+#include "types.hpp"
 
 
 namespace kaldiserve {

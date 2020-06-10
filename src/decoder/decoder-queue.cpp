@@ -2,6 +2,7 @@
 
 // local includes
 #include "decoder.hpp"
+#include "types.hpp"
 
 
 namespace kaldiserve {
