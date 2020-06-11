@@ -204,20 +204,25 @@ Decoder::~Decoder() noexcept {
 
 void Decoder::start_decoding(const std::string &uuid) noexcept {
     free_decoder();
-
-    adaptation_state_ = new kaldi::OnlineIvectorExtractorAdaptationState(model_->feature_info_->ivector_extractor_info);
-
     feature_pipeline_ = new kaldi::OnlineNnet2FeaturePipeline(*model_->feature_info_);
-    feature_pipeline_->SetAdaptationState(*adaptation_state_);
+    
+    if (model_->feature_info_->use_ivectors) {
+        adaptation_state_ = new kaldi::OnlineIvectorExtractorAdaptationState(model_->feature_info_->ivector_extractor_info);
+        feature_pipeline_->SetAdaptationState(*adaptation_state_);
+        silence_weighting_ = new kaldi::OnlineSilenceWeighting(model_->trans_model_,
+                                                       model_->feature_info_->silence_weighting_config,
+                                                       model_->decodable_opts_.frame_subsampling_factor);
+    }
+    else
+    {
+      adaptation_state_ = NULL;
+      silence_weighting_ = NULL;
+    }
 
     decoder_ = new kaldi::SingleUtteranceNnet3Decoder(model_->lattice_faster_decoder_config_,
                                                       model_->trans_model_, *model_->decodable_info_,
                                                       *model_->decode_fst_, feature_pipeline_);
     decoder_->InitDecoding();
-
-    silence_weighting_ = new kaldi::OnlineSilenceWeighting(model_->trans_model_,
-                                                           model_->feature_info_->silence_weighting_config,
-                                                           model_->decodable_opts_.frame_subsampling_factor);
 
     uuid_ = uuid;
 }
@@ -377,31 +382,33 @@ void Decoder::_decode_wave(kaldi::SubVector<kaldi::BaseFloat> &wave_part,
 
     std::chrono::system_clock::time_point start_time;
     if (DEBUG) start_time = std::chrono::system_clock::now();
+    
+    if (model_->feature_info_->use_ivectors) {
+        if (silence_weighting_->Active() && feature_pipeline_->IvectorFeature() != NULL) {
+            silence_weighting_->ComputeCurrentTraceback(decoder_->Decoder());
+            silence_weighting_->GetDeltaWeights(feature_pipeline_->NumFramesReady(),
+                                                &delta_weights);
 
-    if (silence_weighting_->Active() && feature_pipeline_->IvectorFeature() != NULL) {
-        silence_weighting_->ComputeCurrentTraceback(decoder_->Decoder());
-        silence_weighting_->GetDeltaWeights(feature_pipeline_->NumFramesReady(),
-                                            &delta_weights);
+            if (DEBUG) {
+                std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+                std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " silence weighting done in: " << ms.count() << "ms" << ENDL;
+            }
 
-        if (DEBUG) {
-            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-            std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " silence weighting done in: " << ms.count() << "ms" << ENDL;
+            if (DEBUG) start_time = std::chrono::system_clock::now();
+
+            feature_pipeline_->IvectorFeature()->UpdateFrameWeights(delta_weights);
+
+            if (DEBUG) {
+                std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+                std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " ivector frame weights updated in: " << ms.count() << "ms" << ENDL;
+            }
+
+            if (DEBUG) start_time = std::chrono::system_clock::now();
         }
-
-        if (DEBUG) start_time = std::chrono::system_clock::now();
-
-        feature_pipeline_->IvectorFeature()->UpdateFrameWeights(delta_weights);
-
-        if (DEBUG) {
-            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-            std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " ivector frame weights updated in: " << ms.count() << "ms" << ENDL;
-        }
-
-        if (DEBUG) start_time = std::chrono::system_clock::now();
     }
-
+    
     decoder_->AdvanceDecoding();
 
     if (DEBUG) {
