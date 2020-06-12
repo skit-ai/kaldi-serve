@@ -28,7 +28,7 @@ setup(
     package_dir={"kaldiserve": "kaldiserve"},
     include_package_data=True,
     package_data={
-        "kaldiserve": [find_library(r"kaldiserve_pybind\..*\.so")]
+        "kaldiserve": [find_library(r"kaldiserve_pybind.*\.so")]
     },
     classifiers=[
         "Intended Audience :: Developers",

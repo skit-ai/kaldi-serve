@@ -13,7 +13,7 @@ namespace kaldiserve {
 
 void pybind_types(py::module &m) {
 
-    py::bind_vector<std::vector<ModelSpec>>(m, "ModelSpecList");
+    py::bind_vector<std::vector<ModelSpec>>(m, "_ModelSpecList");
 
     // kaldiserve.ModelSpec
     py::class_<ModelSpec>(m, "ModelSpec", "Model Specification struct.")
@@ -49,7 +49,7 @@ void pybind_types(py::module &m) {
         //               py::arg("silence_weight") = 1.0, py::arg("max_ngram_order") = 3,
         //               py::arg("rnnlm_weight") = 0.5, py::arg("bos_index") = "1", py::arg("eos_index") = "2");
 
-    py::bind_vector<std::vector<Word>>(m, "WordList");
+    py::bind_vector<std::vector<Word>>(m, "_WordList");
 
     // kaldiserve.Word
     py::class_<Word>(m, "Word", "Word struct.")
@@ -67,7 +67,7 @@ void pybind_types(py::module &m) {
         // .def(py::init<const float &, const float &, const float &, const std::string &>(),
         //      py::arg("start_time"), py::arg("end_time"), py::arg("confidence"), py::arg("word"))
 
-    py::bind_vector<std::vector<Alternative>>(m, "AlternativeList");
+    py::bind_vector<std::vector<Alternative>>(m, "_AlternativeList");
 
     // kaldiserve.Alternative
     py::class_<Alternative>(m, "Alternative", "Alternative struct.")
@@ -78,11 +78,11 @@ void pybind_types(py::module &m) {
         .def_readonly("lm_score", &Alternative::lm_score)
         .def_readonly("words", &Alternative::words)
         .def("__repr__", [](const Alternative &alt) {
-                return "<kaldiserve.Alternative {transcript: '" + alt.transcript +
-                       "', confidence: '" + std::to_string(alt.confidence) +
-                       "', am_score: '" + std::to_string(alt.am_score) +
-                       "', lm_score: '" + std::to_string(alt.lm_score) + "'}>";
-                    //    "', words: '" + std::string(alt.words.begin(), alt.words.end()) + "'}>";
+            return "<kaldiserve.Alternative {transcript: '" + alt.transcript +
+                    "', confidence: '" + std::to_string(alt.confidence) +
+                    "', am_score: '" + std::to_string(alt.am_score) +
+                    "', lm_score: '" + std::to_string(alt.lm_score) + "'}>";
+            //    "', words: '" + std::string(alt.words.begin(), alt.words.end()) + "'}>";
         });
         // .def(py::init<const std::string &, const double &, const float &, const float &, std::vector<Word>>(),
         //      py::arg("transcript"), py::arg("confidence"), py::arg("am_score"), py::arg("lm_score"), py::arg("words"))

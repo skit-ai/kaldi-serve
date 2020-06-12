@@ -14,3 +14,6 @@ target_include_directories(kaldiserve_pybind PRIVATE ${KALDI_ROOT}/src ${KALDI_R
 
 # kaldiserve lib
 target_link_libraries(kaldiserve_pybind PRIVATE kaldiserve)
+
+file(GLOB SO_FILES "${CMAKE_CURRENT_BINARY_DIR}/kaldiserve_pybind*.so")
+file(COPY ${SO_FILES} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/kaldiserve)

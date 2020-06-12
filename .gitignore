@@ -14,4 +14,4 @@ models.toml
 
 examples/*/model
 
-dev
+dev*

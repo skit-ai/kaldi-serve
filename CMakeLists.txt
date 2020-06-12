@@ -19,6 +19,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(KALDI_ROOT /opt/kaldi CACHE STRING "Path to Kaldi root directory")
 add_definitions(-DKALDI_DOUBLEPRECISION=0)
 
+if(ENABLE_GPU)
+    add_definitions(-DHAVE_CUDA)
+endif()
+
 # Build shared library
 if(BUILD_SHARED_LIB)
     find_package(Boost REQUIRED)

@@ -7,6 +7,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
 
+// kaldiserve_pybind includes
+// #include "kaldiserve_pybind/pystreambuf.h"
+
 // kaldiserve includes
 #include "kaldiserve/types.hpp"
 

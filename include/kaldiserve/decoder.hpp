@@ -50,7 +50,7 @@ class Decoder final {
     ~Decoder() noexcept;
 
     // SETUP METHODS
-    void start_decoding(const std::string &uuid) noexcept;
+    void start_decoding(const std::string &uuid="") noexcept;
 
     void free_decoder() noexcept;
 
@@ -83,7 +83,7 @@ class Decoder final {
     // get the final utterances based on the compact lattice
     void get_decoded_results(const int &n_best,
                              utterance_results_t &results,
-                             const bool &word_level,
+                             const bool &word_level=false,
                              const bool &bidi_streaming=false);
 
     DecoderOptions options{false, false};
@@ -115,6 +115,24 @@ class Decoder final {
 
 
 #if HAVE_CUDA == 1
+
+// stl includes
+#include <sstream>
+
+// cuda includes
+#include <cuda.h>
+#include <cuda_profiler_api.h>
+#include <nvToolsExt.h>
+
+// kaldi includes
+#include "cudadecoder/batched-threaded-nnet3-cuda-pipeline2.h"
+#include "cudamatrix/cu-allocator.h"
+#include "fstext/fstext-lib.h"
+#include "lat/lattice-functions.h"
+#include "nnet3/am-nnet-simple.h"
+#include "nnet3/nnet-utils.h"
+#include "util/kaldi-thread.h"
+
 
 class BatchDecoder final {
 
