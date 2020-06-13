@@ -3,8 +3,15 @@
 
 ### Known Issues
 
-If you face an `MKL_ERROR` when initializing `kaldiserve.ChainModel`, try doing the following:
+1. If you face `INTEL MKL ERROR` when instantiating `ChainModel|DecoderFactory|DecoderQueue`, try the following:
 
 ```bash
-export LD_PRELOAD=${MKL_ROOT}/mkl/lib/intel64/libmkl_rt.so
+export LD_PRELOAD="${MKL_ROOT}/lib/intel64/libmkl_rt.so"
+```
+
+2. If you face `*** Error in python: double free or corruption (!prev): ...`, try the following:
+
+```bash
+apt-get install libtcmalloc-minimal4
+export LD_PRELOAD="/usr/lib/libtcmalloc_minimal.so.4"
 ```
