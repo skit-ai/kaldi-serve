@@ -47,7 +47,7 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
 
         if (exists(word_boundary_filepath)) {
             kaldi::WordBoundaryInfoNewOpts word_boundary_opts;
-            wb_info_ = std::make_unique<kaldi::WordBoundaryInfo>(word_boundary_opts, word_boundary_filepath);
+            wb_info_ = make_uniq<kaldi::WordBoundaryInfo>(word_boundary_opts, word_boundary_filepath);
         } else {
             KALDI_WARN << "Word boundary file" << word_boundary_filepath
                        << " not found. Disabling word level features.";
@@ -58,9 +58,10 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
             exists(join_path(rnnlm_dir, "word_embedding.mat")) && 
             exists(join_path(rnnlm_dir, "G.fst"))) {
             
-            fst::VectorFst<fst::StdArc> *lm_to_subtract_fst = fst::ReadAndPrepareLmFst(join_path(rnnlm_dir, "G.fst"));
-            lm_to_subtract_det_backoff_ = std::make_unique<fst::BackoffDeterministicOnDemandFst<fst::StdArc>>(*lm_to_subtract_fst);
+            lm_to_subtract_fst_ =
+                std::unique_ptr<const fst::VectorFst<fst::StdArc>>(fst::ReadAndPrepareLmFst(join_path(rnnlm_dir, "G.fst")));
             rnnlm_weight_ = model_spec.rnnlm_weight;
+            std::cout << "rnnlm_weight: " << rnnlm_weight_ << ENDL;
 
             kaldi::ReadKaldiObject(join_path(rnnlm_dir, "final.raw"), &rnnlm_);
             KALDI_ASSERT(IsSimpleNnet(rnnlm_));
@@ -71,9 +72,7 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
             // hack: RNNLM compute opts only takes values from parsed options like in cmd-line
             const char *usage = "Usage: model.hpp [options]";
             kaldi::ParseOptions po(usage);
-
-            kaldi::rnnlm::RnnlmComputeStateComputationOptions rnnlm_opts;
-            rnnlm_opts.Register(&po);
+            rnnlm_opts_.Register(&po);
 
             std::string bos_opt = "--bos-symbol=" + model_spec.bos_index;
             std::string eos_opt = "--eos-symbol=" + model_spec.eos_index;
@@ -86,12 +85,13 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
             };
 
             po.Read((sizeof(argv)/sizeof(argv[0])) - 1, argv);
-            rnnlm_info_ = std::make_unique<const kaldi::rnnlm::RnnlmComputeStateInfo>(rnnlm_opts, rnnlm_, word_embedding_mat_);
+            rnnlm_info_ =
+                make_uniq<const kaldi::rnnlm::RnnlmComputeStateInfo>(rnnlm_opts_, rnnlm_, word_embedding_mat_);
         } else {
             KALDI_WARN << "RNNLM artefacts not found. Disabling RNNLM rescoring feature.";
         }
 
-        feature_info_ = std::make_unique<kaldi::OnlineNnet2FeaturePipelineInfo>();
+        feature_info_ = make_uniq<kaldi::OnlineNnet2FeaturePipelineInfo>();
         feature_info_->feature_type = "mfcc";
         kaldi::ReadConfigFromFile(mfcc_conf_filepath, &(feature_info_->mfcc_opts));
 
@@ -118,7 +118,7 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
 
         decodable_opts_.acoustic_scale = model_spec.acoustic_scale;
         decodable_opts_.frame_subsampling_factor = model_spec.frame_subsampling_factor;
-        decodable_info_ = std::make_unique<kaldi::nnet3::DecodableNnetSimpleLoopedInfo>(decodable_opts_, &am_nnet_);
+        decodable_info_ = make_uniq<kaldi::nnet3::DecodableNnetSimpleLoopedInfo>(decodable_opts_, &am_nnet_);
     
     } catch (const std::exception &e) {
         KALDI_ERR << e.what();

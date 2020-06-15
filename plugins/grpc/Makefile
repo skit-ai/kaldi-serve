@@ -2,19 +2,17 @@ KALDI_ROOT=/opt/kaldi
 
 HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 SYSTEM ?= $(HOST_SYSTEM)
-CXX = g++-7
+CXX = g++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
-CXXFLAGS += -std=c++14 -Wno-sign-compare -Wno-unused-local-typedefs \
-	-Wno-unused-variable -Winit-self -O3
+CXXFLAGS += -std=c++11 -O3
 
 LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++` \
-	-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl \
-	'-Wl,-rpath,$$ORIGIN/../lib'
+	-Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl
 
-LIBS = -lboost_system -lboost_filesystem
+LIBS = -lboost_system
 
 KALDISERVE_INCLUDES = -I../../include -I${KALDI_ROOT}/src -I${KALDI_ROOT}/tools/openfst/include
-KALDISERVE_LIBS = -rdynamic -lm -lpthread -ldl -lkaldiserve
+KALDISERVE_LIBS = -rdynamic -lkaldiserve -static-libstdc++
 
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
@@ -27,7 +25,7 @@ vpath %.proto $(PROTOS_PATH)
 all: system-check build/kaldi_serve_app
 
 build/kaldi_serve_app: $(PROTOS_PATH)/kaldi_serve.pb.o $(PROTOS_PATH)/kaldi_serve.grpc.pb.o build/kaldi_serve_app.o
-	$(CXX) $^ $(LDFLAGS) $(LIBS) $(KALDISERVE_LIBS) -static-libstdc++ -o $@
+	$(CXX) $^ $(LDFLAGS) $(LIBS) $(KALDISERVE_LIBS) -o $@
 
 build/kaldi_serve_app.o: src/app.cc $(wildcard src/*.hpp)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(KALDISERVE_INCLUDES) -I $(PROTOS_PATH) -c src/app.cc -o $@

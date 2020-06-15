@@ -7,9 +7,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
 
-// kaldiserve_pybind includes
-// #include "kaldiserve_pybind/pystreambuf.h"
-
 // kaldiserve includes
 #include "kaldiserve/types.hpp"
 
@@ -27,14 +24,11 @@ namespace kaldiserve {
 void pybind_types(py::module &m);
 
 // model
-void pybind_modelchain(py::module &m);
+void pybind_model(py::module &m);
 
 // decoder
 void pybind_decoder(py::module &m);
-void pybind_decoderbatch(py::module &m);
-void pybind_decoderfactory(py::module &m);
-void pybind_decoderqueue(py::module &m);
 
 // utils
-void pybind_utilsio(py::module &m);
+void pybind_utils(py::module &m);
 }

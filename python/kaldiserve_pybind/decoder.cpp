@@ -78,6 +78,17 @@ void pybind_decoder(py::module &m) {
         }, py::arg("n_best"),
            py::arg("word_level") = false,
            py::arg("bidi_streaming") = false);
+
+    // kaldiserve.DecoderFactory
+    py::class_<DecoderFactory>(m, "DecoderFactory", "Decoder Factory class.")
+        .def(py::init<const ModelSpec &>())
+        .def("produce", &DecoderFactory::produce, py::call_guard<py::gil_scoped_release>());
+
+    // kaldiserve.DecoderQueue
+    py::class_<DecoderQueue>(m, "DecoderQueue", "Decoder Queue class.")
+        .def(py::init<const ModelSpec &>())
+        .def("acquire", &DecoderQueue::acquire, py::call_guard<py::gil_scoped_release>())
+        .def("release", &DecoderQueue::release, py::call_guard<py::gil_scoped_release>());
 }
 
 } // namespace kaldiserve

@@ -8,18 +8,12 @@ PYBIND11_MODULE(kaldiserve_pybind, m) {
 
     // types bindings
     pybind_types(m);
-
     // model bindings
-    pybind_modelchain(m);
-
+    pybind_model(m);
     // decoder bindings
     pybind_decoder(m);
-    // pybind_decoderbatch(m);
-    pybind_decoderfactory(m);
-    pybind_decoderqueue(m);
-
     // utils bindings
-    pybind_utilsio(m);
+    pybind_utils(m);
 }
 
 } // namespace kaldiserve

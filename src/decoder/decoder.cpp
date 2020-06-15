@@ -1,6 +1,7 @@
 // decoder-cpu.cpp - CPU Decoder Implementation
 
 // local includes
+#include "config.hpp"
 #include "decoder.hpp"
 #include "types.hpp"
 
@@ -87,16 +88,7 @@ void Decoder::decode_stream_raw_wav_chunk(std::istream &wav_stream,
     kaldi::SubVector<kaldi::BaseFloat> wave_part(wave_matrix, 0);
     std::vector<std::pair<int32, kaldi::BaseFloat>> delta_weights;
 
-    std::chrono::system_clock::time_point start_time;
-    if (DEBUG) start_time = std::chrono::system_clock::now();
-
     _decode_wave(wave_part, delta_weights, samp_freq);
-
-    if (DEBUG) {
-        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " _decode_wave executed in: " << ms.count() << "ms" << ENDL;
-    }
 }
 
 void Decoder::decode_wav_audio(std::istream &wav_stream,
@@ -193,43 +185,16 @@ void Decoder::get_decoded_results(const int &n_best,
 void Decoder::_decode_wave(kaldi::SubVector<kaldi::BaseFloat> &wave_part,
                            std::vector<std::pair<int32, kaldi::BaseFloat>> &delta_weights,
                            const kaldi::BaseFloat &samp_freq) {
-
     feature_pipeline_->AcceptWaveform(samp_freq, wave_part);
-
-    std::chrono::system_clock::time_point start_time;
-    if (DEBUG) start_time = std::chrono::system_clock::now();
 
     if (silence_weighting_->Active() && feature_pipeline_->IvectorFeature() != NULL) {
         silence_weighting_->ComputeCurrentTraceback(decoder_->Decoder());
         silence_weighting_->GetDeltaWeights(feature_pipeline_->NumFramesReady(),
                                             &delta_weights);
-
-        if (DEBUG) {
-            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-            std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " silence weighting done in: " << ms.count() << "ms" << ENDL;
-        }
-
-        if (DEBUG) start_time = std::chrono::system_clock::now();
-
         feature_pipeline_->IvectorFeature()->UpdateFrameWeights(delta_weights);
-
-        if (DEBUG) {
-            std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-            std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " ivector frame weights updated in: " << ms.count() << "ms" << ENDL;
-        }
-
-        if (DEBUG) start_time = std::chrono::system_clock::now();
     }
 
     decoder_->AdvanceDecoding();
-
-    if (DEBUG) {
-        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << "[" << timestamp_now() << "] uuid: " << uuid_ << " decoder advance done in: " << ms.count() << "ms" << ENDL;
-    }
 }
 
 void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
@@ -241,11 +206,20 @@ void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
     }
 
     if (options.enable_rnnlm) {
+        // rnnlm.fst
         std::unique_ptr<kaldi::rnnlm::KaldiRnnlmDeterministicFst> lm_to_add_orig = 
-            std::make_unique<kaldi::rnnlm::KaldiRnnlmDeterministicFst>(model_->model_spec.max_ngram_order, *model_->rnnlm_info_);
+            make_uniq<kaldi::rnnlm::KaldiRnnlmDeterministicFst>(model_->model_spec.max_ngram_order, *model_->rnnlm_info_);
+        std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_add =
+            make_uniq<fst::ScaleDeterministicOnDemandFst>(model_->rnnlm_weight_, lm_to_add_orig.get());
 
-        fst::DeterministicOnDemandFst<fst::StdArc> *lm_to_add =
-            new fst::ScaleDeterministicOnDemandFst(model_->rnnlm_weight_, lm_to_add_orig.get());
+        // G.fst
+        std::unique_ptr<fst::BackoffDeterministicOnDemandFst<fst::StdArc>> lm_to_subtract_det_backoff =
+            make_uniq<fst::BackoffDeterministicOnDemandFst<fst::StdArc>>(*model_->lm_to_subtract_fst_);
+        std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_subtract_det_scale =
+            make_uniq<fst::ScaleDeterministicOnDemandFst>(-model_->rnnlm_weight_, lm_to_subtract_det_backoff.get());
+        
+        // combine both LM fsts
+        fst::ComposeDeterministicOnDemandFst<fst::StdArc> combined_lms(lm_to_subtract_det_scale.get(), lm_to_add.get());
 
         // Before composing with the LM FST, we scale the lattice weights
         // by the inverse of "lm_scale".  We'll later scale by "lm_scale".
@@ -257,11 +231,7 @@ void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
         }
         kaldi::TopSortCompactLatticeIfNeeded(&clat);
 
-        std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_subtract_det_scale =
-            std::make_unique<fst::ScaleDeterministicOnDemandFst>(-model_->rnnlm_weight_, model_->lm_to_subtract_det_backoff_.get());
-        fst::ComposeDeterministicOnDemandFst<fst::StdArc> combined_lms(lm_to_subtract_det_scale.get(), lm_to_add);
-
-        // Composes lattice with language model.
+        // compose lattice with combined language model.
         kaldi::CompactLattice composed_clat;
         kaldi::ComposeCompactLatticePruned(model_->compose_opts_, clat,
                                            &combined_lms, &composed_clat);
@@ -272,11 +242,9 @@ void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
         } else {
             clat = composed_clat;
         }
-        
-        delete lm_to_add;
     }
 
-    auto lat = std::make_unique<kaldi::Lattice>();
+    auto lat = make_uniq<kaldi::Lattice>();
     fst::ConvertLattice(clat, lat.get());
 
     kaldi::Lattice nbest_lat;
@@ -355,7 +323,7 @@ void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
         mbr_opts.decode_mbr = false;
 
         fst::ScaleLattice(fst::LatticeScale(lm_scale, model_->decodable_opts_.acoustic_scale), &aligned_clat);
-        auto mbr = std::make_unique<kaldi::MinimumBayesRisk>(aligned_clat, mbr_opts);
+        auto mbr = make_uniq<kaldi::MinimumBayesRisk>(aligned_clat, mbr_opts);
 
         const std::vector<kaldi::BaseFloat> &conf = mbr->GetOneBestConfidences();
         const std::vector<int32> &best_words = mbr->GetOneBest();

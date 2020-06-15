@@ -8,7 +8,7 @@
 
 namespace kaldiserve {
 
-void pybind_modelchain(py::module &m) {
+void pybind_model(py::module &m) {
     // kaldiserve.ChainModel
     py::class_<ChainModel>(m, "ChainModel", "Chain model class.")
         .def(py::init<const ModelSpec &>());

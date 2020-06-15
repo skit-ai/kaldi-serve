@@ -11,12 +11,9 @@
 #include <grpcpp/impl/codegen/channel_interface.h>
 #include <grpcpp/impl/codegen/client_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
-#include <grpcpp/impl/codegen/message_allocator.h>
-#include <grpcpp/impl/codegen/method_handler.h>
+#include <grpcpp/impl/codegen/method_handler_impl.h>
 #include <grpcpp/impl/codegen/rpc_service_method.h>
 #include <grpcpp/impl/codegen/server_callback.h>
-#include <grpcpp/impl/codegen/server_callback_handlers.h>
-#include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
 namespace kaldi_serve {
@@ -44,59 +41,51 @@ KaldiServe::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel
 }
 
 void KaldiServe::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
 }
 
 void KaldiServe::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, std::function<void(::grpc::Status)> f) {
-  ::grpc_impl::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
-}
-
-void KaldiServe::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, reactor);
-}
-
-void KaldiServe::Stub::experimental_async::Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) {
-  ::grpc_impl::internal::ClientCallbackUnaryFactory::Create(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, reactor);
+  return ::grpc::internal::CallbackUnaryCall(stub_->channel_.get(), stub_->rpcmethod_Recognize_, context, request, response, std::move(f));
 }
 
 ::grpc::ClientAsyncResponseReader< ::kaldi_serve::RecognizeResponse>* KaldiServe::Stub::AsyncRecognizeRaw(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_Recognize_, context, request, true);
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_Recognize_, context, request, true);
 }
 
 ::grpc::ClientAsyncResponseReader< ::kaldi_serve::RecognizeResponse>* KaldiServe::Stub::PrepareAsyncRecognizeRaw(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc_impl::internal::ClientAsyncResponseReaderFactory< ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_Recognize_, context, request, false);
+  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_Recognize_, context, request, false);
 }
 
 ::grpc::ClientWriter< ::kaldi_serve::RecognizeRequest>* KaldiServe::Stub::StreamingRecognizeRaw(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response) {
-  return ::grpc_impl::internal::ClientWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(channel_.get(), rpcmethod_StreamingRecognize_, context, response);
+  return ::grpc::internal::ClientWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(channel_.get(), rpcmethod_StreamingRecognize_, context, response);
 }
 
 void KaldiServe::Stub::experimental_async::StreamingRecognize(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientWriteReactor< ::kaldi_serve::RecognizeRequest>* reactor) {
-  ::grpc_impl::internal::ClientCallbackWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(stub_->channel_.get(), stub_->rpcmethod_StreamingRecognize_, context, response, reactor);
+  ::grpc::internal::ClientCallbackWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(stub_->channel_.get(), stub_->rpcmethod_StreamingRecognize_, context, response, reactor);
 }
 
 ::grpc::ClientAsyncWriter< ::kaldi_serve::RecognizeRequest>* KaldiServe::Stub::AsyncStreamingRecognizeRaw(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc_impl::internal::ClientAsyncWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(channel_.get(), cq, rpcmethod_StreamingRecognize_, context, response, true, tag);
+  return ::grpc::internal::ClientAsyncWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(channel_.get(), cq, rpcmethod_StreamingRecognize_, context, response, true, tag);
 }
 
 ::grpc::ClientAsyncWriter< ::kaldi_serve::RecognizeRequest>* KaldiServe::Stub::PrepareAsyncStreamingRecognizeRaw(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response, ::grpc::CompletionQueue* cq) {
-  return ::grpc_impl::internal::ClientAsyncWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(channel_.get(), cq, rpcmethod_StreamingRecognize_, context, response, false, nullptr);
+  return ::grpc::internal::ClientAsyncWriterFactory< ::kaldi_serve::RecognizeRequest>::Create(channel_.get(), cq, rpcmethod_StreamingRecognize_, context, response, false, nullptr);
 }
 
 ::grpc::ClientReaderWriter< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* KaldiServe::Stub::BidiStreamingRecognizeRaw(::grpc::ClientContext* context) {
-  return ::grpc_impl::internal::ClientReaderWriterFactory< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), rpcmethod_BidiStreamingRecognize_, context);
+  return ::grpc::internal::ClientReaderWriterFactory< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), rpcmethod_BidiStreamingRecognize_, context);
 }
 
 void KaldiServe::Stub::experimental_async::BidiStreamingRecognize(::grpc::ClientContext* context, ::grpc::experimental::ClientBidiReactor< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>* reactor) {
-  ::grpc_impl::internal::ClientCallbackReaderWriterFactory< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>::Create(stub_->channel_.get(), stub_->rpcmethod_BidiStreamingRecognize_, context, reactor);
+  ::grpc::internal::ClientCallbackReaderWriterFactory< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>::Create(stub_->channel_.get(), stub_->rpcmethod_BidiStreamingRecognize_, context, reactor);
 }
 
 ::grpc::ClientAsyncReaderWriter< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* KaldiServe::Stub::AsyncBidiStreamingRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc_impl::internal::ClientAsyncReaderWriterFactory< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_BidiStreamingRecognize_, context, true, tag);
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_BidiStreamingRecognize_, context, true, tag);
 }
 
 ::grpc::ClientAsyncReaderWriter< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* KaldiServe::Stub::PrepareAsyncBidiStreamingRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
-  return ::grpc_impl::internal::ClientAsyncReaderWriterFactory< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_BidiStreamingRecognize_, context, false, nullptr);
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>::Create(channel_.get(), cq, rpcmethod_BidiStreamingRecognize_, context, false, nullptr);
 }
 
 KaldiServe::Service::Service() {

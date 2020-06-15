@@ -1,6 +1,7 @@
 // decoder-queue.cpp - Decoder Queue Implementation
 
 // local includes
+#include "config.hpp"
 #include "decoder.hpp"
 #include "types.hpp"
 
@@ -10,21 +11,9 @@ namespace kaldiserve {
 DecoderQueue::DecoderQueue(const ModelSpec &model_spec) {
     std::cout << ":: Loading model from " << model_spec.path << ENDL;
 
-    std::chrono::system_clock::time_point start_time;
-    if (DEBUG) {
-        // LOG MODELS LOAD TIME --> START
-        start_time = std::chrono::system_clock::now();
-    }
-    decoder_factory_ = std::unique_ptr<DecoderFactory>(new DecoderFactory(model_spec));
+    decoder_factory_ = make_uniq<DecoderFactory>(model_spec);
     for (size_t i = 0; i < model_spec.n_decoders; i++) {
         queue_.push(decoder_factory_->produce());
-    }
-
-    if (DEBUG) {
-        std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
-        // LOG MODELS LOAD TIME --> END
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-        std::cout << ":: Decoder models concurrent queue init in: " << ms.count() << "ms" << ENDL;
     }
 }
 

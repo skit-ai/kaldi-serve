@@ -16,25 +16,31 @@ A plug-and-play abstraction over [Kaldi](https://kaldi-asr.org/) ASR toolkit, de
 
 ### Setup
 
-Make sure you have C++14 std and Boost C++ libraries installed on your
-system. [Kaldi](https://kaldi-asr.org/) also needs to be present and built. Let's build the shared library:
+Make sure you have the following dependencies installed on your system before beginning the build process:
+
+* g++ compiler (>=4.7) that supports C++11 std
+* [CMake](https://cmake.org/install/) (>=3.12)
+* [Kaldi](https://kaldi-asr.org/)
+* [Boost C++](https://www.boost.org/) libraries
+
+Let's build the shared library:
 
 ```bash
 cd build/
-cmake .. -DKALDI_ROOT=/path/to/local/repo/for/kaldi/
+cmake ..
 make -j${nproc}
 ```
 
-You will find the headers in `include/` and the built `.so` file in `build/src/` to use for linking against custom applications.
+You will find the the built `.so` file in `build/src/` to use for linking against custom applications.
 
-#### Python binding
+### Python bindings
 
-We also provide a [python binding](./python) of the library, which needs pybind11 to be present and built, or alternately you can pass the `-DBUILD_PYBIND11` flag and cmake will take care of it. You can build the bindings by passing `-DBUILD_PYTHON_MODULE` flag to the cmake command [above](###setup).
+We also provide python bindings for the library. You can find the build instructions [here](./python).
 
 ## Usage
 
 There are a few [plugins](./plugins) and [binaries](./bin) using the library that we maintain:
 - gRPC Server
-- Batch decoding binary (CPU & GPU)
+- Batched decoding binaries (CPU & GPU)
 
-Alternately, you can include our [headers](./include) and link the [library](./src) aginst your application at compile time and start using it.
+Alternately, you can include our [headers](./include) and link the [library](./src) aginst your application and start using it.

@@ -54,15 +54,15 @@ class ChainModel final {
     // word-boundary info
     std::unique_ptr<kaldi::WordBoundaryInfo> wb_info_;
 
-    // RNNLM objects
+    // RNNLM artefacts
     kaldi::nnet3::Nnet rnnlm_;
     kaldi::CuMatrix<kaldi::BaseFloat> word_embedding_mat_;
-    
-    std::unique_ptr<fst::BackoffDeterministicOnDemandFst<fst::StdArc>> lm_to_subtract_det_backoff_;
+    std::unique_ptr<const fst::VectorFst<fst::StdArc>> lm_to_subtract_fst_;    
     std::unique_ptr<const kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info_;
-
-    kaldi::ComposeLatticePrunedOptions compose_opts_;
+    
     kaldi::BaseFloat rnnlm_weight_;
+    kaldi::rnnlm::RnnlmComputeStateComputationOptions rnnlm_opts_;
+    kaldi::ComposeLatticePrunedOptions compose_opts_;
 };
 
 } // namespace kaldiserve

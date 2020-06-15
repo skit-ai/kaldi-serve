@@ -15,7 +15,7 @@
 
 namespace kaldiserve {
 
-void pybind_utilsio(py::module &m) {
+void pybind_utils(py::module &m) {
     m.def("parse_model_specs", [](const std::string &toml_path) {
         std::vector<ModelSpec> model_specs;
         parse_model_specs(toml_path, model_specs);

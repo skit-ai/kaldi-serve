@@ -5,180 +5,193 @@
 
 #include <algorithm>
 
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/extension_set.h>
-#include <google/protobuf/wire_format_lite.h>
+#include <google/protobuf/wire_format_lite_inl.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/generated_message_reflection.h>
 #include <google/protobuf/reflection_ops.h>
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
-extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_RecognitionAudio_kaldi_5fserve_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_RecognitionConfig_kaldi_5fserve_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_SpeechContext_kaldi_5fserve_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Word_kaldi_5fserve_2eproto;
+
+extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_RecognitionAudio_kaldi_5fserve_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_SpeechContext_kaldi_5fserve_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_Word_kaldi_5fserve_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::google::protobuf::internal::SCCInfo<1> scc_info_RecognitionConfig_kaldi_5fserve_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::google::protobuf::internal::SCCInfo<1> scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_kaldi_5fserve_2eproto ::google::protobuf::internal::SCCInfo<1> scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto;
 namespace kaldi_serve {
 class RecognizeRequestDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<RecognizeRequest> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<RecognizeRequest> _instance;
 } _RecognizeRequest_default_instance_;
 class RecognizeResponseDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<RecognizeResponse> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<RecognizeResponse> _instance;
 } _RecognizeResponse_default_instance_;
 class RecognitionConfigDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<RecognitionConfig> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<RecognitionConfig> _instance;
 } _RecognitionConfig_default_instance_;
 class RecognitionAudioDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<RecognitionAudio> _instance;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr content_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr uri_;
+  ::google::protobuf::internal::ExplicitlyConstructed<RecognitionAudio> _instance;
+  ::google::protobuf::internal::ArenaStringPtr content_;
+  ::google::protobuf::internal::ArenaStringPtr uri_;
 } _RecognitionAudio_default_instance_;
 class SpeechRecognitionResultDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<SpeechRecognitionResult> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<SpeechRecognitionResult> _instance;
 } _SpeechRecognitionResult_default_instance_;
 class SpeechRecognitionAlternativeDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<SpeechRecognitionAlternative> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<SpeechRecognitionAlternative> _instance;
 } _SpeechRecognitionAlternative_default_instance_;
 class WordDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Word> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<Word> _instance;
 } _Word_default_instance_;
 class SpeechContextDefaultTypeInternal {
  public:
-  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<SpeechContext> _instance;
+  ::google::protobuf::internal::ExplicitlyConstructed<SpeechContext> _instance;
 } _SpeechContext_default_instance_;
 }  // namespace kaldi_serve
-static void InitDefaultsscc_info_RecognitionAudio_kaldi_5fserve_2eproto() {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-  {
-    void* ptr = &::kaldi_serve::_RecognitionAudio_default_instance_;
-    new (ptr) ::kaldi_serve::RecognitionAudio();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
-  }
-  ::kaldi_serve::RecognitionAudio::InitAsDefaultInstance();
-}
-
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_RecognitionAudio_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_RecognitionAudio_kaldi_5fserve_2eproto}, {}};
-
-static void InitDefaultsscc_info_RecognitionConfig_kaldi_5fserve_2eproto() {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-  {
-    void* ptr = &::kaldi_serve::_RecognitionConfig_default_instance_;
-    new (ptr) ::kaldi_serve::RecognitionConfig();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
-  }
-  ::kaldi_serve::RecognitionConfig::InitAsDefaultInstance();
-}
-
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_RecognitionConfig_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_RecognitionConfig_kaldi_5fserve_2eproto}, {
-      &scc_info_SpeechContext_kaldi_5fserve_2eproto.base,}};
-
-static void InitDefaultsscc_info_RecognizeRequest_kaldi_5fserve_2eproto() {
+static void InitDefaultsRecognizeRequest_kaldi_5fserve_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
     void* ptr = &::kaldi_serve::_RecognizeRequest_default_instance_;
     new (ptr) ::kaldi_serve::RecognizeRequest();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
   ::kaldi_serve::RecognizeRequest::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<2> scc_info_RecognizeRequest_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 2, 0, InitDefaultsscc_info_RecognizeRequest_kaldi_5fserve_2eproto}, {
+::google::protobuf::internal::SCCInfo<2> scc_info_RecognizeRequest_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 2, InitDefaultsRecognizeRequest_kaldi_5fserve_2eproto}, {
       &scc_info_RecognitionConfig_kaldi_5fserve_2eproto.base,
       &scc_info_RecognitionAudio_kaldi_5fserve_2eproto.base,}};
 
-static void InitDefaultsscc_info_RecognizeResponse_kaldi_5fserve_2eproto() {
+static void InitDefaultsRecognizeResponse_kaldi_5fserve_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
     void* ptr = &::kaldi_serve::_RecognizeResponse_default_instance_;
     new (ptr) ::kaldi_serve::RecognizeResponse();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
   ::kaldi_serve::RecognizeResponse::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_RecognizeResponse_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_RecognizeResponse_kaldi_5fserve_2eproto}, {
+::google::protobuf::internal::SCCInfo<1> scc_info_RecognizeResponse_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsRecognizeResponse_kaldi_5fserve_2eproto}, {
       &scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto.base,}};
 
-static void InitDefaultsscc_info_SpeechContext_kaldi_5fserve_2eproto() {
+static void InitDefaultsRecognitionConfig_kaldi_5fserve_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::kaldi_serve::_SpeechContext_default_instance_;
-    new (ptr) ::kaldi_serve::SpeechContext();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+    void* ptr = &::kaldi_serve::_RecognitionConfig_default_instance_;
+    new (ptr) ::kaldi_serve::RecognitionConfig();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::kaldi_serve::SpeechContext::InitAsDefaultInstance();
+  ::kaldi_serve::RecognitionConfig::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_SpeechContext_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_SpeechContext_kaldi_5fserve_2eproto}, {}};
+::google::protobuf::internal::SCCInfo<1> scc_info_RecognitionConfig_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsRecognitionConfig_kaldi_5fserve_2eproto}, {
+      &scc_info_SpeechContext_kaldi_5fserve_2eproto.base,}};
 
-static void InitDefaultsscc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto() {
+static void InitDefaultsRecognitionAudio_kaldi_5fserve_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::kaldi_serve::_SpeechRecognitionAlternative_default_instance_;
-    new (ptr) ::kaldi_serve::SpeechRecognitionAlternative();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+    void* ptr = &::kaldi_serve::_RecognitionAudio_default_instance_;
+    new (ptr) ::kaldi_serve::RecognitionAudio();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::kaldi_serve::SpeechRecognitionAlternative::InitAsDefaultInstance();
+  ::kaldi_serve::RecognitionAudio::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto}, {
-      &scc_info_Word_kaldi_5fserve_2eproto.base,}};
+::google::protobuf::internal::SCCInfo<0> scc_info_RecognitionAudio_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsRecognitionAudio_kaldi_5fserve_2eproto}, {}};
 
-static void InitDefaultsscc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto() {
+static void InitDefaultsSpeechRecognitionResult_kaldi_5fserve_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
     void* ptr = &::kaldi_serve::_SpeechRecognitionResult_default_instance_;
     new (ptr) ::kaldi_serve::SpeechRecognitionResult();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
   ::kaldi_serve::SpeechRecognitionResult::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto}, {
+::google::protobuf::internal::SCCInfo<1> scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsSpeechRecognitionResult_kaldi_5fserve_2eproto}, {
       &scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto.base,}};
 
-static void InitDefaultsscc_info_Word_kaldi_5fserve_2eproto() {
+static void InitDefaultsSpeechRecognitionAlternative_kaldi_5fserve_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::kaldi_serve::_SpeechRecognitionAlternative_default_instance_;
+    new (ptr) ::kaldi_serve::SpeechRecognitionAlternative();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::kaldi_serve::SpeechRecognitionAlternative::InitAsDefaultInstance();
+}
+
+::google::protobuf::internal::SCCInfo<1> scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsSpeechRecognitionAlternative_kaldi_5fserve_2eproto}, {
+      &scc_info_Word_kaldi_5fserve_2eproto.base,}};
+
+static void InitDefaultsWord_kaldi_5fserve_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
     void* ptr = &::kaldi_serve::_Word_default_instance_;
     new (ptr) ::kaldi_serve::Word();
-    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
   ::kaldi_serve::Word::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Word_kaldi_5fserve_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_Word_kaldi_5fserve_2eproto}, {}};
+::google::protobuf::internal::SCCInfo<0> scc_info_Word_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsWord_kaldi_5fserve_2eproto}, {}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_kaldi_5fserve_2eproto[8];
-static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_kaldi_5fserve_2eproto[1];
-static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_kaldi_5fserve_2eproto = nullptr;
+static void InitDefaultsSpeechContext_kaldi_5fserve_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_kaldi_5fserve_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  {
+    void* ptr = &::kaldi_serve::_SpeechContext_default_instance_;
+    new (ptr) ::kaldi_serve::SpeechContext();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::kaldi_serve::SpeechContext::InitAsDefaultInstance();
+}
+
+::google::protobuf::internal::SCCInfo<0> scc_info_SpeechContext_kaldi_5fserve_2eproto =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsSpeechContext_kaldi_5fserve_2eproto}, {}};
+
+void InitDefaults_kaldi_5fserve_2eproto() {
+  ::google::protobuf::internal::InitSCC(&scc_info_RecognizeRequest_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_RecognizeResponse_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_RecognitionConfig_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_RecognitionAudio_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_Word_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_SpeechContext_kaldi_5fserve_2eproto.base);
+}
+
+::google::protobuf::Metadata file_level_metadata_kaldi_5fserve_2eproto[8];
+const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors_kaldi_5fserve_2eproto[1];
+constexpr ::google::protobuf::ServiceDescriptor const** file_level_service_descriptors_kaldi_5fserve_2eproto = nullptr;
+
+const ::google::protobuf::uint32 TableStruct_kaldi_5fserve_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::kaldi_serve::RecognizeRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -250,7 +263,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_kaldi_5fserve_2eproto::offsets
   PROTOBUF_FIELD_OFFSET(::kaldi_serve::SpeechContext, phrases_),
   PROTOBUF_FIELD_OFFSET(::kaldi_serve::SpeechContext, type_),
 };
-static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+static const ::google::protobuf::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::kaldi_serve::RecognizeRequest)},
   { 8, -1, sizeof(::kaldi_serve::RecognizeResponse)},
   { 14, -1, sizeof(::kaldi_serve::RecognitionConfig)},
@@ -261,18 +274,24 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 63, -1, sizeof(::kaldi_serve::SpeechContext)},
 };
 
-static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_RecognizeRequest_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_RecognizeResponse_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_RecognitionConfig_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_RecognitionAudio_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_SpeechRecognitionResult_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_SpeechRecognitionAlternative_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_Word_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::kaldi_serve::_SpeechContext_default_instance_),
+static ::google::protobuf::Message const * const file_default_instances[] = {
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_RecognizeRequest_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_RecognizeResponse_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_RecognitionConfig_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_RecognitionAudio_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_SpeechRecognitionResult_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_SpeechRecognitionAlternative_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_Word_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::kaldi_serve::_SpeechContext_default_instance_),
 };
 
-const char descriptor_table_protodef_kaldi_5fserve_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
+::google::protobuf::internal::AssignDescriptorsTable assign_descriptors_table_kaldi_5fserve_2eproto = {
+  {}, AddDescriptors_kaldi_5fserve_2eproto, "kaldi_serve.proto", schemas,
+  file_default_instances, TableStruct_kaldi_5fserve_2eproto::offsets,
+  file_level_metadata_kaldi_5fserve_2eproto, 8, file_level_enum_descriptors_kaldi_5fserve_2eproto, file_level_service_descriptors_kaldi_5fserve_2eproto,
+};
+
+const char descriptor_table_protodef_kaldi_5fserve_2eproto[] =
   "\n\021kaldi_serve.proto\022\013kaldi_serve\"~\n\020Reco"
   "gnizeRequest\022.\n\006config\030\001 \001(\0132\036.kaldi_ser"
   "ve.RecognitionConfig\022,\n\005audio\030\002 \001(\0132\035.ka"
@@ -308,32 +327,24 @@ const char descriptor_table_protodef_kaldi_5fserve_2eproto[] PROTOBUF_SECTION_VA
   "kaldi_serve.RecognizeRequest\032\036.kaldi_ser"
   "ve.RecognizeResponse\"\000(\0010\001b\006proto3"
   ;
-static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_kaldi_5fserve_2eproto_deps[1] = {
-};
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_kaldi_5fserve_2eproto_sccs[8] = {
-  &scc_info_RecognitionAudio_kaldi_5fserve_2eproto.base,
-  &scc_info_RecognitionConfig_kaldi_5fserve_2eproto.base,
-  &scc_info_RecognizeRequest_kaldi_5fserve_2eproto.base,
-  &scc_info_RecognizeResponse_kaldi_5fserve_2eproto.base,
-  &scc_info_SpeechContext_kaldi_5fserve_2eproto.base,
-  &scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto.base,
-  &scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto.base,
-  &scc_info_Word_kaldi_5fserve_2eproto.base,
-};
-static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_kaldi_5fserve_2eproto_once;
-static bool descriptor_table_kaldi_5fserve_2eproto_initialized = false;
-const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_kaldi_5fserve_2eproto = {
-  &descriptor_table_kaldi_5fserve_2eproto_initialized, descriptor_table_protodef_kaldi_5fserve_2eproto, "kaldi_serve.proto", 1354,
-  &descriptor_table_kaldi_5fserve_2eproto_once, descriptor_table_kaldi_5fserve_2eproto_sccs, descriptor_table_kaldi_5fserve_2eproto_deps, 8, 0,
-  schemas, file_default_instances, TableStruct_kaldi_5fserve_2eproto::offsets,
-  file_level_metadata_kaldi_5fserve_2eproto, 8, file_level_enum_descriptors_kaldi_5fserve_2eproto, file_level_service_descriptors_kaldi_5fserve_2eproto,
+::google::protobuf::internal::DescriptorTable descriptor_table_kaldi_5fserve_2eproto = {
+  false, InitDefaults_kaldi_5fserve_2eproto, 
+  descriptor_table_protodef_kaldi_5fserve_2eproto,
+  "kaldi_serve.proto", &assign_descriptors_table_kaldi_5fserve_2eproto, 1354,
 };
 
+void AddDescriptors_kaldi_5fserve_2eproto() {
+  static constexpr ::google::protobuf::internal::InitFunc deps[1] =
+  {
+  };
+ ::google::protobuf::internal::AddDescriptors(&descriptor_table_kaldi_5fserve_2eproto, deps, 0);
+}
+
 // Force running AddDescriptors() at dynamic initialization time.
-static bool dynamic_init_dummy_kaldi_5fserve_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_kaldi_5fserve_2eproto), true);
+static bool dynamic_init_dummy_kaldi_5fserve_2eproto = []() { AddDescriptors_kaldi_5fserve_2eproto(); return true; }();
 namespace kaldi_serve {
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* RecognitionConfig_AudioEncoding_descriptor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_kaldi_5fserve_2eproto);
+const ::google::protobuf::EnumDescriptor* RecognitionConfig_AudioEncoding_descriptor() {
+  ::google::protobuf::internal::AssignDescriptors(&assign_descriptors_table_kaldi_5fserve_2eproto);
   return file_level_enum_descriptors_kaldi_5fserve_2eproto[0];
 }
 bool RecognitionConfig_AudioEncoding_IsValid(int value) {
@@ -347,14 +358,14 @@ bool RecognitionConfig_AudioEncoding_IsValid(int value) {
   }
 }
 
-#if (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
-constexpr RecognitionConfig_AudioEncoding RecognitionConfig::ENCODING_UNSPECIFIED;
-constexpr RecognitionConfig_AudioEncoding RecognitionConfig::LINEAR16;
-constexpr RecognitionConfig_AudioEncoding RecognitionConfig::FLAC;
-constexpr RecognitionConfig_AudioEncoding RecognitionConfig::AudioEncoding_MIN;
-constexpr RecognitionConfig_AudioEncoding RecognitionConfig::AudioEncoding_MAX;
-constexpr int RecognitionConfig::AudioEncoding_ARRAYSIZE;
-#endif  // (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const RecognitionConfig_AudioEncoding RecognitionConfig::ENCODING_UNSPECIFIED;
+const RecognitionConfig_AudioEncoding RecognitionConfig::LINEAR16;
+const RecognitionConfig_AudioEncoding RecognitionConfig::FLAC;
+const RecognitionConfig_AudioEncoding RecognitionConfig::AudioEncoding_MIN;
+const RecognitionConfig_AudioEncoding RecognitionConfig::AudioEncoding_MAX;
+const int RecognitionConfig::AudioEncoding_ARRAYSIZE;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 // ===================================================================
 
@@ -364,39 +375,45 @@ void RecognizeRequest::InitAsDefaultInstance() {
   ::kaldi_serve::_RecognizeRequest_default_instance_._instance.get_mutable()->audio_ = const_cast< ::kaldi_serve::RecognitionAudio*>(
       ::kaldi_serve::RecognitionAudio::internal_default_instance());
 }
-class RecognizeRequest::_Internal {
+class RecognizeRequest::HasBitSetters {
  public:
   static const ::kaldi_serve::RecognitionConfig& config(const RecognizeRequest* msg);
   static const ::kaldi_serve::RecognitionAudio& audio(const RecognizeRequest* msg);
 };
 
 const ::kaldi_serve::RecognitionConfig&
-RecognizeRequest::_Internal::config(const RecognizeRequest* msg) {
+RecognizeRequest::HasBitSetters::config(const RecognizeRequest* msg) {
   return *msg->config_;
 }
 const ::kaldi_serve::RecognitionAudio&
-RecognizeRequest::_Internal::audio(const RecognizeRequest* msg) {
+RecognizeRequest::HasBitSetters::audio(const RecognizeRequest* msg) {
   return *msg->audio_;
 }
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int RecognizeRequest::kConfigFieldNumber;
+const int RecognizeRequest::kAudioFieldNumber;
+const int RecognizeRequest::kUuidFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 RecognizeRequest::RecognizeRequest()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.RecognizeRequest)
 }
 RecognizeRequest::RecognizeRequest(const RecognizeRequest& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  uuid_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_uuid().empty()) {
-    uuid_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.uuid_);
+  uuid_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.uuid().size() > 0) {
+    uuid_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.uuid_);
   }
-  if (from._internal_has_config()) {
+  if (from.has_config()) {
     config_ = new ::kaldi_serve::RecognitionConfig(*from.config_);
   } else {
     config_ = nullptr;
   }
-  if (from._internal_has_audio()) {
+  if (from.has_audio()) {
     audio_ = new ::kaldi_serve::RecognitionAudio(*from.audio_);
   } else {
     audio_ = nullptr;
@@ -405,8 +422,9 @@ RecognizeRequest::RecognizeRequest(const RecognizeRequest& from)
 }
 
 void RecognizeRequest::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_RecognizeRequest_kaldi_5fserve_2eproto.base);
-  uuid_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_RecognizeRequest_kaldi_5fserve_2eproto.base);
+  uuid_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&config_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&audio_) -
       reinterpret_cast<char*>(&config_)) + sizeof(audio_));
@@ -418,7 +436,7 @@ RecognizeRequest::~RecognizeRequest() {
 }
 
 void RecognizeRequest::SharedDtor() {
-  uuid_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  uuid_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (this != internal_default_instance()) delete config_;
   if (this != internal_default_instance()) delete audio_;
 }
@@ -427,18 +445,18 @@ void RecognizeRequest::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const RecognizeRequest& RecognizeRequest::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_RecognizeRequest_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_RecognizeRequest_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void RecognizeRequest::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.RecognizeRequest)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  uuid_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  uuid_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (GetArenaNoVirtual() == nullptr && config_ != nullptr) {
     delete config_;
   }
@@ -450,91 +468,222 @@ void RecognizeRequest::Clear() {
   _internal_metadata_.Clear();
 }
 
-const char* RecognizeRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* RecognizeRequest::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<RecognizeRequest*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // .kaldi_serve.RecognitionConfig config = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ctx->ParseMessage(_internal_mutable_config(), ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        parser_till_end = ::kaldi_serve::RecognitionConfig::_InternalParse;
+        object = msg->mutable_config();
+        if (size > end - ptr) goto len_delim_till_end;
+        ptr += size;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ctx->ParseExactRange(
+            {parser_till_end, object}, ptr - size, ptr));
+        break;
+      }
       // .kaldi_serve.RecognitionAudio audio = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          ptr = ctx->ParseMessage(_internal_mutable_audio(), ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 2: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        parser_till_end = ::kaldi_serve::RecognitionAudio::_InternalParse;
+        object = msg->mutable_audio();
+        if (size > end - ptr) goto len_delim_till_end;
+        ptr += size;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ctx->ParseExactRange(
+            {parser_till_end, object}, ptr - size, ptr));
+        break;
+      }
       // string uuid = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          auto str = _internal_mutable_uuid();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.RecognizeRequest.uuid"));
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 3: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 26) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("kaldi_serve.RecognizeRequest.uuid");
+        object = msg->mutable_uuid();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+string_till_end:
+  static_cast<::std::string*>(object)->clear();
+  static_cast<::std::string*>(object)->reserve(size);
+  goto len_delim_till_end;
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool RecognizeRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.RecognizeRequest)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // .kaldi_serve.RecognitionConfig config = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+               input, mutable_config()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
 
-::PROTOBUF_NAMESPACE_ID::uint8* RecognizeRequest::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognizeRequest)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+      // .kaldi_serve.RecognitionAudio audio = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+               input, mutable_audio()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // string uuid = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (26 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_uuid()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->uuid().data(), static_cast<int>(this->uuid().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.RecognizeRequest.uuid"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.RecognizeRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.RecognizeRequest)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void RecognizeRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.RecognizeRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // .kaldi_serve.RecognitionConfig config = 1;
   if (this->has_config()) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(
-        1, _Internal::config(this), target, stream);
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, HasBitSetters::config(this), output);
   }
 
   // .kaldi_serve.RecognitionAudio audio = 2;
   if (this->has_audio()) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(
-        2, _Internal::audio(this), target, stream);
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      2, HasBitSetters::audio(this), output);
   }
 
   // string uuid = 3;
   if (this->uuid().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_uuid().data(), static_cast<int>(this->_internal_uuid().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->uuid().data(), static_cast<int>(this->uuid().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.RecognizeRequest.uuid");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_uuid(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      3, this->uuid(), output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.RecognizeRequest)
+}
+
+::google::protobuf::uint8* RecognizeRequest::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognizeRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .kaldi_serve.RecognitionConfig config = 1;
+  if (this->has_config()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        1, HasBitSetters::config(this), target);
+  }
+
+  // .kaldi_serve.RecognitionAudio audio = 2;
+  if (this->has_audio()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        2, HasBitSetters::audio(this), target);
+  }
+
+  // string uuid = 3;
+  if (this->uuid().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->uuid().data(), static_cast<int>(this->uuid().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.RecognizeRequest.uuid");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->uuid(), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.RecognizeRequest)
   return target;
@@ -544,49 +693,50 @@ size_t RecognizeRequest::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.RecognizeRequest)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // string uuid = 3;
   if (this->uuid().size() > 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_uuid());
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->uuid());
   }
 
   // .kaldi_serve.RecognitionConfig config = 1;
   if (this->has_config()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+      ::google::protobuf::internal::WireFormatLite::MessageSize(
         *config_);
   }
 
   // .kaldi_serve.RecognitionAudio audio = 2;
   if (this->has_audio()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+      ::google::protobuf::internal::WireFormatLite::MessageSize(
         *audio_);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void RecognizeRequest::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognizeRequest::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.RecognizeRequest)
   GOOGLE_DCHECK_NE(&from, this);
   const RecognizeRequest* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<RecognizeRequest>(
+      ::google::protobuf::DynamicCastToGenerated<RecognizeRequest>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.RecognizeRequest)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.RecognizeRequest)
     MergeFrom(*source);
@@ -597,22 +747,22 @@ void RecognizeRequest::MergeFrom(const RecognizeRequest& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.RecognizeRequest)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from.uuid().size() > 0) {
 
-    uuid_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.uuid_);
+    uuid_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.uuid_);
   }
   if (from.has_config()) {
-    _internal_mutable_config()->::kaldi_serve::RecognitionConfig::MergeFrom(from._internal_config());
+    mutable_config()->::kaldi_serve::RecognitionConfig::MergeFrom(from.config());
   }
   if (from.has_audio()) {
-    _internal_mutable_audio()->::kaldi_serve::RecognitionAudio::MergeFrom(from._internal_audio());
+    mutable_audio()->::kaldi_serve::RecognitionAudio::MergeFrom(from.audio());
   }
 }
 
-void RecognizeRequest::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognizeRequest::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.RecognizeRequest)
   if (&from == this) return;
   Clear();
@@ -630,17 +780,22 @@ bool RecognizeRequest::IsInitialized() const {
   return true;
 }
 
+void RecognizeRequest::Swap(RecognizeRequest* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void RecognizeRequest::InternalSwap(RecognizeRequest* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  uuid_.Swap(&other->uuid_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+  uuid_.Swap(&other->uuid_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(config_, other->config_);
   swap(audio_, other->audio_);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata RecognizeRequest::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata RecognizeRequest::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
@@ -648,17 +803,21 @@ void RecognizeRequest::InternalSwap(RecognizeRequest* other) {
 
 void RecognizeResponse::InitAsDefaultInstance() {
 }
-class RecognizeResponse::_Internal {
+class RecognizeResponse::HasBitSetters {
  public:
 };
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int RecognizeResponse::kResultsFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 RecognizeResponse::RecognizeResponse()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.RecognizeResponse)
 }
 RecognizeResponse::RecognizeResponse(const RecognizeResponse& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr),
       results_(from.results_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
@@ -666,7 +825,8 @@ RecognizeResponse::RecognizeResponse(const RecognizeResponse& from)
 }
 
 void RecognizeResponse::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_RecognizeResponse_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_RecognizeResponse_kaldi_5fserve_2eproto.base);
 }
 
 RecognizeResponse::~RecognizeResponse() {
@@ -681,14 +841,14 @@ void RecognizeResponse::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const RecognizeResponse& RecognizeResponse::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_RecognizeResponse_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_RecognizeResponse_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void RecognizeResponse::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.RecognizeResponse)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
@@ -696,62 +856,136 @@ void RecognizeResponse::Clear() {
   _internal_metadata_.Clear();
 }
 
-const char* RecognizeResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* RecognizeResponse::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<RecognizeResponse*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // repeated .kaldi_serve.SpeechRecognitionResult results = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_results(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
+        do {
+          ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+          parser_till_end = ::kaldi_serve::SpeechRecognitionResult::_InternalParse;
+          object = msg->add_results();
+          if (size > end - ptr) goto len_delim_till_end;
+          ptr += size;
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ctx->ParseExactRange(
+              {parser_till_end, object}, ptr - size, ptr));
+          if (ptr >= end) break;
+        } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 10 && (ptr += 1));
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool RecognizeResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.RecognizeResponse)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // repeated .kaldi_serve.SpeechRecognitionResult results = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+                input, add_results()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
 
-::PROTOBUF_NAMESPACE_ID::uint8* RecognizeResponse::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognizeResponse)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.RecognizeResponse)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.RecognizeResponse)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void RecognizeResponse::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.RecognizeResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated .kaldi_serve.SpeechRecognitionResult results = 1;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->_internal_results_size()); i < n; i++) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(1, this->_internal_results(i), target, stream);
+      n = static_cast<unsigned int>(this->results_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1,
+      this->results(static_cast<int>(i)),
+      output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.RecognizeResponse)
+}
+
+::google::protobuf::uint8* RecognizeResponse::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognizeResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .kaldi_serve.SpeechRecognitionResult results = 1;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->results_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        1, this->results(static_cast<int>(i)), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.RecognizeResponse)
   return target;
@@ -761,35 +995,40 @@ size_t RecognizeResponse::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.RecognizeResponse)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated .kaldi_serve.SpeechRecognitionResult results = 1;
-  total_size += 1UL * this->_internal_results_size();
-  for (const auto& msg : this->results_) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  {
+    unsigned int count = static_cast<unsigned int>(this->results_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->results(static_cast<int>(i)));
+    }
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void RecognizeResponse::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognizeResponse::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.RecognizeResponse)
   GOOGLE_DCHECK_NE(&from, this);
   const RecognizeResponse* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<RecognizeResponse>(
+      ::google::protobuf::DynamicCastToGenerated<RecognizeResponse>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.RecognizeResponse)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.RecognizeResponse)
     MergeFrom(*source);
@@ -800,13 +1039,13 @@ void RecognizeResponse::MergeFrom(const RecognizeResponse& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.RecognizeResponse)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   results_.MergeFrom(from.results_);
 }
 
-void RecognizeResponse::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognizeResponse::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.RecognizeResponse)
   if (&from == this) return;
   Clear();
@@ -824,14 +1063,19 @@ bool RecognizeResponse::IsInitialized() const {
   return true;
 }
 
+void RecognizeResponse::Swap(RecognizeResponse* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void RecognizeResponse::InternalSwap(RecognizeResponse* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  results_.InternalSwap(&other->results_);
+  CastToBase(&results_)->InternalSwap(CastToBase(&other->results_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata RecognizeResponse::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata RecognizeResponse::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
@@ -839,27 +1083,41 @@ void RecognizeResponse::InternalSwap(RecognizeResponse* other) {
 
 void RecognitionConfig::InitAsDefaultInstance() {
 }
-class RecognitionConfig::_Internal {
+class RecognitionConfig::HasBitSetters {
  public:
 };
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int RecognitionConfig::kEncodingFieldNumber;
+const int RecognitionConfig::kSampleRateHertzFieldNumber;
+const int RecognitionConfig::kLanguageCodeFieldNumber;
+const int RecognitionConfig::kMaxAlternativesFieldNumber;
+const int RecognitionConfig::kPunctuationFieldNumber;
+const int RecognitionConfig::kSpeechContextsFieldNumber;
+const int RecognitionConfig::kAudioChannelCountFieldNumber;
+const int RecognitionConfig::kModelFieldNumber;
+const int RecognitionConfig::kRawFieldNumber;
+const int RecognitionConfig::kDataBytesFieldNumber;
+const int RecognitionConfig::kWordLevelFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 RecognitionConfig::RecognitionConfig()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.RecognitionConfig)
 }
 RecognitionConfig::RecognitionConfig(const RecognitionConfig& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr),
       speech_contexts_(from.speech_contexts_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  language_code_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_language_code().empty()) {
-    language_code_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.language_code_);
+  language_code_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.language_code().size() > 0) {
+    language_code_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.language_code_);
   }
-  model_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_model().empty()) {
-    model_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.model_);
+  model_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.model().size() > 0) {
+    model_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.model_);
   }
   ::memcpy(&encoding_, &from.encoding_,
     static_cast<size_t>(reinterpret_cast<char*>(&data_bytes_) -
@@ -868,9 +1126,10 @@ RecognitionConfig::RecognitionConfig(const RecognitionConfig& from)
 }
 
 void RecognitionConfig::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_RecognitionConfig_kaldi_5fserve_2eproto.base);
-  language_code_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  model_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_RecognitionConfig_kaldi_5fserve_2eproto.base);
+  language_code_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  model_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&encoding_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&data_bytes_) -
       reinterpret_cast<char*>(&encoding_)) + sizeof(data_bytes_));
@@ -882,234 +1141,516 @@ RecognitionConfig::~RecognitionConfig() {
 }
 
 void RecognitionConfig::SharedDtor() {
-  language_code_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  model_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  language_code_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  model_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void RecognitionConfig::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const RecognitionConfig& RecognitionConfig::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_RecognitionConfig_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_RecognitionConfig_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void RecognitionConfig::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.RecognitionConfig)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   speech_contexts_.Clear();
-  language_code_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  model_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  language_code_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  model_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&encoding_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&data_bytes_) -
       reinterpret_cast<char*>(&encoding_)) + sizeof(data_bytes_));
   _internal_metadata_.Clear();
 }
 
-const char* RecognitionConfig::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* RecognitionConfig::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<RecognitionConfig*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // .kaldi_serve.RecognitionConfig.AudioEncoding encoding = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
-          ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-          _internal_set_encoding(static_cast<::kaldi_serve::RecognitionConfig_AudioEncoding>(val));
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 8) goto handle_unusual;
+        ::google::protobuf::uint64 val = ::google::protobuf::internal::ReadVarint(&ptr);
+        msg->set_encoding(static_cast<::kaldi_serve::RecognitionConfig_AudioEncoding>(val));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       // int32 sample_rate_hertz = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
-          sample_rate_hertz_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 2: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 16) goto handle_unusual;
+        msg->set_sample_rate_hertz(::google::protobuf::internal::ReadVarint(&ptr));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       // string language_code = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          auto str = _internal_mutable_language_code();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.RecognitionConfig.language_code"));
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 3: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 26) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("kaldi_serve.RecognitionConfig.language_code");
+        object = msg->mutable_language_code();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       // int32 max_alternatives = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
-          max_alternatives_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 4: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 32) goto handle_unusual;
+        msg->set_max_alternatives(::google::protobuf::internal::ReadVarint(&ptr));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       // bool punctuation = 5;
-      case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 40)) {
-          punctuation_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 5: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 40) goto handle_unusual;
+        msg->set_punctuation(::google::protobuf::internal::ReadVarint(&ptr));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       // repeated .kaldi_serve.SpeechContext speech_contexts = 6;
-      case 6:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 50)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_speech_contexts(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<50>(ptr));
-        } else goto handle_unusual;
-        continue;
+      case 6: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 50) goto handle_unusual;
+        do {
+          ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+          parser_till_end = ::kaldi_serve::SpeechContext::_InternalParse;
+          object = msg->add_speech_contexts();
+          if (size > end - ptr) goto len_delim_till_end;
+          ptr += size;
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ctx->ParseExactRange(
+              {parser_till_end, object}, ptr - size, ptr));
+          if (ptr >= end) break;
+        } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 50 && (ptr += 1));
+        break;
+      }
       // int32 audio_channel_count = 7;
-      case 7:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 56)) {
-          audio_channel_count_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 7: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 56) goto handle_unusual;
+        msg->set_audio_channel_count(::google::protobuf::internal::ReadVarint(&ptr));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       // string model = 10;
-      case 10:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 82)) {
-          auto str = _internal_mutable_model();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.RecognitionConfig.model"));
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 10: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 82) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("kaldi_serve.RecognitionConfig.model");
+        object = msg->mutable_model();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       // bool raw = 11;
-      case 11:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 88)) {
-          raw_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 11: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 88) goto handle_unusual;
+        msg->set_raw(::google::protobuf::internal::ReadVarint(&ptr));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       // int32 data_bytes = 12;
-      case 12:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 96)) {
-          data_bytes_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 12: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 96) goto handle_unusual;
+        msg->set_data_bytes(::google::protobuf::internal::ReadVarint(&ptr));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       // bool word_level = 13;
-      case 13:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 104)) {
-          word_level_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 13: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 104) goto handle_unusual;
+        msg->set_word_level(::google::protobuf::internal::ReadVarint(&ptr));
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+string_till_end:
+  static_cast<::std::string*>(object)->clear();
+  static_cast<::std::string*>(object)->reserve(size);
+  goto len_delim_till_end;
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool RecognitionConfig::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.RecognitionConfig)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // .kaldi_serve.RecognitionConfig.AudioEncoding encoding = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (8 & 0xFF)) {
+          int value = 0;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          set_encoding(static_cast< ::kaldi_serve::RecognitionConfig_AudioEncoding >(value));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
 
-::PROTOBUF_NAMESPACE_ID::uint8* RecognitionConfig::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognitionConfig)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+      // int32 sample_rate_hertz = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (16 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &sample_rate_hertz_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // string language_code = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (26 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_language_code()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->language_code().data(), static_cast<int>(this->language_code().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.RecognitionConfig.language_code"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // int32 max_alternatives = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (32 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &max_alternatives_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool punctuation = 5;
+      case 5: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (40 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &punctuation_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated .kaldi_serve.SpeechContext speech_contexts = 6;
+      case 6: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (50 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+                input, add_speech_contexts()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // int32 audio_channel_count = 7;
+      case 7: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (56 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &audio_channel_count_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // string model = 10;
+      case 10: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (82 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_model()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->model().data(), static_cast<int>(this->model().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.RecognitionConfig.model"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool raw = 11;
+      case 11: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (88 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &raw_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // int32 data_bytes = 12;
+      case 12: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (96 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &data_bytes_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool word_level = 13;
+      case 13: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (104 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &word_level_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.RecognitionConfig)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.RecognitionConfig)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void RecognitionConfig::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.RecognitionConfig)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // .kaldi_serve.RecognitionConfig.AudioEncoding encoding = 1;
   if (this->encoding() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
-      1, this->_internal_encoding(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      1, this->encoding(), output);
   }
 
   // int32 sample_rate_hertz = 2;
   if (this->sample_rate_hertz() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(2, this->_internal_sample_rate_hertz(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->sample_rate_hertz(), output);
   }
 
   // string language_code = 3;
   if (this->language_code().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_language_code().data(), static_cast<int>(this->_internal_language_code().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->language_code().data(), static_cast<int>(this->language_code().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.RecognitionConfig.language_code");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_language_code(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      3, this->language_code(), output);
   }
 
   // int32 max_alternatives = 4;
   if (this->max_alternatives() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(4, this->_internal_max_alternatives(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(4, this->max_alternatives(), output);
   }
 
   // bool punctuation = 5;
   if (this->punctuation() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(5, this->_internal_punctuation(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteBool(5, this->punctuation(), output);
   }
 
   // repeated .kaldi_serve.SpeechContext speech_contexts = 6;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->_internal_speech_contexts_size()); i < n; i++) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(6, this->_internal_speech_contexts(i), target, stream);
+      n = static_cast<unsigned int>(this->speech_contexts_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      6,
+      this->speech_contexts(static_cast<int>(i)),
+      output);
   }
 
   // int32 audio_channel_count = 7;
   if (this->audio_channel_count() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(7, this->_internal_audio_channel_count(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(7, this->audio_channel_count(), output);
   }
 
   // string model = 10;
   if (this->model().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_model().data(), static_cast<int>(this->_internal_model().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->model().data(), static_cast<int>(this->model().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.RecognitionConfig.model");
-    target = stream->WriteStringMaybeAliased(
-        10, this->_internal_model(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      10, this->model(), output);
   }
 
   // bool raw = 11;
   if (this->raw() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(11, this->_internal_raw(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteBool(11, this->raw(), output);
   }
 
   // int32 data_bytes = 12;
   if (this->data_bytes() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(12, this->_internal_data_bytes(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(12, this->data_bytes(), output);
   }
 
   // bool word_level = 13;
   if (this->word_level() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(13, this->_internal_word_level(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteBool(13, this->word_level(), output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.RecognitionConfig)
+}
+
+::google::protobuf::uint8* RecognitionConfig::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognitionConfig)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .kaldi_serve.RecognitionConfig.AudioEncoding encoding = 1;
+  if (this->encoding() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      1, this->encoding(), target);
+  }
+
+  // int32 sample_rate_hertz = 2;
+  if (this->sample_rate_hertz() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->sample_rate_hertz(), target);
+  }
+
+  // string language_code = 3;
+  if (this->language_code().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->language_code().data(), static_cast<int>(this->language_code().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.RecognitionConfig.language_code");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->language_code(), target);
+  }
+
+  // int32 max_alternatives = 4;
+  if (this->max_alternatives() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(4, this->max_alternatives(), target);
+  }
+
+  // bool punctuation = 5;
+  if (this->punctuation() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(5, this->punctuation(), target);
+  }
+
+  // repeated .kaldi_serve.SpeechContext speech_contexts = 6;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->speech_contexts_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        6, this->speech_contexts(static_cast<int>(i)), target);
+  }
+
+  // int32 audio_channel_count = 7;
+  if (this->audio_channel_count() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(7, this->audio_channel_count(), target);
+  }
+
+  // string model = 10;
+  if (this->model().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->model().data(), static_cast<int>(this->model().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.RecognitionConfig.model");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        10, this->model(), target);
+  }
+
+  // bool raw = 11;
+  if (this->raw() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(11, this->raw(), target);
+  }
+
+  // int32 data_bytes = 12;
+  if (this->data_bytes() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(12, this->data_bytes(), target);
+  }
+
+  // bool word_level = 13;
+  if (this->word_level() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(13, this->word_level(), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.RecognitionConfig)
   return target;
@@ -1119,56 +1660,65 @@ size_t RecognitionConfig::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.RecognitionConfig)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated .kaldi_serve.SpeechContext speech_contexts = 6;
-  total_size += 1UL * this->_internal_speech_contexts_size();
-  for (const auto& msg : this->speech_contexts_) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  {
+    unsigned int count = static_cast<unsigned int>(this->speech_contexts_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->speech_contexts(static_cast<int>(i)));
+    }
   }
 
   // string language_code = 3;
   if (this->language_code().size() > 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_language_code());
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->language_code());
   }
 
   // string model = 10;
   if (this->model().size() > 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_model());
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->model());
   }
 
   // .kaldi_serve.RecognitionConfig.AudioEncoding encoding = 1;
   if (this->encoding() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_encoding());
+      ::google::protobuf::internal::WireFormatLite::EnumSize(this->encoding());
   }
 
   // int32 sample_rate_hertz = 2;
   if (this->sample_rate_hertz() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-        this->_internal_sample_rate_hertz());
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->sample_rate_hertz());
   }
 
   // int32 max_alternatives = 4;
   if (this->max_alternatives() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-        this->_internal_max_alternatives());
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->max_alternatives());
   }
 
   // int32 audio_channel_count = 7;
   if (this->audio_channel_count() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-        this->_internal_audio_channel_count());
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->audio_channel_count());
   }
 
   // bool punctuation = 5;
@@ -1189,28 +1739,24 @@ size_t RecognitionConfig::ByteSizeLong() const {
   // int32 data_bytes = 12;
   if (this->data_bytes() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-        this->_internal_data_bytes());
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->data_bytes());
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void RecognitionConfig::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognitionConfig::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.RecognitionConfig)
   GOOGLE_DCHECK_NE(&from, this);
   const RecognitionConfig* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<RecognitionConfig>(
+      ::google::protobuf::DynamicCastToGenerated<RecognitionConfig>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.RecognitionConfig)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.RecognitionConfig)
     MergeFrom(*source);
@@ -1221,45 +1767,45 @@ void RecognitionConfig::MergeFrom(const RecognitionConfig& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.RecognitionConfig)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   speech_contexts_.MergeFrom(from.speech_contexts_);
   if (from.language_code().size() > 0) {
 
-    language_code_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.language_code_);
+    language_code_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.language_code_);
   }
   if (from.model().size() > 0) {
 
-    model_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.model_);
+    model_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.model_);
   }
   if (from.encoding() != 0) {
-    _internal_set_encoding(from._internal_encoding());
+    set_encoding(from.encoding());
   }
   if (from.sample_rate_hertz() != 0) {
-    _internal_set_sample_rate_hertz(from._internal_sample_rate_hertz());
+    set_sample_rate_hertz(from.sample_rate_hertz());
   }
   if (from.max_alternatives() != 0) {
-    _internal_set_max_alternatives(from._internal_max_alternatives());
+    set_max_alternatives(from.max_alternatives());
   }
   if (from.audio_channel_count() != 0) {
-    _internal_set_audio_channel_count(from._internal_audio_channel_count());
+    set_audio_channel_count(from.audio_channel_count());
   }
   if (from.punctuation() != 0) {
-    _internal_set_punctuation(from._internal_punctuation());
+    set_punctuation(from.punctuation());
   }
   if (from.raw() != 0) {
-    _internal_set_raw(from._internal_raw());
+    set_raw(from.raw());
   }
   if (from.word_level() != 0) {
-    _internal_set_word_level(from._internal_word_level());
+    set_word_level(from.word_level());
   }
   if (from.data_bytes() != 0) {
-    _internal_set_data_bytes(from._internal_data_bytes());
+    set_data_bytes(from.data_bytes());
   }
 }
 
-void RecognitionConfig::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognitionConfig::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.RecognitionConfig)
   if (&from == this) return;
   Clear();
@@ -1277,13 +1823,17 @@ bool RecognitionConfig::IsInitialized() const {
   return true;
 }
 
+void RecognitionConfig::Swap(RecognitionConfig* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void RecognitionConfig::InternalSwap(RecognitionConfig* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  speech_contexts_.InternalSwap(&other->speech_contexts_);
-  language_code_.Swap(&other->language_code_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+  CastToBase(&speech_contexts_)->InternalSwap(CastToBase(&other->speech_contexts_));
+  language_code_.Swap(&other->language_code_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
-  model_.Swap(&other->model_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+  model_.Swap(&other->model_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(encoding_, other->encoding_);
   swap(sample_rate_hertz_, other->sample_rate_hertz_);
@@ -1295,8 +1845,9 @@ void RecognitionConfig::InternalSwap(RecognitionConfig* other) {
   swap(data_bytes_, other->data_bytes_);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata RecognitionConfig::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata RecognitionConfig::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
@@ -1304,31 +1855,36 @@ void RecognitionConfig::InternalSwap(RecognitionConfig* other) {
 
 void RecognitionAudio::InitAsDefaultInstance() {
   ::kaldi_serve::_RecognitionAudio_default_instance_.content_.UnsafeSetDefault(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::kaldi_serve::_RecognitionAudio_default_instance_.uri_.UnsafeSetDefault(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+      &::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-class RecognitionAudio::_Internal {
+class RecognitionAudio::HasBitSetters {
  public:
 };
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int RecognitionAudio::kContentFieldNumber;
+const int RecognitionAudio::kUriFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 RecognitionAudio::RecognitionAudio()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.RecognitionAudio)
 }
 RecognitionAudio::RecognitionAudio(const RecognitionAudio& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   clear_has_audio_source();
   switch (from.audio_source_case()) {
     case kContent: {
-      _internal_set_content(from._internal_content());
+      set_content(from.content());
       break;
     }
     case kUri: {
-      _internal_set_uri(from._internal_uri());
+      set_uri(from.uri());
       break;
     }
     case AUDIO_SOURCE_NOT_SET: {
@@ -1339,7 +1895,8 @@ RecognitionAudio::RecognitionAudio(const RecognitionAudio& from)
 }
 
 void RecognitionAudio::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_RecognitionAudio_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_RecognitionAudio_kaldi_5fserve_2eproto.base);
   clear_has_audio_source();
 }
 
@@ -1358,7 +1915,7 @@ void RecognitionAudio::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const RecognitionAudio& RecognitionAudio::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_RecognitionAudio_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_RecognitionAudio_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
@@ -1367,11 +1924,11 @@ void RecognitionAudio::clear_audio_source() {
 // @@protoc_insertion_point(one_of_clear_start:kaldi_serve.RecognitionAudio)
   switch (audio_source_case()) {
     case kContent: {
-      audio_source_.content_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+      audio_source_.content_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
       break;
     }
     case kUri: {
-      audio_source_.uri_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+      audio_source_.uri_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
       break;
     }
     case AUDIO_SOURCE_NOT_SET: {
@@ -1384,7 +1941,7 @@ void RecognitionAudio::clear_audio_source() {
 
 void RecognitionAudio::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.RecognitionAudio)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
@@ -1392,75 +1949,187 @@ void RecognitionAudio::Clear() {
   _internal_metadata_.Clear();
 }
 
-const char* RecognitionAudio::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* RecognitionAudio::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<RecognitionAudio*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // bytes content = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          auto str = _internal_mutable_content();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        object = msg->mutable_content();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParser;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheck(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       // string uri = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          auto str = _internal_mutable_uri();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.RecognitionAudio.uri"));
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 2: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("kaldi_serve.RecognitionAudio.uri");
+        object = msg->mutable_uri();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+string_till_end:
+  static_cast<::std::string*>(object)->clear();
+  static_cast<::std::string*>(object)->reserve(size);
+  goto len_delim_till_end;
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool RecognitionAudio::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.RecognitionAudio)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // bytes content = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_content()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
 
-::PROTOBUF_NAMESPACE_ID::uint8* RecognitionAudio::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognitionAudio)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+      // string uri = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_uri()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->uri().data(), static_cast<int>(this->uri().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.RecognitionAudio.uri"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.RecognitionAudio)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.RecognitionAudio)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void RecognitionAudio::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.RecognitionAudio)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // bytes content = 1;
-  if (_internal_has_content()) {
-    target = stream->WriteBytesMaybeAliased(
-        1, this->_internal_content(), target);
+  if (has_content()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      1, this->content(), output);
   }
 
   // string uri = 2;
-  if (_internal_has_uri()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_uri().data(), static_cast<int>(this->_internal_uri().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+  if (has_uri()) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->uri().data(), static_cast<int>(this->uri().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.RecognitionAudio.uri");
-    target = stream->WriteStringMaybeAliased(
-        2, this->_internal_uri(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->uri(), output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.RecognitionAudio)
+}
+
+::google::protobuf::uint8* RecognitionAudio::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.RecognitionAudio)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bytes content = 1;
+  if (has_content()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        1, this->content(), target);
+  }
+
+  // string uri = 2;
+  if (has_uri()) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->uri().data(), static_cast<int>(this->uri().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.RecognitionAudio.uri");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->uri(), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.RecognitionAudio)
   return target;
@@ -1470,7 +2139,12 @@ size_t RecognitionAudio::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.RecognitionAudio)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
@@ -1478,39 +2152,35 @@ size_t RecognitionAudio::ByteSizeLong() const {
     // bytes content = 1;
     case kContent: {
       total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-          this->_internal_content());
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->content());
       break;
     }
     // string uri = 2;
     case kUri: {
       total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-          this->_internal_uri());
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->uri());
       break;
     }
     case AUDIO_SOURCE_NOT_SET: {
       break;
     }
   }
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void RecognitionAudio::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognitionAudio::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.RecognitionAudio)
   GOOGLE_DCHECK_NE(&from, this);
   const RecognitionAudio* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<RecognitionAudio>(
+      ::google::protobuf::DynamicCastToGenerated<RecognitionAudio>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.RecognitionAudio)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.RecognitionAudio)
     MergeFrom(*source);
@@ -1521,16 +2191,16 @@ void RecognitionAudio::MergeFrom(const RecognitionAudio& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.RecognitionAudio)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   switch (from.audio_source_case()) {
     case kContent: {
-      _internal_set_content(from._internal_content());
+      set_content(from.content());
       break;
     }
     case kUri: {
-      _internal_set_uri(from._internal_uri());
+      set_uri(from.uri());
       break;
     }
     case AUDIO_SOURCE_NOT_SET: {
@@ -1539,7 +2209,7 @@ void RecognitionAudio::MergeFrom(const RecognitionAudio& from) {
   }
 }
 
-void RecognitionAudio::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void RecognitionAudio::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.RecognitionAudio)
   if (&from == this) return;
   Clear();
@@ -1557,6 +2227,10 @@ bool RecognitionAudio::IsInitialized() const {
   return true;
 }
 
+void RecognitionAudio::Swap(RecognitionAudio* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void RecognitionAudio::InternalSwap(RecognitionAudio* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
@@ -1564,8 +2238,9 @@ void RecognitionAudio::InternalSwap(RecognitionAudio* other) {
   swap(_oneof_case_[0], other->_oneof_case_[0]);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata RecognitionAudio::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata RecognitionAudio::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
@@ -1573,17 +2248,21 @@ void RecognitionAudio::InternalSwap(RecognitionAudio* other) {
 
 void SpeechRecognitionResult::InitAsDefaultInstance() {
 }
-class SpeechRecognitionResult::_Internal {
+class SpeechRecognitionResult::HasBitSetters {
  public:
 };
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int SpeechRecognitionResult::kAlternativesFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 SpeechRecognitionResult::SpeechRecognitionResult()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.SpeechRecognitionResult)
 }
 SpeechRecognitionResult::SpeechRecognitionResult(const SpeechRecognitionResult& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr),
       alternatives_(from.alternatives_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
@@ -1591,7 +2270,8 @@ SpeechRecognitionResult::SpeechRecognitionResult(const SpeechRecognitionResult& 
 }
 
 void SpeechRecognitionResult::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto.base);
 }
 
 SpeechRecognitionResult::~SpeechRecognitionResult() {
@@ -1606,14 +2286,14 @@ void SpeechRecognitionResult::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const SpeechRecognitionResult& SpeechRecognitionResult::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_SpeechRecognitionResult_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void SpeechRecognitionResult::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.SpeechRecognitionResult)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
@@ -1621,62 +2301,136 @@ void SpeechRecognitionResult::Clear() {
   _internal_metadata_.Clear();
 }
 
-const char* SpeechRecognitionResult::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* SpeechRecognitionResult::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<SpeechRecognitionResult*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // repeated .kaldi_serve.SpeechRecognitionAlternative alternatives = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_alternatives(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
+        do {
+          ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+          parser_till_end = ::kaldi_serve::SpeechRecognitionAlternative::_InternalParse;
+          object = msg->add_alternatives();
+          if (size > end - ptr) goto len_delim_till_end;
+          ptr += size;
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ctx->ParseExactRange(
+              {parser_till_end, object}, ptr - size, ptr));
+          if (ptr >= end) break;
+        } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 10 && (ptr += 1));
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool SpeechRecognitionResult::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.SpeechRecognitionResult)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // repeated .kaldi_serve.SpeechRecognitionAlternative alternatives = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+                input, add_alternatives()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
 
-::PROTOBUF_NAMESPACE_ID::uint8* SpeechRecognitionResult::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.SpeechRecognitionResult)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.SpeechRecognitionResult)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.SpeechRecognitionResult)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void SpeechRecognitionResult::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.SpeechRecognitionResult)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated .kaldi_serve.SpeechRecognitionAlternative alternatives = 1;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->_internal_alternatives_size()); i < n; i++) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(1, this->_internal_alternatives(i), target, stream);
+      n = static_cast<unsigned int>(this->alternatives_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1,
+      this->alternatives(static_cast<int>(i)),
+      output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.SpeechRecognitionResult)
+}
+
+::google::protobuf::uint8* SpeechRecognitionResult::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.SpeechRecognitionResult)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated .kaldi_serve.SpeechRecognitionAlternative alternatives = 1;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->alternatives_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        1, this->alternatives(static_cast<int>(i)), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.SpeechRecognitionResult)
   return target;
@@ -1686,35 +2440,40 @@ size_t SpeechRecognitionResult::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.SpeechRecognitionResult)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated .kaldi_serve.SpeechRecognitionAlternative alternatives = 1;
-  total_size += 1UL * this->_internal_alternatives_size();
-  for (const auto& msg : this->alternatives_) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  {
+    unsigned int count = static_cast<unsigned int>(this->alternatives_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->alternatives(static_cast<int>(i)));
+    }
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void SpeechRecognitionResult::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void SpeechRecognitionResult::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.SpeechRecognitionResult)
   GOOGLE_DCHECK_NE(&from, this);
   const SpeechRecognitionResult* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<SpeechRecognitionResult>(
+      ::google::protobuf::DynamicCastToGenerated<SpeechRecognitionResult>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.SpeechRecognitionResult)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.SpeechRecognitionResult)
     MergeFrom(*source);
@@ -1725,13 +2484,13 @@ void SpeechRecognitionResult::MergeFrom(const SpeechRecognitionResult& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.SpeechRecognitionResult)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   alternatives_.MergeFrom(from.alternatives_);
 }
 
-void SpeechRecognitionResult::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void SpeechRecognitionResult::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.SpeechRecognitionResult)
   if (&from == this) return;
   Clear();
@@ -1749,14 +2508,19 @@ bool SpeechRecognitionResult::IsInitialized() const {
   return true;
 }
 
+void SpeechRecognitionResult::Swap(SpeechRecognitionResult* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void SpeechRecognitionResult::InternalSwap(SpeechRecognitionResult* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  alternatives_.InternalSwap(&other->alternatives_);
+  CastToBase(&alternatives_)->InternalSwap(CastToBase(&other->alternatives_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata SpeechRecognitionResult::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata SpeechRecognitionResult::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
@@ -1764,23 +2528,31 @@ void SpeechRecognitionResult::InternalSwap(SpeechRecognitionResult* other) {
 
 void SpeechRecognitionAlternative::InitAsDefaultInstance() {
 }
-class SpeechRecognitionAlternative::_Internal {
+class SpeechRecognitionAlternative::HasBitSetters {
  public:
 };
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int SpeechRecognitionAlternative::kTranscriptFieldNumber;
+const int SpeechRecognitionAlternative::kConfidenceFieldNumber;
+const int SpeechRecognitionAlternative::kAmScoreFieldNumber;
+const int SpeechRecognitionAlternative::kLmScoreFieldNumber;
+const int SpeechRecognitionAlternative::kWordsFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 SpeechRecognitionAlternative::SpeechRecognitionAlternative()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.SpeechRecognitionAlternative)
 }
 SpeechRecognitionAlternative::SpeechRecognitionAlternative(const SpeechRecognitionAlternative& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr),
       words_(from.words_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  transcript_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_transcript().empty()) {
-    transcript_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.transcript_);
+  transcript_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.transcript().size() > 0) {
+    transcript_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.transcript_);
   }
   ::memcpy(&confidence_, &from.confidence_,
     static_cast<size_t>(reinterpret_cast<char*>(&lm_score_) -
@@ -1789,8 +2561,9 @@ SpeechRecognitionAlternative::SpeechRecognitionAlternative(const SpeechRecogniti
 }
 
 void SpeechRecognitionAlternative::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto.base);
-  transcript_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto.base);
+  transcript_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&confidence_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&lm_score_) -
       reinterpret_cast<char*>(&confidence_)) + sizeof(lm_score_));
@@ -1802,146 +2575,308 @@ SpeechRecognitionAlternative::~SpeechRecognitionAlternative() {
 }
 
 void SpeechRecognitionAlternative::SharedDtor() {
-  transcript_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  transcript_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void SpeechRecognitionAlternative::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const SpeechRecognitionAlternative& SpeechRecognitionAlternative::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_SpeechRecognitionAlternative_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void SpeechRecognitionAlternative::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.SpeechRecognitionAlternative)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   words_.Clear();
-  transcript_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  transcript_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&confidence_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&lm_score_) -
       reinterpret_cast<char*>(&confidence_)) + sizeof(lm_score_));
   _internal_metadata_.Clear();
 }
 
-const char* SpeechRecognitionAlternative::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* SpeechRecognitionAlternative::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<SpeechRecognitionAlternative*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // string transcript = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          auto str = _internal_mutable_transcript();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.SpeechRecognitionAlternative.transcript"));
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("kaldi_serve.SpeechRecognitionAlternative.transcript");
+        object = msg->mutable_transcript();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       // float confidence = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 21)) {
-          confidence_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
-        } else goto handle_unusual;
-        continue;
+      case 2: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 21) goto handle_unusual;
+        msg->set_confidence(::google::protobuf::io::UnalignedLoad<float>(ptr));
+        ptr += sizeof(float);
+        break;
+      }
       // float am_score = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 29)) {
-          am_score_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
-        } else goto handle_unusual;
-        continue;
+      case 3: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 29) goto handle_unusual;
+        msg->set_am_score(::google::protobuf::io::UnalignedLoad<float>(ptr));
+        ptr += sizeof(float);
+        break;
+      }
       // float lm_score = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 37)) {
-          lm_score_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
-        } else goto handle_unusual;
-        continue;
+      case 4: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 37) goto handle_unusual;
+        msg->set_lm_score(::google::protobuf::io::UnalignedLoad<float>(ptr));
+        ptr += sizeof(float);
+        break;
+      }
       // repeated .kaldi_serve.Word words = 5;
-      case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            ptr = ctx->ParseMessage(_internal_add_words(), ptr);
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<42>(ptr));
-        } else goto handle_unusual;
-        continue;
+      case 5: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 42) goto handle_unusual;
+        do {
+          ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+          parser_till_end = ::kaldi_serve::Word::_InternalParse;
+          object = msg->add_words();
+          if (size > end - ptr) goto len_delim_till_end;
+          ptr += size;
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ctx->ParseExactRange(
+              {parser_till_end, object}, ptr - size, ptr));
+          if (ptr >= end) break;
+        } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 42 && (ptr += 1));
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+string_till_end:
+  static_cast<::std::string*>(object)->clear();
+  static_cast<::std::string*>(object)->reserve(size);
+  goto len_delim_till_end;
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool SpeechRecognitionAlternative::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.SpeechRecognitionAlternative)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // string transcript = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_transcript()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->transcript().data(), static_cast<int>(this->transcript().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.SpeechRecognitionAlternative.transcript"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
 
-::PROTOBUF_NAMESPACE_ID::uint8* SpeechRecognitionAlternative::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.SpeechRecognitionAlternative)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+      // float confidence = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (21 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &confidence_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // float am_score = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (29 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &am_score_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // float lm_score = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (37 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &lm_score_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated .kaldi_serve.Word words = 5;
+      case 5: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (42 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
+                input, add_words()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.SpeechRecognitionAlternative)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.SpeechRecognitionAlternative)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void SpeechRecognitionAlternative::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.SpeechRecognitionAlternative)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // string transcript = 1;
   if (this->transcript().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_transcript().data(), static_cast<int>(this->_internal_transcript().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->transcript().data(), static_cast<int>(this->transcript().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.SpeechRecognitionAlternative.transcript");
-    target = stream->WriteStringMaybeAliased(
-        1, this->_internal_transcript(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      1, this->transcript(), output);
   }
 
   // float confidence = 2;
-  if (!(this->confidence() <= 0 && this->confidence() >= 0)) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(2, this->_internal_confidence(), target);
+  if (this->confidence() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(2, this->confidence(), output);
   }
 
   // float am_score = 3;
-  if (!(this->am_score() <= 0 && this->am_score() >= 0)) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(3, this->_internal_am_score(), target);
+  if (this->am_score() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(3, this->am_score(), output);
   }
 
   // float lm_score = 4;
-  if (!(this->lm_score() <= 0 && this->lm_score() >= 0)) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(4, this->_internal_lm_score(), target);
+  if (this->lm_score() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(4, this->lm_score(), output);
   }
 
   // repeated .kaldi_serve.Word words = 5;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->_internal_words_size()); i < n; i++) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(5, this->_internal_words(i), target, stream);
+      n = static_cast<unsigned int>(this->words_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      5,
+      this->words(static_cast<int>(i)),
+      output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.SpeechRecognitionAlternative)
+}
+
+::google::protobuf::uint8* SpeechRecognitionAlternative::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.SpeechRecognitionAlternative)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string transcript = 1;
+  if (this->transcript().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->transcript().data(), static_cast<int>(this->transcript().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.SpeechRecognitionAlternative.transcript");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->transcript(), target);
+  }
+
+  // float confidence = 2;
+  if (this->confidence() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(2, this->confidence(), target);
+  }
+
+  // float am_score = 3;
+  if (this->am_score() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(3, this->am_score(), target);
+  }
+
+  // float lm_score = 4;
+  if (this->lm_score() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(4, this->lm_score(), target);
+  }
+
+  // repeated .kaldi_serve.Word words = 5;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->words_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        5, this->words(static_cast<int>(i)), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.SpeechRecognitionAlternative)
   return target;
@@ -1951,57 +2886,62 @@ size_t SpeechRecognitionAlternative::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.SpeechRecognitionAlternative)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated .kaldi_serve.Word words = 5;
-  total_size += 1UL * this->_internal_words_size();
-  for (const auto& msg : this->words_) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  {
+    unsigned int count = static_cast<unsigned int>(this->words_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->words(static_cast<int>(i)));
+    }
   }
 
   // string transcript = 1;
   if (this->transcript().size() > 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_transcript());
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->transcript());
   }
 
   // float confidence = 2;
-  if (!(this->confidence() <= 0 && this->confidence() >= 0)) {
+  if (this->confidence() != 0) {
     total_size += 1 + 4;
   }
 
   // float am_score = 3;
-  if (!(this->am_score() <= 0 && this->am_score() >= 0)) {
+  if (this->am_score() != 0) {
     total_size += 1 + 4;
   }
 
   // float lm_score = 4;
-  if (!(this->lm_score() <= 0 && this->lm_score() >= 0)) {
+  if (this->lm_score() != 0) {
     total_size += 1 + 4;
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void SpeechRecognitionAlternative::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void SpeechRecognitionAlternative::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.SpeechRecognitionAlternative)
   GOOGLE_DCHECK_NE(&from, this);
   const SpeechRecognitionAlternative* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<SpeechRecognitionAlternative>(
+      ::google::protobuf::DynamicCastToGenerated<SpeechRecognitionAlternative>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.SpeechRecognitionAlternative)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.SpeechRecognitionAlternative)
     MergeFrom(*source);
@@ -2012,26 +2952,26 @@ void SpeechRecognitionAlternative::MergeFrom(const SpeechRecognitionAlternative&
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.SpeechRecognitionAlternative)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   words_.MergeFrom(from.words_);
   if (from.transcript().size() > 0) {
 
-    transcript_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.transcript_);
+    transcript_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.transcript_);
   }
-  if (!(from.confidence() <= 0 && from.confidence() >= 0)) {
-    _internal_set_confidence(from._internal_confidence());
+  if (from.confidence() != 0) {
+    set_confidence(from.confidence());
   }
-  if (!(from.am_score() <= 0 && from.am_score() >= 0)) {
-    _internal_set_am_score(from._internal_am_score());
+  if (from.am_score() != 0) {
+    set_am_score(from.am_score());
   }
-  if (!(from.lm_score() <= 0 && from.lm_score() >= 0)) {
-    _internal_set_lm_score(from._internal_lm_score());
+  if (from.lm_score() != 0) {
+    set_lm_score(from.lm_score());
   }
 }
 
-void SpeechRecognitionAlternative::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void SpeechRecognitionAlternative::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.SpeechRecognitionAlternative)
   if (&from == this) return;
   Clear();
@@ -2049,19 +2989,24 @@ bool SpeechRecognitionAlternative::IsInitialized() const {
   return true;
 }
 
+void SpeechRecognitionAlternative::Swap(SpeechRecognitionAlternative* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void SpeechRecognitionAlternative::InternalSwap(SpeechRecognitionAlternative* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  words_.InternalSwap(&other->words_);
-  transcript_.Swap(&other->transcript_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+  CastToBase(&words_)->InternalSwap(CastToBase(&other->words_));
+  transcript_.Swap(&other->transcript_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(confidence_, other->confidence_);
   swap(am_score_, other->am_score_);
   swap(lm_score_, other->lm_score_);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata SpeechRecognitionAlternative::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata SpeechRecognitionAlternative::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
@@ -2069,22 +3014,29 @@ void SpeechRecognitionAlternative::InternalSwap(SpeechRecognitionAlternative* ot
 
 void Word::InitAsDefaultInstance() {
 }
-class Word::_Internal {
+class Word::HasBitSetters {
  public:
 };
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int Word::kStartTimeFieldNumber;
+const int Word::kEndTimeFieldNumber;
+const int Word::kWordFieldNumber;
+const int Word::kConfidenceFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 Word::Word()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.Word)
 }
 Word::Word(const Word& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  word_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_word().empty()) {
-    word_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.word_);
+  word_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.word().size() > 0) {
+    word_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.word_);
   }
   ::memcpy(&start_time_, &from.start_time_,
     static_cast<size_t>(reinterpret_cast<char*>(&confidence_) -
@@ -2093,8 +3045,9 @@ Word::Word(const Word& from)
 }
 
 void Word::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_Word_kaldi_5fserve_2eproto.base);
-  word_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_Word_kaldi_5fserve_2eproto.base);
+  word_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&start_time_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&confidence_) -
       reinterpret_cast<char*>(&start_time_)) + sizeof(confidence_));
@@ -2106,125 +3059,263 @@ Word::~Word() {
 }
 
 void Word::SharedDtor() {
-  word_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  word_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void Word::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const Word& Word::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_Word_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_Word_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void Word::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.Word)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  word_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  word_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&start_time_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&confidence_) -
       reinterpret_cast<char*>(&start_time_)) + sizeof(confidence_));
   _internal_metadata_.Clear();
 }
 
-const char* Word::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* Word::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<Word*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // float start_time = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          start_time_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 13) goto handle_unusual;
+        msg->set_start_time(::google::protobuf::io::UnalignedLoad<float>(ptr));
+        ptr += sizeof(float);
+        break;
+      }
       // float end_time = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 21)) {
-          end_time_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
-        } else goto handle_unusual;
-        continue;
+      case 2: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 21) goto handle_unusual;
+        msg->set_end_time(::google::protobuf::io::UnalignedLoad<float>(ptr));
+        ptr += sizeof(float);
+        break;
+      }
       // string word = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          auto str = _internal_mutable_word();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.Word.word"));
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 3: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 26) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("kaldi_serve.Word.word");
+        object = msg->mutable_word();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       // float confidence = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 37)) {
-          confidence_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
-        } else goto handle_unusual;
-        continue;
+      case 4: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 37) goto handle_unusual;
+        msg->set_confidence(::google::protobuf::io::UnalignedLoad<float>(ptr));
+        ptr += sizeof(float);
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+string_till_end:
+  static_cast<::std::string*>(object)->clear();
+  static_cast<::std::string*>(object)->reserve(size);
+  goto len_delim_till_end;
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool Word::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.Word)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // float start_time = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (13 & 0xFF)) {
 
-::PROTOBUF_NAMESPACE_ID::uint8* Word::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.Word)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &start_time_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // float end_time = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (21 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &end_time_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // string word = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (26 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_word()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->word().data(), static_cast<int>(this->word().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.Word.word"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // float confidence = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (37 & 0xFF)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &confidence_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.Word)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.Word)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void Word::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.Word)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // float start_time = 1;
-  if (!(this->start_time() <= 0 && this->start_time() >= 0)) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_start_time(), target);
+  if (this->start_time() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(1, this->start_time(), output);
   }
 
   // float end_time = 2;
-  if (!(this->end_time() <= 0 && this->end_time() >= 0)) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(2, this->_internal_end_time(), target);
+  if (this->end_time() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(2, this->end_time(), output);
   }
 
   // string word = 3;
   if (this->word().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_word().data(), static_cast<int>(this->_internal_word().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->word().data(), static_cast<int>(this->word().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.Word.word");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_word(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      3, this->word(), output);
   }
 
   // float confidence = 4;
-  if (!(this->confidence() <= 0 && this->confidence() >= 0)) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(4, this->_internal_confidence(), target);
+  if (this->confidence() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(4, this->confidence(), output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.Word)
+}
+
+::google::protobuf::uint8* Word::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.Word)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // float start_time = 1;
+  if (this->start_time() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(1, this->start_time(), target);
+  }
+
+  // float end_time = 2;
+  if (this->end_time() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(2, this->end_time(), target);
+  }
+
+  // string word = 3;
+  if (this->word().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->word().data(), static_cast<int>(this->word().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.Word.word");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->word(), target);
+  }
+
+  // float confidence = 4;
+  if (this->confidence() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(4, this->confidence(), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.Word)
   return target;
@@ -2234,50 +3325,51 @@ size_t Word::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.Word)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // string word = 3;
   if (this->word().size() > 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_word());
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->word());
   }
 
   // float start_time = 1;
-  if (!(this->start_time() <= 0 && this->start_time() >= 0)) {
+  if (this->start_time() != 0) {
     total_size += 1 + 4;
   }
 
   // float end_time = 2;
-  if (!(this->end_time() <= 0 && this->end_time() >= 0)) {
+  if (this->end_time() != 0) {
     total_size += 1 + 4;
   }
 
   // float confidence = 4;
-  if (!(this->confidence() <= 0 && this->confidence() >= 0)) {
+  if (this->confidence() != 0) {
     total_size += 1 + 4;
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void Word::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void Word::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.Word)
   GOOGLE_DCHECK_NE(&from, this);
   const Word* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Word>(
+      ::google::protobuf::DynamicCastToGenerated<Word>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.Word)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.Word)
     MergeFrom(*source);
@@ -2288,25 +3380,25 @@ void Word::MergeFrom(const Word& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.Word)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from.word().size() > 0) {
 
-    word_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.word_);
+    word_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.word_);
   }
-  if (!(from.start_time() <= 0 && from.start_time() >= 0)) {
-    _internal_set_start_time(from._internal_start_time());
+  if (from.start_time() != 0) {
+    set_start_time(from.start_time());
   }
-  if (!(from.end_time() <= 0 && from.end_time() >= 0)) {
-    _internal_set_end_time(from._internal_end_time());
+  if (from.end_time() != 0) {
+    set_end_time(from.end_time());
   }
-  if (!(from.confidence() <= 0 && from.confidence() >= 0)) {
-    _internal_set_confidence(from._internal_confidence());
+  if (from.confidence() != 0) {
+    set_confidence(from.confidence());
   }
 }
 
-void Word::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void Word::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.Word)
   if (&from == this) return;
   Clear();
@@ -2324,18 +3416,23 @@ bool Word::IsInitialized() const {
   return true;
 }
 
+void Word::Swap(Word* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void Word::InternalSwap(Word* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  word_.Swap(&other->word_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+  word_.Swap(&other->word_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(start_time_, other->start_time_);
   swap(end_time_, other->end_time_);
   swap(confidence_, other->confidence_);
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata Word::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata Word::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
@@ -2343,30 +3440,36 @@ void Word::InternalSwap(Word* other) {
 
 void SpeechContext::InitAsDefaultInstance() {
 }
-class SpeechContext::_Internal {
+class SpeechContext::HasBitSetters {
  public:
 };
 
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int SpeechContext::kPhrasesFieldNumber;
+const int SpeechContext::kTypeFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
 SpeechContext::SpeechContext()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  : ::google::protobuf::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
   // @@protoc_insertion_point(constructor:kaldi_serve.SpeechContext)
 }
 SpeechContext::SpeechContext(const SpeechContext& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
+  : ::google::protobuf::Message(),
       _internal_metadata_(nullptr),
       phrases_(from.phrases_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  type_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_type().empty()) {
-    type_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.type_);
+  type_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.type().size() > 0) {
+    type_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.type_);
   }
   // @@protoc_insertion_point(copy_constructor:kaldi_serve.SpeechContext)
 }
 
 void SpeechContext::SharedCtor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_SpeechContext_kaldi_5fserve_2eproto.base);
-  type_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::google::protobuf::internal::InitSCC(
+      &scc_info_SpeechContext_kaldi_5fserve_2eproto.base);
+  type_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 SpeechContext::~SpeechContext() {
@@ -2375,108 +3478,226 @@ SpeechContext::~SpeechContext() {
 }
 
 void SpeechContext::SharedDtor() {
-  type_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  type_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void SpeechContext::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 const SpeechContext& SpeechContext::default_instance() {
-  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_SpeechContext_kaldi_5fserve_2eproto.base);
+  ::google::protobuf::internal::InitSCC(&::scc_info_SpeechContext_kaldi_5fserve_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void SpeechContext::Clear() {
 // @@protoc_insertion_point(message_clear_start:kaldi_serve.SpeechContext)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   phrases_.Clear();
-  type_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  type_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   _internal_metadata_.Clear();
 }
 
-const char* SpeechContext::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
+#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+const char* SpeechContext::_InternalParse(const char* begin, const char* end, void* object,
+                  ::google::protobuf::internal::ParseContext* ctx) {
+  auto msg = static_cast<SpeechContext*>(object);
+  ::google::protobuf::int32 size; (void)size;
+  int depth; (void)depth;
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::ParseFunc parser_till_end; (void)parser_till_end;
+  auto ptr = begin;
+  while (ptr < end) {
+    ptr = ::google::protobuf::io::Parse32(ptr, &tag);
+    GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
     switch (tag >> 3) {
       // repeated string phrases = 1;
-      case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr -= 1;
-          do {
-            ptr += 1;
-            auto str = _internal_add_phrases();
-            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-            CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.SpeechContext.phrases"));
-            CHK_(ptr);
-            if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
-        } else goto handle_unusual;
-        continue;
+      case 1: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 10) goto handle_unusual;
+        do {
+          ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+          GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+          ctx->extra_parse_data().SetFieldName("kaldi_serve.SpeechContext.phrases");
+          object = msg->add_phrases();
+          if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+            parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+            goto string_till_end;
+          }
+          GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+          ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+          ptr += size;
+          if (ptr >= end) break;
+        } while ((::google::protobuf::io::UnalignedLoad<::google::protobuf::uint64>(ptr) & 255) == 10 && (ptr += 1));
+        break;
+      }
       // string type = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          auto str = _internal_mutable_type();
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "kaldi_serve.SpeechContext.type"));
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
+      case 2: {
+        if (static_cast<::google::protobuf::uint8>(tag) != 18) goto handle_unusual;
+        ptr = ::google::protobuf::io::ReadSize(ptr, &size);
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
+        ctx->extra_parse_data().SetFieldName("kaldi_serve.SpeechContext.type");
+        object = msg->mutable_type();
+        if (size > end - ptr + ::google::protobuf::internal::ParseContext::kSlopBytes) {
+          parser_till_end = ::google::protobuf::internal::GreedyStringParserUTF8;
+          goto string_till_end;
+        }
+        GOOGLE_PROTOBUF_PARSER_ASSERT(::google::protobuf::internal::StringCheckUTF8(ptr, size, ctx));
+        ::google::protobuf::internal::InlineGreedyStringParser(object, ptr, size, ctx);
+        ptr += size;
+        break;
+      }
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
+          ctx->EndGroup(tag);
+          return ptr;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
+        auto res = UnknownFieldParse(tag, {_InternalParse, msg},
+          ptr, end, msg->_internal_metadata_.mutable_unknown_fields(), ctx);
+        ptr = res.first;
+        GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
+        if (res.second) return ptr;
       }
     }  // switch
   }  // while
-success:
   return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
+string_till_end:
+  static_cast<::std::string*>(object)->clear();
+  static_cast<::std::string*>(object)->reserve(size);
+  goto len_delim_till_end;
+len_delim_till_end:
+  return ctx->StoreAndTailCall(ptr, end, {_InternalParse, msg},
+                               {parser_till_end, object}, size);
 }
+#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+bool SpeechContext::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:kaldi_serve.SpeechContext)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // repeated string phrases = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (10 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->add_phrases()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->phrases(this->phrases_size() - 1).data(),
+            static_cast<int>(this->phrases(this->phrases_size() - 1).length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.SpeechContext.phrases"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
 
-::PROTOBUF_NAMESPACE_ID::uint8* SpeechContext::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.SpeechContext)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+      // string type = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) == (18 & 0xFF)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_type()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->type().data(), static_cast<int>(this->type().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "kaldi_serve.SpeechContext.type"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:kaldi_serve.SpeechContext)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:kaldi_serve.SpeechContext)
+  return false;
+#undef DO_
+}
+#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
+
+void SpeechContext::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:kaldi_serve.SpeechContext)
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated string phrases = 1;
-  for (int i = 0, n = this->_internal_phrases_size(); i < n; i++) {
-    const auto& s = this->_internal_phrases(i);
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      s.data(), static_cast<int>(s.length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+  for (int i = 0, n = this->phrases_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->phrases(i).data(), static_cast<int>(this->phrases(i).length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.SpeechContext.phrases");
-    target = stream->WriteString(1, s, target);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      1, this->phrases(i), output);
   }
 
   // string type = 2;
   if (this->type().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_type().data(), static_cast<int>(this->_internal_type().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->type().data(), static_cast<int>(this->type().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "kaldi_serve.SpeechContext.type");
-    target = stream->WriteStringMaybeAliased(
-        2, this->_internal_type(), target);
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->type(), output);
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+  if (_internal_metadata_.have_unknown_fields()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        _internal_metadata_.unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:kaldi_serve.SpeechContext)
+}
+
+::google::protobuf::uint8* SpeechContext::InternalSerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:kaldi_serve.SpeechContext)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated string phrases = 1;
+  for (int i = 0, n = this->phrases_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->phrases(i).data(), static_cast<int>(this->phrases(i).length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.SpeechContext.phrases");
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteStringToArray(1, this->phrases(i), target);
+  }
+
+  // string type = 2;
+  if (this->type().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->type().data(), static_cast<int>(this->type().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "kaldi_serve.SpeechContext.type");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->type(), target);
+  }
+
+  if (_internal_metadata_.have_unknown_fields()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target);
   }
   // @@protoc_insertion_point(serialize_to_array_end:kaldi_serve.SpeechContext)
   return target;
@@ -2486,43 +3707,44 @@ size_t SpeechContext::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:kaldi_serve.SpeechContext)
   size_t total_size = 0;
 
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  if (_internal_metadata_.have_unknown_fields()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        _internal_metadata_.unknown_fields());
+  }
+  ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated string phrases = 1;
   total_size += 1 *
-      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(phrases_.size());
-  for (int i = 0, n = phrases_.size(); i < n; i++) {
-    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-      phrases_.Get(i));
+      ::google::protobuf::internal::FromIntSize(this->phrases_size());
+  for (int i = 0, n = this->phrases_size(); i < n; i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+      this->phrases(i));
   }
 
   // string type = 2;
   if (this->type().size() > 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_type());
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->type());
   }
 
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void SpeechContext::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void SpeechContext::MergeFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:kaldi_serve.SpeechContext)
   GOOGLE_DCHECK_NE(&from, this);
   const SpeechContext* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<SpeechContext>(
+      ::google::protobuf::DynamicCastToGenerated<SpeechContext>(
           &from);
   if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:kaldi_serve.SpeechContext)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:kaldi_serve.SpeechContext)
     MergeFrom(*source);
@@ -2533,17 +3755,17 @@ void SpeechContext::MergeFrom(const SpeechContext& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:kaldi_serve.SpeechContext)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   phrases_.MergeFrom(from.phrases_);
   if (from.type().size() > 0) {
 
-    type_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.type_);
+    type_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.type_);
   }
 }
 
-void SpeechContext::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+void SpeechContext::CopyFrom(const ::google::protobuf::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:kaldi_serve.SpeechContext)
   if (&from == this) return;
   Clear();
@@ -2561,22 +3783,28 @@ bool SpeechContext::IsInitialized() const {
   return true;
 }
 
+void SpeechContext::Swap(SpeechContext* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
 void SpeechContext::InternalSwap(SpeechContext* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  phrases_.InternalSwap(&other->phrases_);
-  type_.Swap(&other->type_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+  phrases_.InternalSwap(CastToBase(&other->phrases_));
+  type_.Swap(&other->type_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata SpeechContext::GetMetadata() const {
-  return GetMetadataStatic();
+::google::protobuf::Metadata SpeechContext::GetMetadata() const {
+  ::google::protobuf::internal::AssignDescriptors(&::assign_descriptors_table_kaldi_5fserve_2eproto);
+  return ::file_level_metadata_kaldi_5fserve_2eproto[kIndexInFileMessages];
 }
 
 
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace kaldi_serve
-PROTOBUF_NAMESPACE_OPEN
+namespace google {
+namespace protobuf {
 template<> PROTOBUF_NOINLINE ::kaldi_serve::RecognizeRequest* Arena::CreateMaybeMessage< ::kaldi_serve::RecognizeRequest >(Arena* arena) {
   return Arena::CreateInternal< ::kaldi_serve::RecognizeRequest >(arena);
 }
@@ -2601,7 +3829,8 @@ template<> PROTOBUF_NOINLINE ::kaldi_serve::Word* Arena::CreateMaybeMessage< ::k
 template<> PROTOBUF_NOINLINE ::kaldi_serve::SpeechContext* Arena::CreateMaybeMessage< ::kaldi_serve::SpeechContext >(Arena* arena) {
   return Arena::CreateInternal< ::kaldi_serve::SpeechContext >(arena);
 }
-PROTOBUF_NAMESPACE_CLOSE
+}  // namespace protobuf
+}  // namespace google
 
 // @@protoc_insertion_point(global_scope)
 #include <google/protobuf/port_undef.inc>
