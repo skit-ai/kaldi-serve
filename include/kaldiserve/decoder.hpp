@@ -137,6 +137,28 @@ class BatchDecoder final {
 
   public:
     explicit BatchDecoder(ChainModel *const model);
+
+    ~BatchDecoder();
+
+    void start_decoding();
+
+    void free_decoder();
+
+    void decode_with_callback(std::istream &wav_stream,
+                              const int &n_best,
+                              const bool &word_level,
+                              const std::string &key,
+                              std::function<void(const utterance_results_t &results)> &user_callback);
+
+    void wait_for_tasks();
+
+  private:
+    int num_tasks_submitted_ = 0;
+    std::unordered_map<std::string, std::shared_ptr<kaldi::WaveData>> audios_;
+
+    // Multi-threaded CPU and batched GPU decoder
+    kaldi::cuda_decoder::BatchedThreadedNnet3CudaPipeline2 *cuda_pipeline_;
+    kaldi::cuda_decoder::BatchedThreadedNnet3CudaPipeline2Config batched_decoder_config_;
 };
 
 #endif
@@ -206,6 +228,14 @@ class DecoderQueue final {
     // factory for producing new decoders on demand
     std::unique_ptr<DecoderFactory> decoder_factory_;
 };
+
+
+void find_alternatives(kaldi::CompactLattice &clat,
+                       const std::size_t &n_best,
+                       utterance_results_t &results,
+                       const bool &word_level,
+                       ChainModel *const model,
+                       const DecoderOptions &options);
 
 
 // Find confidence by merging lm and am scores. Taken from

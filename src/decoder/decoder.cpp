@@ -10,8 +10,8 @@ namespace kaldiserve {
 
 Decoder::Decoder(ChainModel *const model) : model_(model) {
 
-    if (model_->wb_info_ != nullptr) options.enable_word_level = true;
-    if (model_->rnnlm_info_ != nullptr) options.enable_rnnlm = true;
+    if (model_->wb_info != nullptr) options.enable_word_level = true;
+    if (model_->rnnlm_info != nullptr) options.enable_rnnlm = true;
 
     // decoder vars initialization
     decoder_ = NULL;
@@ -27,19 +27,19 @@ Decoder::~Decoder() noexcept {
 void Decoder::start_decoding(const std::string &uuid) noexcept {
     free_decoder();
 
-    adaptation_state_ = new kaldi::OnlineIvectorExtractorAdaptationState(model_->feature_info_->ivector_extractor_info);
+    adaptation_state_ = new kaldi::OnlineIvectorExtractorAdaptationState(model_->feature_info->ivector_extractor_info);
 
-    feature_pipeline_ = new kaldi::OnlineNnet2FeaturePipeline(*model_->feature_info_);
+    feature_pipeline_ = new kaldi::OnlineNnet2FeaturePipeline(*model_->feature_info);
     feature_pipeline_->SetAdaptationState(*adaptation_state_);
 
-    decoder_ = new kaldi::SingleUtteranceNnet3Decoder(model_->lattice_faster_decoder_config_,
-                                                      model_->trans_model_, *model_->decodable_info_,
-                                                      *model_->decode_fst_, feature_pipeline_);
+    decoder_ = new kaldi::SingleUtteranceNnet3Decoder(model_->lattice_faster_decoder_config,
+                                                      model_->trans_model, *model_->decodable_info,
+                                                      *model_->decode_fst, feature_pipeline_);
     decoder_->InitDecoding();
 
-    silence_weighting_ = new kaldi::OnlineSilenceWeighting(model_->trans_model_,
-                                                           model_->feature_info_->silence_weighting_config,
-                                                           model_->decodable_opts_.frame_subsampling_factor);
+    silence_weighting_ = new kaldi::OnlineSilenceWeighting(model_->trans_model,
+                                                           model_->feature_info->silence_weighting_config,
+                                                           model_->decodable_opts.frame_subsampling_factor);
 
     uuid_ = uuid;
 }
@@ -176,7 +176,7 @@ void Decoder::get_decoded_results(const int &n_best,
     kaldi::CompactLattice clat;
     try {
         decoder_->GetLattice(true, &clat);
-        _find_alternatives(clat, n_best, results, word_level);
+        find_alternatives(clat, n_best, results, word_level, model_, options);
     } catch (std::exception &e) {
         KALDI_ERR << "unexpected error during decoding lattice :: " << e.what(); 
     }
@@ -195,159 +195,6 @@ void Decoder::_decode_wave(kaldi::SubVector<kaldi::BaseFloat> &wave_part,
     }
 
     decoder_->AdvanceDecoding();
-}
-
-void Decoder::_find_alternatives(kaldi::CompactLattice &clat,
-                                 const std::size_t &n_best,
-                                 utterance_results_t &results,
-                                 const bool &word_level) const {
-    if (clat.NumStates() == 0) {
-        KALDI_LOG << "Empty lattice.";
-    }
-
-    if (options.enable_rnnlm) {
-        // rnnlm.fst
-        std::unique_ptr<kaldi::rnnlm::KaldiRnnlmDeterministicFst> lm_to_add_orig = 
-            make_uniq<kaldi::rnnlm::KaldiRnnlmDeterministicFst>(model_->model_spec.max_ngram_order, *model_->rnnlm_info_);
-        std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_add =
-            make_uniq<fst::ScaleDeterministicOnDemandFst>(model_->rnnlm_weight_, lm_to_add_orig.get());
-
-        // G.fst
-        std::unique_ptr<fst::BackoffDeterministicOnDemandFst<fst::StdArc>> lm_to_subtract_det_backoff =
-            make_uniq<fst::BackoffDeterministicOnDemandFst<fst::StdArc>>(*model_->lm_to_subtract_fst_);
-        std::unique_ptr<fst::ScaleDeterministicOnDemandFst> lm_to_subtract_det_scale =
-            make_uniq<fst::ScaleDeterministicOnDemandFst>(-model_->rnnlm_weight_, lm_to_subtract_det_backoff.get());
-        
-        // combine both LM fsts
-        fst::ComposeDeterministicOnDemandFst<fst::StdArc> combined_lms(lm_to_subtract_det_scale.get(), lm_to_add.get());
-
-        // Before composing with the LM FST, we scale the lattice weights
-        // by the inverse of "lm_scale".  We'll later scale by "lm_scale".
-        // We do it this way so we can determinize and it will give the
-        // right effect (taking the "best path" through the LM) regardless
-        // of the sign of lm_scale.
-        if (model_->decodable_opts_.acoustic_scale != 1.0) {
-            fst::ScaleLattice(fst::AcousticLatticeScale(model_->decodable_opts_.acoustic_scale), &clat);
-        }
-        kaldi::TopSortCompactLatticeIfNeeded(&clat);
-
-        // compose lattice with combined language model.
-        kaldi::CompactLattice composed_clat;
-        kaldi::ComposeCompactLatticePruned(model_->compose_opts_, clat,
-                                           &combined_lms, &composed_clat);
-
-        if (composed_clat.NumStates() == 0) {
-            // Something went wrong.  A warning will already have been printed.
-            KALDI_WARN << "Empty lattice after RNNLM rescoring.";
-        } else {
-            clat = composed_clat;
-        }
-    }
-
-    auto lat = make_uniq<kaldi::Lattice>();
-    fst::ConvertLattice(clat, lat.get());
-
-    kaldi::Lattice nbest_lat;
-    std::vector<kaldi::Lattice> nbest_lats;
-
-    fst::ShortestPath(*lat, &nbest_lat, n_best);
-    fst::ConvertNbestToVector(nbest_lat, &nbest_lats);
-
-    if (nbest_lats.empty()) {
-        KALDI_WARN << "no N-best entries";
-        return;
-    }
-
-    for (auto const &l : nbest_lats) {
-        // NOTE: Check why int32s specifically are used here
-        std::vector<int32> input_ids;
-        std::vector<int32> word_ids;
-        std::vector<std::string> word_strings;
-        std::string sentence;
-
-        kaldi::LatticeWeight weight;
-        fst::GetLinearSymbolSequence(l, &input_ids, &word_ids, &weight);
-
-        for (auto const &wid : word_ids) {
-            word_strings.push_back(model_->word_syms_->Find(wid));
-        }
-        string_join(word_strings, " ", sentence);
-
-        Alternative alt;
-        alt.transcript = sentence;
-        alt.lm_score = float(weight.Value1());
-        alt.am_score = float(weight.Value2());
-        alt.confidence = calculate_confidence(alt.lm_score, alt.am_score, word_ids.size());
-
-        results.push_back(alt);
-    }
-
-    if (!(options.enable_word_level && word_level))
-      return;
-
-    kaldi::CompactLattice aligned_clat;
-    kaldi::BaseFloat max_expand = 0.0;
-    int32 max_states;
-
-    if (max_expand > 0)
-        max_states = 1000 + max_expand * clat.NumStates();
-    else
-        max_states = 0;
-
-    bool ok = kaldi::WordAlignLattice(clat, model_->trans_model_, *model_->wb_info_, max_states, &aligned_clat);
-
-    if (!ok) {
-        if (aligned_clat.Start() != fst::kNoStateId) {
-            KALDI_WARN << "Outputting partial lattice";
-            kaldi::TopSortCompactLatticeIfNeeded(&aligned_clat);
-            ok = true;
-        } else {
-            KALDI_WARN << "Empty aligned lattice, producing no output.";
-        }
-    } else {
-        if (aligned_clat.Start() == fst::kNoStateId) {
-            KALDI_WARN << "Lattice was empty";
-            ok = false;
-        } else {
-            kaldi::TopSortCompactLatticeIfNeeded(&aligned_clat);
-        }
-    }
-
-    std::vector<Word> words;
-
-    // compute confidences and times only if alignment was ok
-    if (ok) {
-        kaldi::BaseFloat frame_shift = 0.01;
-        kaldi::BaseFloat lm_scale = 1.0;
-        kaldi::MinimumBayesRiskOptions mbr_opts;
-        mbr_opts.decode_mbr = false;
-
-        fst::ScaleLattice(fst::LatticeScale(lm_scale, model_->decodable_opts_.acoustic_scale), &aligned_clat);
-        auto mbr = make_uniq<kaldi::MinimumBayesRisk>(aligned_clat, mbr_opts);
-
-        const std::vector<kaldi::BaseFloat> &conf = mbr->GetOneBestConfidences();
-        const std::vector<int32> &best_words = mbr->GetOneBest();
-        const std::vector<std::pair<kaldi::BaseFloat, kaldi::BaseFloat>> &times = mbr->GetOneBestTimes();
-
-        KALDI_ASSERT(conf.size() == best_words.size() && best_words.size() == times.size());
-
-        for (size_t i = 0; i < best_words.size(); i++) {
-            KALDI_ASSERT(best_words[i] != 0 || mbr_opts.print_silence); // Should not have epsilons.
-
-            Word word;
-            kaldi::BaseFloat time_unit = frame_shift * model_->decodable_opts_.frame_subsampling_factor;
-            word.start_time = times[i].first * time_unit;
-            word.end_time = times[i].second * time_unit;
-            word.word = model_->word_syms_->Find(best_words[i]); // lookup word in SymbolTable
-            word.confidence = conf[i];
-
-            words.push_back(word);
-        }
-    }
-
-    if (!results.empty() and !words.empty()) {
-        results[0].words = words;
-    }
 }
 
 } // namespace kaldiserve

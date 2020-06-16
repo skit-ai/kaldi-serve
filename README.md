@@ -6,15 +6,16 @@ A plug-and-play abstraction over [Kaldi](https://kaldi-asr.org/) ASR toolkit, de
 
 **Key Features**:
 
-- Supports real-time streaming (uni & bi-directional) and batch audio recognition.
-- Thread-safe concurrent queue to handle multiple audio streams.
+- Real-time streaming (uni & bi-directional) recognition.
+- Batched audio recognition on GPU.
+- Thread-safe concurrent Decoder queue for server environments.
 - RNNLM lattice rescoring.
-- N-best alternatives with LM and AM costs.
-- Word level timings and confidence scores.
+- N-best alternatives with AM/LM costs, word-level timings and confidence scores.
+- Easily extensible for custom applications.
 
-## Getting Started
+## Installation
 
-### Setup
+### Build from Source
 
 Make sure you have the following dependencies installed on your system before beginning the build process:
 
@@ -33,14 +34,46 @@ make -j${nproc}
 
 You will find the the built `.so` file in `build/src/` to use for linking against custom applications.
 
-### Python bindings
+#### Python bindings
 
 We also provide python bindings for the library. You can find the build instructions [here](./python).
 
-## Usage
+<!-- ### Docker Image
 
-There are a few [plugins](./plugins) and [binaries](./bin) using the library that we maintain:
+#### Using pre-built images
+
+You can also pull a pre-built docker image from Docker Hub and run with docker (for CPU runtime):
+
+```bash
+docker run -it vernacularai/kaldi-serve:master
+```
+
+For GPU runtime, you will need nvidia-docker installed:
+
+```bash
+docker run --gpus all -it vernacularai/kaldi-serve:gpu-latest
+```
+
+#### Building the image
+
+You can build the docker image using the [Dockerfile](./Dockerfile) provided.
+
+```bash
+docker build -t kaldi-serve:${DOCKER_TAG} .
+``` -->
+
+## Getting Started
+
+<!-- [**Documentation**]()
+
+Please check out the docs for a reference of how to use the library. -->
+
+It's also worth noting that there are a few [plugins](./plugins) and [binaries](./bin) we maintain that use the library and can be referenced as examples:
 - gRPC Server
 - Batched decoding binaries (CPU & GPU)
 
-Alternately, you can include our [headers](./include) and link the [library](./src) aginst your application and start using it.
+So, you can include the [headers](./include) and link the shared [library](./src) aginst your application and start using it.
+
+## License
+
+This project is licensed under the Apache License version 2.0. Please see [LICENSE](./LICENSE) for more details.

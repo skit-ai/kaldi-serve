@@ -28,41 +28,49 @@ namespace kaldiserve {
 // immutable ASR Model components that can be shared across Decoder instances.
 class ChainModel final {
 
-    friend class Decoder;
-
   public:
     explicit ChainModel(const ModelSpec &model_spec);
 
+    // Model Config
     ModelSpec model_spec;
 
-  private:
-    std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst_;
+    // HCLG.fst graph
+    std::unique_ptr<fst::Fst<fst::StdArc>> decode_fst;
 
-    kaldi::nnet3::AmNnetSimple am_nnet_;
-    kaldi::TransitionModel trans_model_;
+    // NNet3 AM
+    kaldi::nnet3::AmNnetSimple am_nnet;
+    // Transition Model (HMM)
+    kaldi::TransitionModel trans_model;
 
-    std::unique_ptr<fst::SymbolTable> word_syms_;
+    // Word Symbols table (int->word)
+    std::unique_ptr<fst::SymbolTable> word_syms;
 
-    std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info_;
-    std::unique_ptr<kaldi::nnet3::DecodableNnetSimpleLoopedInfo> decodable_info_;
+    // Online Feature Pipeline options
+    std::unique_ptr<kaldi::OnlineNnet2FeaturePipelineInfo> feature_info;
+    // 
+    std::unique_ptr<kaldi::nnet3::DecodableNnetSimpleLoopedInfo> decodable_info;
     
-    kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config_;
-    kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts_;
+    kaldi::LatticeFasterDecoderConfig lattice_faster_decoder_config;
+    kaldi::nnet3::NnetSimpleLoopedComputationOptions decodable_opts;
 
-    // Optional stuff
+    // Word Boundary info (for word level timings)
+    std::unique_ptr<kaldi::WordBoundaryInfo> wb_info;
 
-    // word-boundary info
-    std::unique_ptr<kaldi::WordBoundaryInfo> wb_info_;
-
-    // RNNLM artefacts
-    kaldi::nnet3::Nnet rnnlm_;
-    kaldi::CuMatrix<kaldi::BaseFloat> word_embedding_mat_;
-    std::unique_ptr<const fst::VectorFst<fst::StdArc>> lm_to_subtract_fst_;    
-    std::unique_ptr<const kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info_;
+    // NNet3 RNNLM
+    kaldi::nnet3::Nnet rnnlm;
+    // Word Embeddings matrix
+    kaldi::CuMatrix<kaldi::BaseFloat> word_embedding_mat;
+    // Original G.fst LM
+    std::unique_ptr<const fst::VectorFst<fst::StdArc>> lm_to_subtract_fst;  
+    // RNNLM info object (encapsulates RNNLM, Word Embeddings and RNNLM options)
+    std::unique_ptr<const kaldi::rnnlm::RnnlmComputeStateInfo> rnnlm_info;
     
-    kaldi::BaseFloat rnnlm_weight_;
-    kaldi::rnnlm::RnnlmComputeStateComputationOptions rnnlm_opts_;
-    kaldi::ComposeLatticePrunedOptions compose_opts_;
+    // RNNLM interpolation weight
+    kaldi::BaseFloat rnnlm_weight;
+    // RNNLM options
+    kaldi::rnnlm::RnnlmComputeStateComputationOptions rnnlm_opts;
+    // LM composition options
+    kaldi::ComposeLatticePrunedOptions compose_opts;
 };
 
 } // namespace kaldiserve
