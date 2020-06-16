@@ -11,15 +11,19 @@ namespace kaldiserve {
 
 #if HAVE_CUDA == 1
 
-BatchDecoder::BatchDecoder(ChainModel const* model) : model_(model) {
-    ParseOptions po(usage);
+BatchDecoder::BatchDecoder(ChainModel *const model) : model_(model) {
+    if (model_->wb_info != nullptr) options.enable_word_level = true;
+    if (model_->rnnlm_info != nullptr) options.enable_rnnlm = true;
+
+    const char *usage = "Usage: decoder-batch.cpp [options]";
+    kaldi::ParseOptions po(usage);
     kaldi::CuDevice::RegisterDeviceOptions(&po);
     kaldi::RegisterCuAllocatorOptions(&po);
     batched_decoder_config_.Register(&po);
 
     const char *argv[] = {
         "decoder-batch.cpp",
-        std::string("").c_str(),
+        // std::string("").c_str(),
         NULL
     };
 
@@ -45,7 +49,7 @@ void BatchDecoder::free_decoder() {
     audios_.clear();
     num_tasks_submitted_ = 0;
 
-    if (cuda_pipeline) {
+    if (cuda_pipeline_) {
         delete cuda_pipeline_;
         cuda_pipeline_ = NULL;
     }
@@ -60,9 +64,9 @@ void BatchDecoder::decode_with_callback(std::istream &wav_stream,
     audios_[key] = std::shared_ptr<kaldi::WaveData>();
     audios_[key]->Read(wav_stream);
 
-    cuda_pipeline_.DecodeWithCallback(audios_[key], [&n_best, &word_level, &user_callback, &model_](kaldi::CompactLattice &clat) {
+    cuda_pipeline_->DecodeWithCallback(audios_[key], [&n_best, &word_level, &user_callback, this](kaldi::CompactLattice &clat) {
         utterance_results_t results;
-        find_alternatives(clat, n_best, results, word_level, model_);
+        find_alternatives(clat, n_best, results, word_level, this->model_, this->options);
         user_callback(results);
     });
     num_tasks_submitted_++;
@@ -70,7 +74,7 @@ void BatchDecoder::decode_with_callback(std::istream &wav_stream,
 
 void BatchDecoder::wait_for_tasks() {
     std::cout << "#tasks submitted: " << num_tasks_submitted_ << std::endl;
-    cuda_pipeline_.WaitForAllTasks();
+    cuda_pipeline_->WaitForAllTasks();
     cudaDeviceSynchronize();
 }
 

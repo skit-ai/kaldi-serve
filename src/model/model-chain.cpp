@@ -61,7 +61,6 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
             lm_to_subtract_fst =
                 std::unique_ptr<const fst::VectorFst<fst::StdArc>>(fst::ReadAndPrepareLmFst(join_path(rnnlm_dir, "G.fst")));
             rnnlm_weight = model_spec.rnnlm_weight;
-            std::cout << "rnnlm_weight: " << rnnlm_weight << ENDL;
 
             kaldi::ReadKaldiObject(join_path(rnnlm_dir, "final.raw"), &rnnlm);
             KALDI_ASSERT(IsSimpleNnet(rnnlm));

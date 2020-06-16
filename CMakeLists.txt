@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 3.12.0)
-# CMake 3.12+ is required to allow linking with OBJECT libraries
-# and to prevent erroneous -gencode option deduplication with CUDA.
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
@@ -10,7 +8,7 @@ project(kaldiserve VERSION 1.0.0 LANGUAGES C CXX)
 
 # Config options
 option(BUILD_SHARED_LIB          "Build shared library"                     ON)
-option(ENABLE_GPU                "Enable GPU build"                         OFF) # TODO(1)
+option(ENABLE_GPU                "Enable GPU build"                         OFF)
 option(BUILD_PYBIND11            "Build the pybind11 module"                ON)
 option(BUILD_PYTHON_MODULE       "Build the python module"                  ON)
 
@@ -21,9 +19,10 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare -Wno
 # kaldi config
 set(KALDI_ROOT /opt/kaldi CACHE STRING "Path to Kaldi root directory")
 
-# if(ENABLE_GPU)
-#     add_definitions(-DHAVE_CUDA)
-# endif()
+if(ENABLE_GPU)
+    set(CUDA_TK_ROOT /usr/local/cuda CACHE STRING "Path to CUDA root directory")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_CUDA")
+endif()
 
 # Build shared library
 if(BUILD_SHARED_LIB)

@@ -28,6 +28,27 @@
 #include "online2/onlinebin-util.h"
 #include "util/kaldi-thread.h"
 
+#if HAVE_CUDA == 1
+
+// stl includes
+#include <sstream>
+
+// cuda includes
+#include <cuda.h>
+#include <cuda_profiler_api.h>
+#include <nvToolsExt.h>
+
+// kaldi includes
+#include "cudadecoder/batched-threaded-nnet3-cuda-pipeline2.h"
+#include "cudamatrix/cu-allocator.h"
+#include "fstext/fstext-lib.h"
+#include "lat/lattice-functions.h"
+#include "nnet3/am-nnet-simple.h"
+#include "nnet3/nnet-utils.h"
+#include "util/kaldi-thread.h"
+
+#endif
+
 // local includes
 #include "config.hpp"
 #include "types.hpp"
@@ -115,23 +136,6 @@ class Decoder final {
 
 #if HAVE_CUDA == 1
 
-// stl includes
-#include <sstream>
-
-// cuda includes
-#include <cuda.h>
-#include <cuda_profiler_api.h>
-#include <nvToolsExt.h>
-
-// kaldi includes
-#include "cudadecoder/batched-threaded-nnet3-cuda-pipeline2.h"
-#include "cudamatrix/cu-allocator.h"
-#include "fstext/fstext-lib.h"
-#include "lat/lattice-functions.h"
-#include "nnet3/am-nnet-simple.h"
-#include "nnet3/nnet-utils.h"
-#include "util/kaldi-thread.h"
-
 
 class BatchDecoder final {
 
@@ -152,7 +156,12 @@ class BatchDecoder final {
 
     void wait_for_tasks();
 
+    DecoderOptions options{false, false};
+
   private:
+    // model vars
+    ChainModel *model_;
+
     int num_tasks_submitted_ = 0;
     std::unordered_map<std::string, std::shared_ptr<kaldi::WaveData>> audios_;
 

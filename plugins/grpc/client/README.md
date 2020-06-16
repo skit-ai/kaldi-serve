@@ -1,6 +1,6 @@
-# kaldi_serve
+# Kaldi-Serve gRPC Client
 
-Python binding for `kaldi_serve`.
+Python gRPC client for kaldi-serve.
 
 ```bash
 poetry install

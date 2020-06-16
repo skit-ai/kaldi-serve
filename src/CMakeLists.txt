@@ -1,4 +1,5 @@
 include_directories(${KALDI_ROOT}/src ${KALDI_ROOT}/tools/openfst/include)
+include_directories(${CUDA_TK_ROOT}/include)
 include_directories(../include/kaldiserve)
 
 file(GLOB_RECURSE ALL_SOURCE_FILES "*.cpp")
@@ -27,6 +28,7 @@ target_link_libraries(kaldiserve
     kaldi-cudamatrix
     kaldi-base
     kaldi-nnet3
+    kaldi-chain
     kaldi-online2
     kaldi-ivector
     kaldi-lm
@@ -35,5 +37,13 @@ target_link_libraries(kaldiserve
     boost_filesystem
     -static-libstdc++
 )
+
+if (ENABLE_GPU)
+    target_link_libraries(kaldiserve
+        kaldi-cudadecoder
+        kaldi-cudafeat
+        kaldi-cudamatrix
+    )
+endif()
 
 set_target_properties(kaldiserve PROPERTIES LINKER_LANGUAGE CXX)
