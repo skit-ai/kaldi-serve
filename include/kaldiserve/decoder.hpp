@@ -163,7 +163,6 @@ class BatchDecoder final {
     ChainModel *model_;
 
     int num_tasks_submitted_ = 0;
-    std::unordered_map<std::string, std::shared_ptr<kaldi::WaveData>> audios_;
 
     // Multi-threaded CPU and batched GPU decoder
     kaldi::cuda_decoder::BatchedThreadedNnet3CudaPipeline2 *cuda_pipeline_;

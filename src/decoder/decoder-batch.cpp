@@ -58,7 +58,6 @@ void BatchDecoder::start_decoding() {
 }
 
 void BatchDecoder::free_decoder() {
-    audios_.clear();
     num_tasks_submitted_ = 0;
 
     if (cuda_pipeline_) {
@@ -73,10 +72,10 @@ void BatchDecoder::decode_with_callback(std::istream &wav_stream,
                                         const std::string &key,
                                         std::function<void(const utterance_results_t &results)> &user_callback) {
     
-    audios_[key] = std::shared_ptr<kaldi::WaveData>();
-    audios_[key]->Read(wav_stream);
+    auto wave_data = std::shared_ptr<kaldi::WaveData>(new kaldi::WaveData());
+    wave_data->Read(wav_stream);
 
-    cuda_pipeline_->DecodeWithCallback(audios_[key], [&n_best, &word_level, &user_callback, this](kaldi::CompactLattice &clat) {
+    cuda_pipeline_->DecodeWithCallback(wave_data, [&n_best, &word_level, &user_callback, this](kaldi::CompactLattice &clat) {
         utterance_results_t results;
         find_alternatives(clat, n_best, results, word_level, this->model_, this->options);
         user_callback(results);

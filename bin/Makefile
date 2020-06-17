@@ -24,4 +24,4 @@ build/batched-gpu-decoder: batched-gpu-decoder.cc
 	$(CXX) batched-gpu-decoder.cc $(CXXFLAGS) $(KALDISERVE_INCLUDES) $(LDFLAGS) $(KALDISERVE_LIBS) -o $@
 
 clean:
-	rm -f batched-gpu-decoder
+	rm -f ./build/*
