@@ -15,19 +15,31 @@ BatchDecoder::BatchDecoder(ChainModel *const model) : model_(model) {
     if (model_->wb_info != nullptr) options.enable_word_level = true;
     if (model_->rnnlm_info != nullptr) options.enable_rnnlm = true;
 
-    const char *usage = "Usage: decoder-batch.cpp [options]";
-    kaldi::ParseOptions po(usage);
-    kaldi::CuDevice::RegisterDeviceOptions(&po);
-    kaldi::RegisterCuAllocatorOptions(&po);
-    batched_decoder_config_.Register(&po);
+    // kaldi::CuDevice::RegisterDeviceOptions(&po); // only need if using fp16 (can't access device_options_ directly)
+    // kaldi::g_allocator_options // only need if need to customize cuda memory usage
 
-    const char *argv[] = {
-        "decoder-batch.cpp",
-        // std::string("").c_str(),
-        NULL
-    };
+    batched_decoder_config_.cuda_online_pipeline_opts.use_gpu_feature_extraction = false;
+    batched_decoder_config_.cuda_online_pipeline_opts.determinize_lattice = false;
 
-    po.Read((sizeof(argv)/sizeof(argv[0])) - 1, argv);
+    // decoder options
+    batched_decoder_config_.cuda_online_pipeline_opts.decoder_opts.default_beam = model_->model_spec.beam;
+    batched_decoder_config_.cuda_online_pipeline_opts.decoder_opts.lattice_beam = model_->model_spec.lattice_beam;
+    batched_decoder_config_.cuda_online_pipeline_opts.decoder_opts.max_active = model_->model_spec.max_active;
+
+    // feature pipeline options
+    batched_decoder_config_.cuda_online_pipeline_opts.feature_opts.feature_type = "mfcc";
+    std::string model_dir = model_->model_spec.path;
+    std::string conf_dir = join_path(model_dir, "conf");
+    std::string mfcc_conf_filepath = join_path(conf_dir, "mfcc.conf");
+    std::string ivector_conf_filepath = join_path(conf_dir, "ivector_extractor.conf");
+
+    batched_decoder_config_.cuda_online_pipeline_opts.feature_opts.mfcc_config = mfcc_conf_filepath;
+    batched_decoder_config_.cuda_online_pipeline_opts.feature_opts.ivector_extraction_config = ivector_conf_filepath;
+    batched_decoder_config_.cuda_online_pipeline_opts.feature_opts.silence_weighting_config.silence_weight = model_->model_spec.silence_weight;
+
+    // compute options
+    batched_decoder_config_.cuda_online_pipeline_opts.compute_opts.acoustic_scale = model_->model_spec.acoustic_scale;
+    batched_decoder_config_.cuda_online_pipeline_opts.compute_opts.frame_subsampling_factor = model_->model_spec.frame_subsampling_factor;
 
     cuda_pipeline_ = NULL;
 }

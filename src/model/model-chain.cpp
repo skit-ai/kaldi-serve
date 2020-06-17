@@ -57,6 +57,9 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
             exists(join_path(rnnlm_dir, "final.raw")) && 
             exists(join_path(rnnlm_dir, "word_embedding.mat")) && 
             exists(join_path(rnnlm_dir, "G.fst"))) {
+
+            rnnlm_opts.bos_index = std::stoi(model_spec.bos_index);
+            rnnlm_opts.eos_index = std::stoi(model_spec.eos_index);
             
             lm_to_subtract_fst =
                 std::unique_ptr<const fst::VectorFst<fst::StdArc>>(fst::ReadAndPrepareLmFst(join_path(rnnlm_dir, "G.fst")));
@@ -68,22 +71,6 @@ ChainModel::ChainModel(const ModelSpec &model_spec) : model_spec(model_spec) {
             
             std::cout << "# Word Embeddings (RNNLM): " << word_embedding_mat.NumRows() << ENDL;
 
-            // hack: RNNLM compute opts only takes values from parsed options like in cmd-line
-            const char *usage = "Usage: model.hpp [options]";
-            kaldi::ParseOptions po(usage);
-            rnnlm_opts.Register(&po);
-
-            std::string bos_opt = "--bos-symbol=" + model_spec.bos_index;
-            std::string eos_opt = "--eos-symbol=" + model_spec.eos_index;
-
-            const char *argv[] = {
-                "model.hpp",
-                bos_opt.c_str(),
-                eos_opt.c_str(),
-                NULL
-            };
-
-            po.Read((sizeof(argv)/sizeof(argv[0])) - 1, argv);
             rnnlm_info =
                 make_uniq<const kaldi::rnnlm::RnnlmComputeStateInfo>(rnnlm_opts, rnnlm, word_embedding_mat);
         } else {
