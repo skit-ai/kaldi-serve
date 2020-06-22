@@ -2,107 +2,79 @@
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/Vernacular-ai/kaldi-serve?style=flat-square) ![GitHub](https://img.shields.io/github/license/Vernacular-ai/kaldi-serve?style=flat-square)
 
-[gRPC](https://grpc.io/) server component for [Kaldi](https://kaldi-asr.org/)
-based ASR.
+A plug-and-play abstraction over [Kaldi](https://kaldi-asr.org/) ASR toolkit, designed for ease of deployment and optimal runtime performance.
 
 **Key Features**:
 
-- Multithreaded gRPC server.
-- Supports bi-directional streaming recognition.
-- Thread-safe concurrent queue to process each audio stream separately.
-- N-best alternatives with LM and AM costs.
-- Word level timing and confidence scores.
+- Real-time streaming (uni & bi-directional) audio recognition.
+- Thread-safe concurrent Decoder queue for server environments.
+- RNNLM lattice rescoring.
+- N-best alternatives with AM/LM costs, word-level timings and confidence scores.
+- Easy extensibility for custom applications.
+
+## Installation
+
+### Dependencies
+
+Make sure you have the following dependencies installed on your system before beginning the build process:
+
+* g++ compiler (>=4.7) that supports C++11 std
+* [CMake](https://cmake.org/install/) (>=3.13)
+* [Kaldi](https://kaldi-asr.org/)
+* [Boost C++](https://www.boost.org/) libraries
+
+### Build from Source
+
+Let's build the shared library:
+
+```bash
+cd build/
+cmake ..
+make -j${nproc}
+```
+
+You will find the the built shared library in `build/src/` to use for linking against custom applications.
+
+#### Python bindings
+
+We also provide python bindings for the library. You can find the build instructions [here](./python).
+
+### Docker Image
+
+#### Using pre-built images
+
+You can also pull a pre-built docker image from our [Docker Hub repository](https://hub.docker.com/repository/docker/vernacularai/kaldi-serve):
+
+```bash
+docker pull vernacularai/kaldi-serve:latest
+docker run -it -v /path/to/my/app:/home/app vernacularai/kaldi-serve:latest
+```
+
+You will find our headers in `/usr/include/kaldiserve` and the shared library `libkaldiserve.so` in `/usr/local/lib`.
+
+#### Building the image
+
+You can build the docker image using the [Dockerfile](./Dockerfile) provided.
+
+```bash
+docker build -t kaldi-serve:lib .
+```
 
 ## Getting Started
 
-### Setup
+<!-- [**Documentation**]()
 
-Make sure you have gRPC, protobuf and Boost C++ libraries installed on your
-system. Kaldi also needs to be present and built. Let's build the server:
+Please check out the docs for a reference of how to use the library. -->
 
-```bash
-make KALDI_ROOT=/path/to/local/repo/for/kaldi/ -j8
-```
+### Usage
 
-Run `make clean` to clear old build files.
+You can include the [headers](./include) and link the shared library you get after the build process, against your application and start using it.
 
-### Running the server
+### Plugins
 
-For running the server, you need to first specify model config in a toml which
-tells the program which models to load, where to look for etc. Structure of
-`model_spec_toml` file is specified in a sample in
-[resources](./resources/model-spec.toml).
+It's also worth noting that there are a few [plugins](./plugins) we actively maintain and will keep adding to, that use the library:
+- [gRPC Server](./plugins/grpc)
 
-```bash
-# Make sure to have kaldi and openfst library available using LD_LIBRARY_PATH or something
-# e.g. env LD_LIBRARY_PATH=../../asr/kaldi/tools/openfst/lib/:../../asr/kaldi/src/lib/ ./build/kaldi_serve_app
+## License
 
-# Alternatively, you can also put all the required .so files in the ./lib/ directory since
-# that is added to the binary's rpath.
-
-./build/kaldi_serve_app --help
-
-Kaldi gRPC server
-Usage: ./build/kaldi_serve_app [OPTIONS] model_spec_toml
-
-Positionals:
-  model_spec_toml TEXT:FILE REQUIRED
-                              Path to toml specifying models to load
-
-Options:
-  -h,--help                   Print this help message and exit
-  -v,--version                Show program version and exit
-```
-
-### Clients
-
-For simple microphone testing, you can do something like the following (needs
-[evans](https://github.com/ktr0731/evans) installed):
-
-```bash
-audio_bytes=$(arecord -f S16_LE -d 5 -r 8000 -c 1 | base64 -w0) # Recording 5 seconds of audio
-echo "{\"audio\": {\"content\": \"$audio_bytes\"}, \"config\": {\"max_alternatives\": 2, \"model\": \"general\", \"language_code\": \"hi\"} }" | evans --package kaldi_serve --service KaldiServe ./protos/kaldi_serve.proto  --call Recognize --port 5016 | jq
-```
-
-The output structure looks like the following:
-```
-{
-  "results": [
-    {
-      "alternatives": [
-        {
-          "transcript": "हेलो दुनिया",
-          "confidence": 0.95897794,
-          "amScore": -374.5963,
-          "lmScore": 131.33058
-        },
-        {
-          "transcript": "हैलो दुनिया",
-          "confidence": 0.95882875,
-          "amScore": -372.76187,
-          "lmScore": 131.84035
-        }
-      ]
-    }
-  ]
-}
-```
-
-A Python client is also present in [python](./python) directory with a few
-example scripts.
-
-### Load testing
-
-We perform load testing using [ghz](https://ghz.sh/) which is a gRPC
-benchmarking and load testing tool. You can use the following command template:
-
-```bash
-ghz \
---insecure \
---proto ./protos/kaldi_serve.proto \
---call kaldi_serve.KaldiServe.StreamingRecognize \
--n [NUM REQUESTS] -c [CONCURRENT REQUESTS] \
---cpus [NUM CORES] \
--d "[{\"audio\": {\"content\": \"$chunk1\"}, \"config\": {\"max_alternatives\": [N_BEST], \"language_code\": \"[LANGUUAGE]\", \"model\": \"[MODEL]\"}}, ...more chunks]" \
-0.0.0.0:5016
-```
+This project is licensed under the Apache License version 2.0. Please see [LICENSE](./LICENSE) for more details.

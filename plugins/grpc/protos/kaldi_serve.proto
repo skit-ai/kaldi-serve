@@ -1,0 +1,84 @@
+syntax = "proto3";
+package kaldi_serve;
+
+service KaldiServe {
+  // Performs synchronous non-streaming speech recognition.
+  rpc Recognize(RecognizeRequest) returns (RecognizeResponse) {}
+
+  // Performs synchronous client-to-server streaming speech recognition: 
+  //    receive results after all audio has been streamed and processed.
+  rpc StreamingRecognize(stream RecognizeRequest) returns (RecognizeResponse) {}
+
+  // Performs synchronous bidirectional streaming speech recognition: 
+  //    receive results as the audio is being streamed and processed.
+  rpc BidiStreamingRecognize(stream RecognizeRequest) returns (stream RecognizeResponse) {}
+}
+
+message RecognizeRequest {
+  RecognitionConfig config = 1;
+  RecognitionAudio audio = 2;
+  string uuid = 3;
+}
+
+message RecognizeResponse {
+  repeated SpeechRecognitionResult results = 1;
+}
+
+// Provides information to the recognizer that specifies how to process the request
+message RecognitionConfig {
+  enum AudioEncoding {
+    ENCODING_UNSPECIFIED = 0;
+    LINEAR16 = 1;
+    FLAC = 2;
+    // MULAW = 3;
+    // AMR = 4;
+    // AMR_WB = 5;
+    // OGG_OPUS = 6;
+    // SPEEX_WITH_HEADER_BYTE = 7;
+  }
+
+  AudioEncoding encoding = 1;
+  int32 sample_rate_hertz = 2; // Valid values are: 8000-48000.
+  string language_code = 3;
+  int32 max_alternatives = 4;
+  bool punctuation = 5;
+  repeated SpeechContext speech_contexts = 6;
+  int32 audio_channel_count = 7;
+  // RecognitionMetadata metadata = 9;
+  string model = 10;
+  bool raw = 11;
+  int32 data_bytes = 12;
+  bool word_level = 13;
+}
+
+// Either `content` or `uri` must be supplied.
+message RecognitionAudio {
+  oneof audio_source {
+    bytes content = 1;
+    string uri = 2;
+  }
+}
+
+message SpeechRecognitionResult {
+  repeated SpeechRecognitionAlternative alternatives = 1;
+}
+
+message SpeechRecognitionAlternative {
+  string transcript = 1;
+  float confidence = 2;
+  float am_score = 3;
+  float lm_score = 4;
+  repeated Word words = 5;
+}
+
+message Word {
+  float start_time = 1;
+  float end_time = 2;
+  string word = 3;
+  float confidence = 4;
+}
+
+message SpeechContext {
+  repeated string phrases = 1;
+  string type = 2;
+}

@@ -1,87 +1,47 @@
-FROM vernacularai/kaldi:2019-11-23 as builder
+FROM kaldiasr/kaldi:latest
 
-# gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
+# build latest cmake
+WORKDIR /root
+
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
-    build-essential \
-    autoconf \
-    libtool \
-    pkg-config \
-    libgflags-dev \
-    libgtest-dev \
-    clang \
-    libc++-dev \
-    libboost-all-dev \
-    curl \
-    vim
+        libssl-dev \
+        cmake
 
-# Install gRPC
-RUN cd /home/ && \
-    git clone -b v1.28.1 https://github.com/grpc/grpc && \
-    cd /home/grpc/ && \
-    git submodule update --init && \
-    make && \
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.17.3/cmake-3.17.3.tar.gz && \
+    tar -xvf cmake-3.17.3.tar.gz
+
+WORKDIR /root/cmake-3.17.3
+
+# using an older cmake to build a newer cmake (>=3.13)
+RUN cmake . && \
+    make -j$(nproc) && \
     make install
 
-# Install Protobuf v3
-RUN cd /home/grpc/third_party/protobuf && make install
+# install c++ std & boost libs
+RUN apt-get update && \
+    apt-get install -y \
+        g++ \
+        make \
+        automake \
+        libc++-dev \
+        libboost-all-dev
 
-WORKDIR /home/app
-
+WORKDIR /root/kaldi-serve
 COPY . .
 
-ENV KALDI_ROOT="/home/kaldi" \
-    LD_LIBRARY_PATH="/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
+# build libkaldiserve.so
+RUN cd build/ && \
+    cmake .. -DBUILD_SHARED_LIBS=ON -DBUILD_PYTHON_MODULE=OFF && \
+    make -j$(nproc) VERBOSE=1 && \
+    cd /root/kaldi-serve
 
-RUN make
-RUN bash -c "mkdir /so-files/; cp /opt/intel/mkl/lib/intel64/lib*.so /so-files/"
+# KALDISERVE HEADERS & LIB
+RUN cp build/src/libkaldiserve.so* /usr/local/lib/
+RUN cp -r include/kaldiserve /usr/include/
 
-FROM debian:jessie-slim
-WORKDIR /home/app
+WORKDIR /root
 
-COPY --from=builder /home/app/build build
-COPY --from=builder /home/app/resources resources
-
-ENV LD_LIBRARY_PATH="/usr/local/lib:/home/kaldi/tools/openfst/lib:/home/kaldi/src/lib"
-
-# CPP LIBS
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/local/lib/libstdc++.so.6
-
-# INTEL MKL
-COPY --from=builder /so-files /opt/intel/mkl/lib/intel64/
-
-# GRPC LIBS
-COPY --from=builder /usr/local/lib/libgrpc++.so.1 /usr/local/lib/libgrpc++.so.1
-COPY --from=builder /usr/local/lib/libgrpc++_reflection.so.1 /usr/local/lib/libgrpc++_reflection.so.1
-COPY --from=builder /usr/local/lib/libgrpc.so* /usr/local/lib/
-COPY --from=builder /usr/local/lib/libgpr.so* /usr/local/lib/
-COPY --from=builder /usr/local/lib/libupb.so* /usr/local/lib/
-
-# BOOST LIBS
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost_system.so.1.62.0 /usr/local/lib/libboost_system.so.1.62.0
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.62.0 /usr/local/lib/libboost_filesystem.so.1.62.0
-
-# KALDI LIBS
-COPY --from=builder /home/kaldi/tools/openfst/lib/libfst.so.10 /home/kaldi/tools/openfst/lib/libfst.so.10
-COPY --from=builder /home/kaldi/src/lib/libkaldi-decoder.so /home/kaldi/src/lib/libkaldi-decoder.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-fstext.so /home/kaldi/src/lib/libkaldi-fstext.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-hmm.so /home/kaldi/src/lib/libkaldi-hmm.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-feat.so /home/kaldi/src/lib/libkaldi-feat.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-util.so /home/kaldi/src/lib/libkaldi-util.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-matrix.so /home/kaldi/src/lib/libkaldi-matrix.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-base.so /home/kaldi/src/lib/libkaldi-base.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-nnet3.so /home/kaldi/src/lib/libkaldi-nnet3.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-online2.so /home/kaldi/src/lib/libkaldi-online2.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-cudamatrix.so /home/kaldi/src/lib/libkaldi-cudamatrix.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-ivector.so /home/kaldi/src/lib/libkaldi-ivector.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-rnnlm.so /home/kaldi/src/lib/libkaldi-rnnlm.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-lm.so /home/kaldi/src/lib/libkaldi-lm.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-lat.so /home/kaldi/src/lib/libkaldi-lat.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-tree.so /home/kaldi/src/lib/libkaldi-tree.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-transform.so /home/kaldi/src/lib/libkaldi-transform.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-chain.so /home/kaldi/src/lib/libkaldi-chain.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-nnet2.so /home/kaldi/src/lib/libkaldi-nnet2.so
-COPY --from=builder /home/kaldi/src/lib/libkaldi-gmm.so /home/kaldi/src/lib/libkaldi-gmm.so
-
-CMD [ "./build/kaldi_serve_app" ]
+# cleanup
+RUN rm -rf kaldi-serve cmake-*
