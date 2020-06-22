@@ -6,23 +6,24 @@ A plug-and-play abstraction over [Kaldi](https://kaldi-asr.org/) ASR toolkit, de
 
 **Key Features**:
 
-- Real-time streaming (uni & bi-directional) recognition.
-- Batched audio recognition on GPU.
+- Real-time streaming (uni & bi-directional) audio recognition.
 - Thread-safe concurrent Decoder queue for server environments.
 - RNNLM lattice rescoring.
 - N-best alternatives with AM/LM costs, word-level timings and confidence scores.
-- Easily extensible for custom applications.
+- Easy extensibility for custom applications.
 
 ## Installation
 
-### Build from Source
+### Dependencies
 
 Make sure you have the following dependencies installed on your system before beginning the build process:
 
 * g++ compiler (>=4.7) that supports C++11 std
-* [CMake](https://cmake.org/install/) (>=3.12)
+* [CMake](https://cmake.org/install/) (>=3.13)
 * [Kaldi](https://kaldi-asr.org/)
 * [Boost C++](https://www.boost.org/) libraries
+
+### Build from Source
 
 Let's build the shared library:
 
@@ -32,35 +33,32 @@ cmake ..
 make -j${nproc}
 ```
 
-You will find the the built `.so` file in `build/src/` to use for linking against custom applications.
+You will find the the built shared library in `build/src/` to use for linking against custom applications.
 
 #### Python bindings
 
 We also provide python bindings for the library. You can find the build instructions [here](./python).
 
-<!-- ### Docker Image
+### Docker Image
 
 #### Using pre-built images
 
-You can also pull a pre-built docker image from Docker Hub and run with docker (for CPU runtime):
+You can also pull a pre-built docker image from our [Docker Hub repository](https://hub.docker.com/repository/docker/vernacularai/kaldi-serve):
 
 ```bash
-docker run -it vernacularai/kaldi-serve:master
+docker pull vernacularai/kaldi-serve:latest
+docker run -it -v /path/to/my/app:/home/app vernacularai/kaldi-serve:latest
 ```
 
-For GPU runtime, you will need nvidia-docker installed:
-
-```bash
-docker run --gpus all -it vernacularai/kaldi-serve:gpu-latest
-```
+You will find our headers in `/usr/include/kaldiserve` and the shared library `libkaldiserve.so` in `/usr/local/lib`.
 
 #### Building the image
 
 You can build the docker image using the [Dockerfile](./Dockerfile) provided.
 
 ```bash
-docker build -t kaldi-serve:${DOCKER_TAG} .
-``` -->
+docker build -t kaldi-serve:lib .
+```
 
 ## Getting Started
 
@@ -68,11 +66,14 @@ docker build -t kaldi-serve:${DOCKER_TAG} .
 
 Please check out the docs for a reference of how to use the library. -->
 
-It's also worth noting that there are a few [plugins](./plugins) and [binaries](./bin) we maintain that use the library and can be referenced as examples:
-- gRPC Server
-- Batched decoding binaries (CPU & GPU)
+### Usage
 
-So, you can include the [headers](./include) and link the shared [library](./src) aginst your application and start using it.
+You can include the [headers](./include) and link the shared library you get after the build process, against your application and start using it.
+
+### Plugins
+
+It's also worth noting that there are a few [plugins](./plugins) we actively maintain and will keep adding to, that use the library:
+- [gRPC Server](./plugins/grpc)
 
 ## License
 

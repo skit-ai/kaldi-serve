@@ -82,13 +82,13 @@ void pybind_decoder(py::module &m) {
     // kaldiserve.DecoderFactory
     py::class_<DecoderFactory>(m, "DecoderFactory", "Decoder Factory class.")
         .def(py::init<const ModelSpec &>())
-        .def("produce", &DecoderFactory::produce, py::call_guard<py::gil_scoped_release>());
+        .def("produce", &DecoderFactory::produce, py::call_guard<py::gil_scoped_release>(), py::return_value_policy::reference);
 
     // kaldiserve.DecoderQueue
     py::class_<DecoderQueue>(m, "DecoderQueue", "Decoder Queue class.")
         .def(py::init<const ModelSpec &>())
-        .def("acquire", &DecoderQueue::acquire, py::call_guard<py::gil_scoped_release>())
-        .def("release", &DecoderQueue::release, py::call_guard<py::gil_scoped_release>());
+        .def("acquire", &DecoderQueue::acquire, py::call_guard<py::gil_scoped_release>(), py::return_value_policy::reference)
+        .def("release", &DecoderQueue::release);//, py::call_guard<py::gil_scoped_release>());
 }
 
 } // namespace kaldiserve

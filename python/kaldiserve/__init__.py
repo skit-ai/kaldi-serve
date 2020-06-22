@@ -14,3 +14,12 @@ def acquire_decoder(dq: DecoderQueue):
         yield decoder
     finally:
         dq.release(decoder)
+
+
+@contextmanager
+def start_decoding(decoder: Decoder, uuid: str=""):
+    decoder.start_decoding(uuid)
+    try:
+        yield None
+    finally:
+        decoder.free_decoder()

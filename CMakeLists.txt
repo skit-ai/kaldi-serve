@@ -8,9 +8,8 @@ project(kaldiserve VERSION 1.0.0 LANGUAGES C CXX)
 
 # Config options
 option(BUILD_SHARED_LIB          "Build shared library"                     ON)
-option(ENABLE_GPU                "Enable GPU build"                         OFF)
-option(BUILD_PYBIND11            "Build the pybind11 module"                ON)
-option(BUILD_PYTHON_MODULE       "Build the python module"                  ON)
+option(BUILD_PYTHON_MODULE       "Build the python module"                  OFF)
+option(BUILD_PYBIND11            "Build pybind11 for python bindings"       OFF)
 
 # CXX compiler options
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -18,11 +17,6 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare -Wno
 
 # kaldi config
 set(KALDI_ROOT /opt/kaldi CACHE STRING "Path to Kaldi root directory")
-
-if(ENABLE_GPU)
-    set(CUDA_TK_ROOT /usr/local/cuda CACHE STRING "Path to CUDA root directory")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_CUDA")
-endif()
 
 # Build shared library
 if(BUILD_SHARED_LIB)
@@ -34,7 +28,6 @@ endif()
 
 # Build python port
 if (BUILD_PYTHON_MODULE)
-
     # Pybind11
     if (BUILD_PYBIND11)
         set(BUILD_PYBIND11 ON)

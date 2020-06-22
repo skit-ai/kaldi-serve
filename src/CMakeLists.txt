@@ -38,12 +38,4 @@ target_link_libraries(kaldiserve
     -static-libstdc++
 )
 
-if (ENABLE_GPU)
-    target_link_libraries(kaldiserve
-        kaldi-cudadecoder
-        kaldi-cudafeat
-        kaldi-cudamatrix
-    )
-endif()
-
 set_target_properties(kaldiserve PROPERTIES LINKER_LANGUAGE CXX)

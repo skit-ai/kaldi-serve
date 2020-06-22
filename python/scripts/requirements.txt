@@ -1,0 +1,2 @@
+kaldiserve==1.0.0
+docopt
