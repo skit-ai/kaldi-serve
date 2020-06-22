@@ -1,3 +1,5 @@
+__version__ = "1.0.0"
+
 from kaldiserve.kaldiserve_pybind import ModelSpec, Word, Alternative                       # types
 from kaldiserve.kaldiserve_pybind import _ModelSpecList, _WordList, _AlternativeList        # type list aliases
 from kaldiserve.kaldiserve_pybind import ChainModel                                         # models
