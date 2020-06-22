@@ -1,7 +1,7 @@
 """
-Audio Transcription script using kalidserve.
+Batch Audio Transcription script using kalidserve.
 
-Usage: transcribe.py <model-spec-toml> <audio-paths-file>
+Usage: batch_transcribe.py <model-spec-toml> <audio-paths-file>
 """
 import time
 import threading
