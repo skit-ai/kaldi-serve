@@ -1,5 +1,5 @@
 # Stage 1: dev/build
-FROM vernacularai/kaldi-serve:master as builder
+FROM vernacularai/kaldi-serve:latest as builder
 
 # gRPC Pre-requisites - https://github.com/grpc/grpc/blob/master/BUILDING.md
 RUN apt-get update && \

@@ -1,4 +1,4 @@
-FROM vernacularai/kaldi-serve:master
+FROM vernacularai/kaldi-serve:latest
 
 # install python3.6.5 through pyenv
 RUN apt-get update && \
