@@ -21,7 +21,7 @@ import traceback
 
 from typing import List
 from docopt import docopt
-
+from tqdm import tqdm
 from multiprocessing import Pool
 
 from kaldi_serve import KaldiServeClient, RecognitionAudio, RecognitionConfig
@@ -32,6 +32,10 @@ ENCODING = RecognitionConfig.AudioEncoding.LINEAR16
 
 client = KaldiServeClient()
 
+def run_multiprocessing_with_tqdm(pool, func, tasks):
+    results = list(tqdm(pool.imap(func, tasks), total=len(tasks)))
+    pool.close()
+    return results
 
 def parse_response(response):
     output = []
@@ -75,24 +79,32 @@ def transcribe_audio(audio_stream, model: str, language_code: str, sample_rate=8
 
     return parse_response(response)
 
+def stream_and_transcribe(args):
+    try:
+        arg_path = args[0]
+        audio_stream = byte_stream_from_file(*arg_path)
+        arg_stream = (audio_stream,) + args[1]
+        return transcribe_audio(*arg_stream)
+    except Exception as e:
+        print('Error handling {}'.format(args[0][0]))
+        print(e)
+        return None
 
 def decode_files(audio_paths: List[str], model: str, language_code: str,
                  sample_rate=8000, max_alternatives=10, raw: bool=False,
                  num_proc: int=8):
     """
-    Decode files using threaded requests
+    Decode files using multiprocessing requests
     """
-    audio_streams = [byte_stream_from_file(x, sample_rate=sample_rate, raw=raw) for x in audio_paths]
-
     args = [
-        (stream, model, language_code, sample_rate, max_alternatives, raw)
-        for stream in audio_streams
+        ((x, sample_rate, raw,), (model, language_code, sample_rate, max_alternatives, raw,))
+        for x in audio_paths
     ]
 
     with Pool(num_proc) as pool:
-        results = pool.starmap(transcribe_audio, args)
+        results = run_multiprocessing_with_tqdm(pool, stream_and_transcribe, args)
 
-    results_dict = {path: response for path, response in list(zip(audio_paths, results))}
+    results_dict = {path: response for path, response in list(zip(audio_paths, results)) if response is not None}
     return results_dict
 
 
