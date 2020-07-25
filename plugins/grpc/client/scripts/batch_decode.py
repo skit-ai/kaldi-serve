@@ -23,18 +23,24 @@ from typing import List
 from docopt import docopt
 from tqdm import tqdm
 from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
 
 from kaldi_serve import KaldiServeClient, RecognitionAudio, RecognitionConfig
 from kaldi_serve.utils import byte_stream_from_file
-
 
 ENCODING = RecognitionConfig.AudioEncoding.LINEAR16
 
 client = KaldiServeClient()
 
-def run_multiprocessing_with_tqdm(pool, func, tasks):
-    results = list(tqdm(pool.imap(func, tasks), total=len(tasks)))
+def run_multiprocessing(func, tasks, num_processes=None):
+    with Pool(processes=num_processes) as pool:
+        results = list(tqdm(pool.imap(func, tasks), total=len(tasks)))
     pool.close()
+    return results
+
+def run_multithreading(func, tasks, num_workers=None):
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        results = list(tqdm(executor.map(func, tasks), total=len(tasks)))
     return results
 
 def parse_response(response):
@@ -97,12 +103,14 @@ def decode_files(audio_paths: List[str], model: str, language_code: str,
     Decode files using multiprocessing requests
     """
     args = [
-        ((x, sample_rate, raw,), (model, language_code, sample_rate, max_alternatives, raw,))
+        (
+            (x, sample_rate, raw,),
+            (model, language_code, sample_rate, max_alternatives, raw,)
+        )
         for x in audio_paths
     ]
 
-    with Pool(num_proc) as pool:
-        results = run_multiprocessing_with_tqdm(pool, stream_and_transcribe, args)
+    results = run_multithreading(stream_and_transcribe, args)
 
     results_dict = {path: response for path, response in list(zip(audio_paths, results)) if response is not None}
     return results_dict
