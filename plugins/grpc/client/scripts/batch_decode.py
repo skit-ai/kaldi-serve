@@ -84,16 +84,18 @@ def transcribe_audio(audio_stream, model: str, language_code: str, sample_rate=8
 
     return parse_response(response)
 
-def stream_and_transcribe(args):
+def stream_and_transcribe(audio_path: str, model: str, language_code: str, sample_rate=8000, max_alternatives=10, raw: bool=False):
     try:
-        arg_path = args[0]
-        audio_stream = byte_stream_from_file(*arg_path)
-        arg_stream = (audio_stream,) + args[1]
-        return transcribe_audio(*arg_stream)
+        audio_stream = byte_stream_from_file(audio_path, sample_rate, raw)
+        result = transcribe_audio(audio_stream, model, language_code, sample_rate, max_alternatives, raw)
+        return result
     except Exception as e:
         print('Error handling {}'.format(args[0][0]))
         print(e)
         return None
+
+def stream_and_transcribe_wrapper(args):
+    return stream_and_transcribe(*args)
 
 def decode_files(audio_paths: List[str], model: str, language_code: str,
                  sample_rate=8000, max_alternatives=10, raw: bool=False,
@@ -102,14 +104,11 @@ def decode_files(audio_paths: List[str], model: str, language_code: str,
     Decode files using parallel requests
     """
     args = [
-        (
-            (x, sample_rate, raw,),
-            (model, language_code, sample_rate, max_alternatives, raw,)
-        )
-        for x in audio_paths
+        (path, model, language_code, sample_rate, max_alternatives, raw)
+        for path in audio_paths
     ]
 
-    results = run_multithreading(stream_and_transcribe, args)
+    results = run_multithreading(stream_and_transcribe_wrapper, args)
 
     results_dict = {path: response for path, response in list(zip(audio_paths, results)) if response is not None}
     return results_dict
