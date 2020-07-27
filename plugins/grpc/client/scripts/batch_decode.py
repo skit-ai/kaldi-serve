@@ -35,7 +35,6 @@ client = KaldiServeClient()
 def run_multiprocessing(func, tasks, num_processes=None):
     with Pool(processes=num_processes) as pool:
         results = list(tqdm(pool.imap(func, tasks), total=len(tasks)))
-    pool.close()
     return results
 
 def run_multithreading(func, tasks, num_workers=None):
@@ -100,7 +99,7 @@ def decode_files(audio_paths: List[str], model: str, language_code: str,
                  sample_rate=8000, max_alternatives=10, raw: bool=False,
                  num_proc: int=8):
     """
-    Decode files using multiprocessing requests
+    Decode files using parallel requests
     """
     args = [
         (
