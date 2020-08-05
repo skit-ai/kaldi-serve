@@ -90,7 +90,7 @@ def stream_and_transcribe(audio_path: str, model: str, language_code: str, sampl
         result = transcribe_audio(audio_stream, model, language_code, sample_rate, max_alternatives, raw)
         return result
     except Exception as e:
-        print('Error handling {}'.format(args[0][0]))
+        print('Error while handling {}'.format(audio_path))
         print(e)
         return None
 
