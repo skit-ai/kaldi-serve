@@ -49,7 +49,7 @@ COPY . .
 
 ENV GO111MODULE on
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o build/register registrar/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o build/register plugins/grpc/registrar/main.go
 
 # Stage 3: prod
 FROM debian:jessie-slim
@@ -87,7 +87,7 @@ COPY --from=builder /usr/local/lib/libkaldiserve.so* /usr/local/lib/
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/kaldi/tools/openfst/lib:/opt/kaldi/src/lib"
 
-ADD build/config/supervisord /etc/
+ADD plugins/grpc/build/config/supervisord /etc/
 
 ENV CONSUL_VERSION=1.9.1 \
     CONSUL_DOMAIN=consul \
@@ -111,17 +111,17 @@ RUN apt-get update && \
     useradd -s /sbin/nologin --system -g consul consul && \
     mkdir -p /data/consul && \
     chown -R consul:consul /data/consul && \
-    rm -rf /tmp/* /var/cache/apk/* && \
+    rm -rf /tmp/* /var/cache/apt/lists/* && \
     mkdir /etc/consul.d/
 
 # Add the files
-COPY build/config/consul /
+COPY plugins/grpc/build/config/consul /
 
 # Supervisor files
-COPY build/config/supervisord/grpc_server.conf /etc/supervisor/conf.d/grpc_server.conf
-COPY build/config/supervisord/consul.conf /etc/supervisor/conf.d/consul.conf
-COPY build/config/supervisord/register.conf /etc/supervisor/conf.d/register.conf
-COPY build/config/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
+COPY plugins/grpc/build/config/supervisord/grpc_server.conf /etc/supervisor/conf.d/grpc_server.conf
+COPY plugins/grpc/build/config/supervisord/consul.conf /etc/supervisor/conf.d/consul.conf
+COPY plugins/grpc/build/config/supervisord/register.conf /etc/supervisor/conf.d/register.conf
+COPY plugins/grpc/build/config/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
 
 VOLUME ["/data/consul"]
 
