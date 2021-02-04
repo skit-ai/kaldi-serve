@@ -33,7 +33,7 @@ COPY . .
 
 WORKDIR /root/kaldi-serve/plugins/grpc
 ENV LD_LIBRARY_PATH="/opt/kaldi/tools/openfst/lib:/opt/kaldi/src/lib"
-RUN make clean && \
+RUN rm -f  ./protos/*.pb.* ./protos/*.o&& \
     make KALDI_ROOT="/opt/kaldi" KALDISERVE_INCLUDE="/usr/include" -j$(nproc)
 
 RUN bash -c "mkdir /so-files/; cp /opt/intel/mkl/lib/intel64/lib*.so /so-files/"
