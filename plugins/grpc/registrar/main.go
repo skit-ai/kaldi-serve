@@ -60,11 +60,14 @@ func main() {
 		logFatal("consul port")
 	}
 
+	managerIpAddress := os.Getenv("MANAGER_IP_ADDRESS")
+	if managerIpAddress == "" {
+		logFatal("manager ip address")
+	}
+
 	// Can be either HTTP or GRPC
 	healthCheckProtocol := os.Getenv("HEALTH_CHECK_TYPE")
 	healthCheckEndpoint := os.Getenv("HEALTH_CHECK_ENDPOINT")
-
-
 
 	//Encode the data
 	postBody := map[string]interface{}{
@@ -77,11 +80,11 @@ func main() {
 	// Adding a health check endpoint if specified in the env vars
 	if healthCheckEndpoint != "" && (healthCheckProtocol == "http" || healthCheckProtocol == "grpc") {
 		postBody["checks"] = []map[string]string{
-			{"http": fmt.Sprintf("http://localhost:%s/hostname", consulPort), "interval": "5s"},
+			{"http": fmt.Sprintf("http://%s:%s/hostname", managerIpAddress, consulPort), "interval": "5s"},
 		}
 	}
 
-	consulRegisterEndpoint := fmt.Sprintf("http://localhost:%s/v1/agent/service/register", consulPort)
+	consulRegisterEndpoint := fmt.Sprintf("http://%s:%s/v1/agent/service/register", managerIpAddress, consulPort)
 
 	// Attempt to register the service 10 times before giving up
 	for i := 0; i < 10; i++ {
