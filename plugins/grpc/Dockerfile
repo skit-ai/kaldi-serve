@@ -39,7 +39,7 @@ RUN make clean && \
 RUN bash -c "mkdir /so-files/; cp /opt/intel/mkl/lib/intel64/lib*.so /so-files/"
 
 # Stage 2: prod
-FROM debian:jessie-slim
+FROM debian:buster-20210408-slim
 WORKDIR /home/app
 
 COPY --from=builder /root/kaldi-serve/plugins/grpc/build/kaldi_serve_app .
