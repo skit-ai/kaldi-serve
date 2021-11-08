@@ -76,6 +76,10 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
   public:
     explicit KaldiServeImpl(const std::vector<ModelSpec> &) noexcept;
 
+    grpc::Status ListModels(grpc::ServerContext *const,
+                            const google::protobuf::Empty *const,
+                            kaldi_serve::ModelList *const) override;
+
     // Non-Streaming Request Handler RPC service
     // Accepts a single `RecognizeRequest` message
     // Returns a single `RecognizeResponse` message
@@ -106,6 +110,21 @@ KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> &model_specs) noexce
 
 inline bool KaldiServeImpl::is_model_present(const model_id_t &model_id) const noexcept {
     return decoder_queue_map_.find(model_id) != decoder_queue_map_.end();
+}
+
+grpc::Status KaldiServeImpl::ListModels(grpc::ServerContext *const context,
+                                        const google::protobuf::Empty *const request,
+                                        kaldi_serve::ModelList *const model_list) {
+    
+    kaldi_serve::Model *model;
+
+    for (auto const &model_id : decoder_queue_map_) {
+        model = model_list->add_models();
+        model->set_name(model_id.first.first);
+        model->set_language_code(model_id.first.second);
+    }
+
+    return grpc::Status::OK;
 }
 
 grpc::Status KaldiServeImpl::Recognize(grpc::ServerContext *const context,

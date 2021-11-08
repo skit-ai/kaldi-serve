@@ -7,25 +7,24 @@
 #include "kaldi_serve.pb.h"
 
 #include <functional>
+#include <grpc/impl/codegen/port_platform.h>
 #include <grpcpp/impl/codegen/async_generic_service.h>
 #include <grpcpp/impl/codegen/async_stream.h>
 #include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
-#include <grpcpp/impl/codegen/method_handler_impl.h>
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/impl/codegen/completion_queue.h>
+#include <grpcpp/impl/codegen/message_allocator.h>
+#include <grpcpp/impl/codegen/method_handler.h>
 #include <grpcpp/impl/codegen/proto_utils.h>
 #include <grpcpp/impl/codegen/rpc_method.h>
 #include <grpcpp/impl/codegen/server_callback.h>
+#include <grpcpp/impl/codegen/server_callback_handlers.h>
+#include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/stub_options.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
-
-namespace grpc {
-class CompletionQueue;
-class Channel;
-class ServerCompletionQueue;
-class ServerContext;
-}  // namespace grpc
 
 namespace kaldi_serve {
 
@@ -37,6 +36,14 @@ class KaldiServe final {
   class StubInterface {
    public:
     virtual ~StubInterface() {}
+    // Lists all the available loaded models
+    virtual ::grpc::Status ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::kaldi_serve::ModelList* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::ModelList>> AsyncListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::ModelList>>(AsyncListModelsRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::ModelList>> PrepareAsyncListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::ModelList>>(PrepareAsyncListModelsRaw(context, request, cq));
+    }
     // Performs synchronous non-streaming speech recognition.
     virtual ::grpc::Status Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::kaldi_serve::RecognizeResponse* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::RecognizeResponse>> AsyncRecognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) {
@@ -70,18 +77,57 @@ class KaldiServe final {
     class experimental_async_interface {
      public:
       virtual ~experimental_async_interface() {}
+      // Lists all the available loaded models
+      virtual void ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void ListModels(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::ModelList* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void ListModels(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::ModelList* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void ListModels(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::ModelList* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // Performs synchronous non-streaming speech recognition.
       virtual void Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
+      virtual void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // Performs synchronous client-to-server streaming speech recognition: 
       //    receive results after all audio has been streamed and processed.
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void StreamingRecognize(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response, ::grpc::ClientWriteReactor< ::kaldi_serve::RecognizeRequest>* reactor) = 0;
+      #else
       virtual void StreamingRecognize(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientWriteReactor< ::kaldi_serve::RecognizeRequest>* reactor) = 0;
+      #endif
       // Performs synchronous bidirectional streaming speech recognition: 
       //    receive results as the audio is being streamed and processed.
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void BidiStreamingRecognize(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>* reactor) = 0;
+      #else
       virtual void BidiStreamingRecognize(::grpc::ClientContext* context, ::grpc::experimental::ClientBidiReactor< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>* reactor) = 0;
+      #endif
     };
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    typedef class experimental_async_interface async_interface;
+    #endif
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    async_interface* async() { return experimental_async(); }
+    #endif
     virtual class experimental_async_interface* experimental_async() { return nullptr; }
   private:
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::ModelList>* AsyncListModelsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::ModelList>* PrepareAsyncListModelsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::RecognizeResponse>* AsyncRecognizeRaw(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::kaldi_serve::RecognizeResponse>* PrepareAsyncRecognizeRaw(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientWriterInterface< ::kaldi_serve::RecognizeRequest>* StreamingRecognizeRaw(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response) = 0;
@@ -94,6 +140,13 @@ class KaldiServe final {
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
+    ::grpc::Status ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::kaldi_serve::ModelList* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::kaldi_serve::ModelList>> AsyncListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::kaldi_serve::ModelList>>(AsyncListModelsRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::kaldi_serve::ModelList>> PrepareAsyncListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::kaldi_serve::ModelList>>(PrepareAsyncListModelsRaw(context, request, cq));
+    }
     ::grpc::Status Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::kaldi_serve::RecognizeResponse* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::kaldi_serve::RecognizeResponse>> AsyncRecognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::kaldi_serve::RecognizeResponse>>(AsyncRecognizeRaw(context, request, cq));
@@ -122,10 +175,40 @@ class KaldiServe final {
     class experimental_async final :
       public StubInterface::experimental_async_interface {
      public:
+      void ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response, std::function<void(::grpc::Status)>) override;
+      void ListModels(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::ModelList* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void ListModels(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void ListModels(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::ModelList* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void ListModels(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::ModelList* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, std::function<void(::grpc::Status)>) override;
       void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void Recognize(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
+      void Recognize(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void StreamingRecognize(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response, ::grpc::ClientWriteReactor< ::kaldi_serve::RecognizeRequest>* reactor) override;
+      #else
       void StreamingRecognize(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ClientWriteReactor< ::kaldi_serve::RecognizeRequest>* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void BidiStreamingRecognize(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>* reactor) override;
+      #else
       void BidiStreamingRecognize(::grpc::ClientContext* context, ::grpc::experimental::ClientBidiReactor< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>* reactor) override;
+      #endif
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -137,6 +220,8 @@ class KaldiServe final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class experimental_async async_stub_{this};
+    ::grpc::ClientAsyncResponseReader< ::kaldi_serve::ModelList>* AsyncListModelsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::kaldi_serve::ModelList>* PrepareAsyncListModelsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::kaldi_serve::RecognizeResponse>* AsyncRecognizeRaw(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::kaldi_serve::RecognizeResponse>* PrepareAsyncRecognizeRaw(::grpc::ClientContext* context, const ::kaldi_serve::RecognizeRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientWriter< ::kaldi_serve::RecognizeRequest>* StreamingRecognizeRaw(::grpc::ClientContext* context, ::kaldi_serve::RecognizeResponse* response) override;
@@ -145,6 +230,7 @@ class KaldiServe final {
     ::grpc::ClientReaderWriter< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* BidiStreamingRecognizeRaw(::grpc::ClientContext* context) override;
     ::grpc::ClientAsyncReaderWriter< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* AsyncBidiStreamingRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncReaderWriter< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* PrepareAsyncBidiStreamingRecognizeRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_ListModels_;
     const ::grpc::internal::RpcMethod rpcmethod_Recognize_;
     const ::grpc::internal::RpcMethod rpcmethod_StreamingRecognize_;
     const ::grpc::internal::RpcMethod rpcmethod_BidiStreamingRecognize_;
@@ -155,6 +241,8 @@ class KaldiServe final {
    public:
     Service();
     virtual ~Service();
+    // Lists all the available loaded models
+    virtual ::grpc::Status ListModels(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response);
     // Performs synchronous non-streaming speech recognition.
     virtual ::grpc::Status Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response);
     // Performs synchronous client-to-server streaming speech recognition: 
@@ -165,149 +253,291 @@ class KaldiServe final {
     virtual ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* stream);
   };
   template <class BaseClass>
+  class WithAsyncMethod_ListModels : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_ListModels() {
+      ::grpc::Service::MarkMethodAsync(0);
+    }
+    ~WithAsyncMethod_ListModels() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ListModels(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestListModels(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::kaldi_serve::ModelList>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithAsyncMethod_Recognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_Recognize() {
-      ::grpc::Service::MarkMethodAsync(0);
+      ::grpc::Service::MarkMethodAsync(1);
     }
     ~WithAsyncMethod_Recognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRecognize(::grpc::ServerContext* context, ::kaldi_serve::RecognizeRequest* request, ::grpc::ServerAsyncResponseWriter< ::kaldi_serve::RecognizeResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
   class WithAsyncMethod_StreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_StreamingRecognize() {
-      ::grpc::Service::MarkMethodAsync(1);
+      ::grpc::Service::MarkMethodAsync(2);
     }
     ~WithAsyncMethod_StreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* reader, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status StreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* /*reader*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncClientStreaming(1, context, reader, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncClientStreaming(2, context, reader, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
   class WithAsyncMethod_BidiStreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_BidiStreamingRecognize() {
-      ::grpc::Service::MarkMethodAsync(2);
+      ::grpc::Service::MarkMethodAsync(3);
     }
     ~WithAsyncMethod_BidiStreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* stream)  override {
+    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestBidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncBidiStreaming(2, context, stream, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncBidiStreaming(3, context, stream, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_Recognize<WithAsyncMethod_StreamingRecognize<WithAsyncMethod_BidiStreamingRecognize<Service > > > AsyncService;
+  typedef WithAsyncMethod_ListModels<WithAsyncMethod_Recognize<WithAsyncMethod_StreamingRecognize<WithAsyncMethod_BidiStreamingRecognize<Service > > > > AsyncService;
+  template <class BaseClass>
+  class ExperimentalWithCallbackMethod_ListModels : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithCallbackMethod_ListModels() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::kaldi_serve::ModelList>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::google::protobuf::Empty* request, ::kaldi_serve::ModelList* response) { return this->ListModels(context, request, response); }));}
+    void SetMessageAllocatorFor_ListModels(
+        ::grpc::experimental::MessageAllocator< ::google::protobuf::Empty, ::kaldi_serve::ModelList>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(0);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::kaldi_serve::ModelList>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~ExperimentalWithCallbackMethod_ListModels() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ListModels(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* ListModels(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* ListModels(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/)
+    #endif
+      { return nullptr; }
+  };
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_Recognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_Recognize() {
-      ::grpc::Service::experimental().MarkMethodCallback(0,
-        new ::grpc::internal::CallbackUnaryHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>(
-          [this](::grpc::ServerContext* context,
-                 const ::kaldi_serve::RecognizeRequest* request,
-                 ::kaldi_serve::RecognizeResponse* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   return this->Recognize(context, request, response, controller);
-                 }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response) { return this->Recognize(context, request, response); }));}
+    void SetMessageAllocatorFor_Recognize(
+        ::grpc::experimental::MessageAllocator< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* allocator) {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(1);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
     }
     ~ExperimentalWithCallbackMethod_Recognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* Recognize(
+      ::grpc::CallbackServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* Recognize(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_StreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_StreamingRecognize() {
-      ::grpc::Service::experimental().MarkMethodCallback(1,
-        new ::grpc::internal::CallbackClientStreamingHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>(
-          [this] { return this->StreamingRecognize(); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(2,
+          new ::grpc_impl::internal::CallbackClientStreamingHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, ::kaldi_serve::RecognizeResponse* response) { return this->StreamingRecognize(context, response); }));
     }
     ~ExperimentalWithCallbackMethod_StreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* reader, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status StreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* /*reader*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::experimental::ServerReadReactor< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* StreamingRecognize() {
-      return new ::grpc::internal::UnimplementedReadReactor<
-        ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>;}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerReadReactor< ::kaldi_serve::RecognizeRequest>* StreamingRecognize(
+      ::grpc::CallbackServerContext* /*context*/, ::kaldi_serve::RecognizeResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerReadReactor< ::kaldi_serve::RecognizeRequest>* StreamingRecognize(
+      ::grpc::experimental::CallbackServerContext* /*context*/, ::kaldi_serve::RecognizeResponse* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_BidiStreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_BidiStreamingRecognize() {
-      ::grpc::Service::experimental().MarkMethodCallback(2,
-        new ::grpc::internal::CallbackBidiHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>(
-          [this] { return this->BidiStreamingRecognize(); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(3,
+          new ::grpc_impl::internal::CallbackBidiHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context) { return this->BidiStreamingRecognize(context); }));
     }
     ~ExperimentalWithCallbackMethod_BidiStreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* stream)  override {
+    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::experimental::ServerBidiReactor< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* BidiStreamingRecognize() {
-      return new ::grpc::internal::UnimplementedBidiReactor<
-        ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>;}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerBidiReactor< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* BidiStreamingRecognize(
+      ::grpc::CallbackServerContext* /*context*/)
+    #else
+    virtual ::grpc::experimental::ServerBidiReactor< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>* BidiStreamingRecognize(
+      ::grpc::experimental::CallbackServerContext* /*context*/)
+    #endif
+      { return nullptr; }
   };
-  typedef ExperimentalWithCallbackMethod_Recognize<ExperimentalWithCallbackMethod_StreamingRecognize<ExperimentalWithCallbackMethod_BidiStreamingRecognize<Service > > > ExperimentalCallbackService;
+  #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+  typedef ExperimentalWithCallbackMethod_ListModels<ExperimentalWithCallbackMethod_Recognize<ExperimentalWithCallbackMethod_StreamingRecognize<ExperimentalWithCallbackMethod_BidiStreamingRecognize<Service > > > > CallbackService;
+  #endif
+
+  typedef ExperimentalWithCallbackMethod_ListModels<ExperimentalWithCallbackMethod_Recognize<ExperimentalWithCallbackMethod_StreamingRecognize<ExperimentalWithCallbackMethod_BidiStreamingRecognize<Service > > > > ExperimentalCallbackService;
+  template <class BaseClass>
+  class WithGenericMethod_ListModels : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_ListModels() {
+      ::grpc::Service::MarkMethodGeneric(0);
+    }
+    ~WithGenericMethod_ListModels() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ListModels(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
   template <class BaseClass>
   class WithGenericMethod_Recognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_Recognize() {
-      ::grpc::Service::MarkMethodGeneric(0);
+      ::grpc::Service::MarkMethodGeneric(1);
     }
     ~WithGenericMethod_Recognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -315,16 +545,16 @@ class KaldiServe final {
   template <class BaseClass>
   class WithGenericMethod_StreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_StreamingRecognize() {
-      ::grpc::Service::MarkMethodGeneric(1);
+      ::grpc::Service::MarkMethodGeneric(2);
     }
     ~WithGenericMethod_StreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* reader, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status StreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* /*reader*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -332,172 +562,295 @@ class KaldiServe final {
   template <class BaseClass>
   class WithGenericMethod_BidiStreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_BidiStreamingRecognize() {
-      ::grpc::Service::MarkMethodGeneric(2);
+      ::grpc::Service::MarkMethodGeneric(3);
     }
     ~WithGenericMethod_BidiStreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* stream)  override {
+    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_ListModels : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_ListModels() {
+      ::grpc::Service::MarkMethodRaw(0);
+    }
+    ~WithRawMethod_ListModels() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ListModels(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestListModels(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
   class WithRawMethod_Recognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_Recognize() {
-      ::grpc::Service::MarkMethodRaw(0);
+      ::grpc::Service::MarkMethodRaw(1);
     }
     ~WithRawMethod_Recognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestRecognize(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
   class WithRawMethod_StreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_StreamingRecognize() {
-      ::grpc::Service::MarkMethodRaw(1);
+      ::grpc::Service::MarkMethodRaw(2);
     }
     ~WithRawMethod_StreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* reader, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status StreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* /*reader*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncClientStreaming(1, context, reader, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncClientStreaming(2, context, reader, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
   class WithRawMethod_BidiStreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_BidiStreamingRecognize() {
-      ::grpc::Service::MarkMethodRaw(2);
+      ::grpc::Service::MarkMethodRaw(3);
     }
     ~WithRawMethod_BidiStreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* stream)  override {
+    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestBidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncBidiStreaming(2, context, stream, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncBidiStreaming(3, context, stream, new_call_cq, notification_cq, tag);
     }
+  };
+  template <class BaseClass>
+  class ExperimentalWithRawCallbackMethod_ListModels : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    ExperimentalWithRawCallbackMethod_ListModels() {
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->ListModels(context, request, response); }));
+    }
+    ~ExperimentalWithRawCallbackMethod_ListModels() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status ListModels(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* ListModels(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* ListModels(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_Recognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_Recognize() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(0,
-        new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this](::grpc::ServerContext* context,
-                 const ::grpc::ByteBuffer* request,
-                 ::grpc::ByteBuffer* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   this->Recognize(context, request, response, controller);
-                 }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->Recognize(context, request, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_Recognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void Recognize(::grpc::ServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* Recognize(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* Recognize(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_StreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_StreamingRecognize() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(1,
-        new ::grpc::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this] { return this->StreamingRecognize(); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(2,
+          new ::grpc_impl::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, ::grpc::ByteBuffer* response) { return this->StreamingRecognize(context, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_StreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status StreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* reader, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status StreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::kaldi_serve::RecognizeRequest>* /*reader*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::experimental::ServerReadReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* StreamingRecognize() {
-      return new ::grpc::internal::UnimplementedReadReactor<
-        ::grpc::ByteBuffer, ::grpc::ByteBuffer>;}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerReadReactor< ::grpc::ByteBuffer>* StreamingRecognize(
+      ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerReadReactor< ::grpc::ByteBuffer>* StreamingRecognize(
+      ::grpc::experimental::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_BidiStreamingRecognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_BidiStreamingRecognize() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(2,
-        new ::grpc::internal::CallbackBidiHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this] { return this->BidiStreamingRecognize(); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(3,
+          new ::grpc_impl::internal::CallbackBidiHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context) { return this->BidiStreamingRecognize(context); }));
     }
     ~ExperimentalWithRawCallbackMethod_BidiStreamingRecognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* stream)  override {
+    ::grpc::Status BidiStreamingRecognize(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::kaldi_serve::RecognizeResponse, ::kaldi_serve::RecognizeRequest>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::experimental::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* BidiStreamingRecognize() {
-      return new ::grpc::internal::UnimplementedBidiReactor<
-        ::grpc::ByteBuffer, ::grpc::ByteBuffer>;}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* BidiStreamingRecognize(
+      ::grpc::CallbackServerContext* /*context*/)
+    #else
+    virtual ::grpc::experimental::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* BidiStreamingRecognize(
+      ::grpc::experimental::CallbackServerContext* /*context*/)
+    #endif
+      { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_ListModels : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_ListModels() {
+      ::grpc::Service::MarkMethodStreamed(0,
+        new ::grpc::internal::StreamedUnaryHandler< ::google::protobuf::Empty, ::kaldi_serve::ModelList>(std::bind(&WithStreamedUnaryMethod_ListModels<BaseClass>::StreamedListModels, this, std::placeholders::_1, std::placeholders::_2)));
+    }
+    ~WithStreamedUnaryMethod_ListModels() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status ListModels(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::kaldi_serve::ModelList* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedListModels(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::kaldi_serve::ModelList>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_Recognize : public BaseClass {
    private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_Recognize() {
-      ::grpc::Service::MarkMethodStreamed(0,
+      ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler< ::kaldi_serve::RecognizeRequest, ::kaldi_serve::RecognizeResponse>(std::bind(&WithStreamedUnaryMethod_Recognize<BaseClass>::StreamedRecognize, this, std::placeholders::_1, std::placeholders::_2)));
     }
     ~WithStreamedUnaryMethod_Recognize() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status Recognize(::grpc::ServerContext* context, const ::kaldi_serve::RecognizeRequest* request, ::kaldi_serve::RecognizeResponse* response) override {
+    ::grpc::Status Recognize(::grpc::ServerContext* /*context*/, const ::kaldi_serve::RecognizeRequest* /*request*/, ::kaldi_serve::RecognizeResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedRecognize(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::kaldi_serve::RecognizeRequest,::kaldi_serve::RecognizeResponse>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_Recognize<Service > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_ListModels<WithStreamedUnaryMethod_Recognize<Service > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_Recognize<Service > StreamedService;
+  typedef WithStreamedUnaryMethod_ListModels<WithStreamedUnaryMethod_Recognize<Service > > StreamedService;
 };
 
 }  // namespace kaldi_serve

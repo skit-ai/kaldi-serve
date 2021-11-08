@@ -1,7 +1,9 @@
+from google.protobuf.empty_pb2 import Empty
 import grpc
 
 from kaldi_serve.kaldi_serve_pb2 import RecognitionConfig, RecognizeRequest
 from kaldi_serve.kaldi_serve_pb2_grpc import KaldiServeStub
+from kaldi_serve.kaldi_serve_pb2_grpc import google_dot_protobuf_dot_empty__pb2 as proto_empty
 
 
 class KaldiServeClient(object):
@@ -14,6 +16,9 @@ class KaldiServeClient(object):
     def __init__(self, kaldi_serve_url="0.0.0.0:5016"):
         self.channel = grpc.insecure_channel(kaldi_serve_url)
         self._client = KaldiServeStub(self.channel)
+
+    def list_models(self, timeout=None):
+        return self._client.ListModels(proto_empty.Empty(), timeout=timeout)
 
     def recognize(self, config: RecognitionConfig, audio, uuid: str, timeout=None):
         request = RecognizeRequest(config=config, audio=audio, uuid=uuid)

@@ -1,7 +1,12 @@
 syntax = "proto3";
+
+import "google/protobuf/empty.proto";
 package kaldi_serve;
 
 service KaldiServe {
+  // Lists all the available loaded models
+  rpc ListModels(google.protobuf.Empty) returns (ModelList) {}
+
   // Performs synchronous non-streaming speech recognition.
   rpc Recognize(RecognizeRequest) returns (RecognizeResponse) {}
 
@@ -12,6 +17,15 @@ service KaldiServe {
   // Performs synchronous bidirectional streaming speech recognition: 
   //    receive results as the audio is being streamed and processed.
   rpc BidiStreamingRecognize(stream RecognizeRequest) returns (stream RecognizeResponse) {}
+}
+
+message ModelList {
+  repeated Model models = 1;
+}
+
+message Model {
+  string name = 1;
+  string language_code = 2;
 }
 
 message RecognizeRequest {
