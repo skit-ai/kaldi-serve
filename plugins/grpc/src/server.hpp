@@ -104,7 +104,13 @@ class KaldiServeImpl final : public kaldi_serve::KaldiServe::Service {
 KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> &model_specs) noexcept {
     for (auto const &model_spec : model_specs) {
         model_id_t model_id = std::make_pair(model_spec.name, model_spec.language_code);
-        decoder_queue_map_[model_id] = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_spec));
+        try {
+            decoder_queue_map_[model_id] = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_spec));;
+        } catch (const std::runtime_error &e) {
+            // Expected while creation of ChainModel. Eg- when kaldi model is missing.
+            // This catch keeps kaldi-serve from exiting due to this error.
+            // Do nothing here. `decoder_queue_map_` will simply not contain an entry for key `model_id`.
+        }
     }
 }
 
