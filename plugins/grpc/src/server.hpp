@@ -107,6 +107,7 @@ KaldiServeImpl::KaldiServeImpl(const std::vector<ModelSpec> &model_specs) noexce
         try {
             decoder_queue_map_[model_id] = std::unique_ptr<DecoderQueue>(new DecoderQueue(model_spec));;
         } catch (const std::runtime_error &e) {
+            std::cerr<<"Model not loaded: ("<<model_id.first<<","<<model_id.second<<"). This raised an error:"<<e.what()<<"\n";
             // Expected while creation of ChainModel. Eg- when kaldi model is missing.
             // This catch keeps kaldi-serve from exiting due to this error.
             // Do nothing here. `decoder_queue_map_` will simply not contain an entry for key `model_id`.
