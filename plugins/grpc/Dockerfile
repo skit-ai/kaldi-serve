@@ -39,7 +39,21 @@ RUN make clean && \
 RUN bash -c "mkdir /so-files/; cp /opt/intel/mkl/lib/intel64/lib*.so /so-files/"
 
 # Stage 2: prod
-FROM debian:jessie-slim
+FROM debian:12-slim
+
+ARG UID=1000
+ARG GID=1000
+
+# Update the package list, install sudo, create a non-root user, and grant password-less sudo permissions
+RUN apt update && \
+    apt install -y sudo && \
+    addgroup --gid $GID nonroot && \
+    adduser --uid $UID --gid $GID --disabled-password --gecos "" nonroot && \
+    echo 'nonroot ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# Set the non-root user as the default user
+USER nonroot
+
 WORKDIR /home/app
 
 COPY --from=builder /root/kaldi-serve/plugins/grpc/build/kaldi_serve_app .
@@ -66,7 +80,7 @@ COPY --from=builder /usr/local/lib/libupb.so* /usr/local/lib/
 COPY --from=builder /so-files /opt/intel/mkl/lib/intel64
 
 # KALDI LIBS
-COPY --from=builder /opt/kaldi/tools/openfst/lib/libfst.so.10 /opt/kaldi/tools/openfst/lib/
+COPY --from=builder /opt/kaldi/tools/openfst/lib/libfst.so.16.0.0 /opt/kaldi/tools/openfst/lib/libfst.so.16
 COPY --from=builder /opt/kaldi/src/lib/libkaldi-*.so /opt/kaldi/src/lib/
 
 # KALDISERVE LIB

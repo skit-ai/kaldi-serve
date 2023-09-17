@@ -38,7 +38,7 @@ build/kaldi_serve_app.o: src/app.cc $(wildcard src/*.hpp)
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=$(PROTOS_PATH) $<
 
 clean:
-	rm -f ./build/* $(PROTOS_PATH)/*.pb.* $(PROTOS_PATH)/*.o
+	rm -rf ./build/* $(PROTOS_PATH)/*.pb.* $(PROTOS_PATH)/*.o
 
 # The following is to test your system and ensure a smoother experience.
 # They are by no means necessary to actually compile a grpc-enabled software.
